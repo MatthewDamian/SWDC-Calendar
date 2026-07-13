@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWDC Calendar</title>
+    <style>
+      * {
+        margin: 0;
+        min-width: 0;
+        min-height: 0;
+        font-family: sans-serif;
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      html {
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        background-color: #47587f;
+        height: 100%;
+      }
+
+      #left-half {
+        flex: 1;
+        background-image: linear-gradient(to right, #232037, #1c1b1b);
+      }
+
+      #logo {
+        margin: 10px;
+        height: 20%;
+        background-image: url('https://images.squarespace-cdn.com/content/v1/5fa31a9e206c8a69fd49cfda/1611602029932-VTFLL1ATNQGALUG35LPA/png.png');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      #help-text {
+        display: flex;
+        display: none;
+        height: 5%;
+        justify-content: space-evenly;
+        align-items: center;
+        color: lightgray;
+      }
+
+      .help-text-item:hover {
+        color: white;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      #display .title {
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 20px;
+      }
+
+      #display .grid {
+        margin: 5px;
+        padding: 5px;
+        font-size: 2cqmin;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px 0;
+        /* border: 1px solid #55577c; */
+      }
+
+      #display .grid .row {
+        display: grid;
+      }
+
+      #display .grid .row:hover {
+        text-shadow: 1px 1px 5px mediumpurple;
+      }
+
+      #right-half {
+        flex: 3;
+      }
+
+      #mode-select {
+        color: lightgray;
+        background-color: #595e68;
+        font-size: 0px; /*Required to make browser stop adding space between divs*/
+        height: 28px;
+      }
+
+      .mode-button {
+        font-size: 16px;
+        font-weight: bold;
+        position: relative;
+        left: 0px;
+        display: inline-block;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 6px 6px 0 0;
+      }
+
+      .mode-button:hover {
+        color: white;
+      }
+
+      .mode-button.active {
+        background-color: white;
+        color: black;
+      }
+
+      #windows {
+        position: absolute;
+        width: 75%;
+        height: calc(100% - 28px);
+      }
+
+      #windows .header {
+        display: flex;
+        background-image: linear-gradient(to bottom, white, lightgray);
+        justify-content: space-between;
+        align-items: center;
+        height: 10%;
+        padding: 0 20px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 4cqmin;
+      }
+
+      #windows .header .nav-btn {
+        font-size: 6cqmin;
+      }
+
+      #windows .header .nav-btn:hover {
+        cursor: pointer;
+      }
+
+      #windows .day {
+        height: 100%;
+      }
+
+      #windows .day .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        height: 90%;
+      }
+
+      #windows .day .grid .top {
+        font-weight: bold;
+        align-content: center;
+        container-type: size;
+        background-image: linear-gradient(to bottom, lightcyan, lightblue);
+      }
+
+      #windows .day .grid .row {
+        align-content: center;
+        container-type: size;
+      }
+
+      #windows .day .grid .side-header {
+        display: inline-block;
+        font-size: 50cqmin;
+        text-align: right;
+        white-space: nowrap;
+        width: 5%;
+      }
+
+      #windows .day .grid .top-header {
+        font-size: 50cqmin;
+        position: absolute;
+        display: inline-block;
+        text-align: center;
+        width: 15%;
+      }
+
+      #windows .day .grid .event {
+        font-size: 50cqmin;
+        display: inline-block;
+        position: absolute;
+        width: 15%;
+        border-radius: 6px;
+        text-align: center;
+        align-content: center;
+      }
+
+      #windows .day .grid .event:hover {
+        box-shadow: 1px 1px 5px black;
+        cursor: pointer;
+      }
+
+      #windows .month {
+        height: 100%;
+      }
+
+      #windows .month .day-header {
+        display: grid;
+        height: 5%;
+        grid-template-columns: repeat(7, 1fr);
+      }
+
+      #windows .month .day-header-item {
+        align-content: center;
+        text-align: center;
+        font-size: 2cqmin;
+        background-image: linear-gradient(to bottom, lightcyan, lightblue);
+        border: 1px solid lightgray;
+        padding: 2px;
+      }
+
+      #windows .month .grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(6, 1fr);
+        height: 85%;
+      }
+
+      #windows .month .grid .box {
+        position: relative;
+        padding: 1px;
+        border: 1px solid lightgray;
+        background-color: white;
+        font-size: 2cqmin;
+      }
+
+      #windows .month .grid .box.inactive {
+        color: #888;
+        background-color: #ccc;
+      }
+
+      #windows .month .grid .box .date {
+        position: absolute;
+      }
+
+      #windows .month .grid .box .name {
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        align-content: center;
+      }
+
+      #windows .year {
+        height: 100%;
+      }
+
+      #windows .year .grid {
+        display: grid;
+        margin-left: auto;
+        height: 90%;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        padding: 2px;
+      }
+
+      #windows .year .grid .month {
+        padding: 2px;
+      }
+
+      #windows .year .grid .month .banner {
+        font-size: 2cqmin;
+        font-weight: bold;
+        text-align: center;
+        align-content: center;
+        background-image: linear-gradient(to bottom, white, lightgray);
+        height: 10%;
+      }
+
+      #windows .year .grid .month .mgrid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(7, 1fr);
+        font-size: 2cqmin;
+        text-align: center;
+        height: 90%;
+      }
+
+      #windows .year .grid .month .mgrid .day-name {
+        background-image: linear-gradient(to bottom, lightcyan, lightblue);
+        border: 1px solid lightgray;
+        align-content: center;
+      }
+
+      #windows .year .grid .month .mgrid .date {
+        position: relative;
+        background-color: white;
+        border: 1px solid lightgray;
+        align-content: center;
+      }
+    </style>
+  </head>
+  
+  <body>
+    
+    <div id="left-half">
+      <div id="logo"></div>
+      <div id="help-text">
+        <div id="check-all" class="help-text-item">Check All</div>
+        <div id="uncheck-all" class="help-text-item">Uncheck All</div>
+      </div>
+      <div id="checklist">
+        <div class="children"></div>
+      </div>
+      <div id="display">
+        <div class="title"></div>
+        <div class="grid"></div>
+      </div>
+    </div>
+    
+    <div id="right-half">
+      <div id="mode-select">
+        <div class="mode-button">Day</div>
+        <div class="mode-button active">Month</div>
+        <div class="mode-button">Year</div>
+      </div>
+      <div id="windows">
+        <div class="day"></div>
+        <div class="month"></div>
+        <div class="year"></div>
+      </div>
+    </div>
+    
+    <script>
+      const state = {
+        'tab': 0,
+        'dayWindow': new Date(),
+        'monthWindow': new Date(),
+        'yearWindow': new Date(),
+      };
+      const eventData = {
+        'colors': {
+        'Nutcracker Rehearsal': 'pink',
+        'No Class': 'darkgray',
+        'Pajama Day': 'skyblue',
+        'Master Class': 'goldenrod',
+        'Parent Observation': 'lightgreen',
+        
+        'Nutcracker Week': 'pink',
+        'School Closure': 'darkgray',
+        'Winter Break': 'skyblue',
+        'Spring Break': 'lightgreen',
+        'Class Observation': 'goldenrod',
+        },
+        'dates': {
+          
+          '7/4/2026': 'Nutcracker Rehearsal',
+          '7/11/2026': 'Nutcracker Rehearsal',
+          '7/18/2026': 'Nutcracker Rehearsal',
+          '7/25/2026': 'Nutcracker Rehearsal',
+          '7/6/2026': 'No Class',
+          '7/7/2026': 'Pajama Day',
+          '7/20/2026': 'Master Class',
+          '7/27/2026': 'Parent Observation',
+          '7/28/2026': 'Parent Observation',
+          '7/29/2026': 'Parent Observation',
+          '7/30/2026': 'Parent Observation',
+          '7/31/2026': 'Parent Observation',
+          
+          '10/26/2026': 'Class Observation',
+          '10/27/2026': 'Class Observation',
+          '10/28/2026': 'Class Observation',
+          '10/29/2026': 'Class Observation',
+          '10/30/2026': 'Class Observation',
+          '1/25/2027': 'Class Observation',
+          '1/26/2027': 'Class Observation',
+          '1/27/2027': 'Class Observation',
+          '1/28/2027': 'Class Observation',
+          '1/29/2027': 'Class Observation',
+          '3/22/2027': 'Class Observation',
+          '3/23/2027': 'Class Observation',
+          '3/24/2027': 'Class Observation',
+          '3/25/2027': 'Class Observation',
+          '3/26/2027': 'Class Observation',
+          '5/24/2027': 'Class Observation',
+          '5/25/2027': 'Class Observation',
+          '5/26/2027': 'Class Observation',
+          '5/27/2027': 'Class Observation',
+          '5/28/2027': 'Class Observation',
+          
+          '9/1/2026': 'School Closure',
+          '10/31/2026': 'School Closure',
+          '11/26/2026': 'School Closure',
+          '11/27/2026': 'School Closure',
+          '11/28/2026': 'School Closure',
+          '11/29/2026': 'School Closure',
+          '11/30/2026': 'School Closure',
+          '12/13/2026': 'Nutcracker Week',
+          '12/14/2026': 'Nutcracker Week',
+          '12/15/2026': 'Nutcracker Week',
+          '12/16/2026': 'Nutcracker Week',
+          '12/17/2026': 'Nutcracker Week',
+          '12/18/2026': 'Nutcracker Week',
+          '12/19/2026': 'Nutcracker Week',
+          '12/20/2026': 'Nutcracker Week',
+          '12/21/2026': 'Nutcracker Week',
+          
+          '12/22/2026': 'Winter Break',
+          '12/23/2026': 'Winter Break',
+          '12/24/2026': 'Winter Break',
+          '12/25/2026': 'Winter Break',
+          '12/26/2026': 'Winter Break',
+          '12/27/2026': 'Winter Break',
+          '12/28/2026': 'Winter Break',
+          '12/29/2026': 'Winter Break',
+          '12/30/2026': 'Winter Break',
+          '12/31/2026': 'Winter Break',
+          '1/1/2027': 'Winter Break',
+          '1/2/2027': 'Winter Break',
+          '1/3/2027': 'Winter Break',
+          '1/4/2027': 'Winter Break',
+          '1/19/2027': 'School Closure',
+          '2/16/2027': 'School Closure',
+          '4/6/2027': 'Spring Break',
+          '4/7/2027': 'Spring Break',
+          '4/8/2027': 'Spring Break',
+          '4/9/2027': 'Spring Break',
+          '4/10/2027': 'Spring Break',
+          '4/11/2027': 'Spring Break',
+          '4/12/2027': 'Spring Break',
+          '5/23/2027': 'School Closure',
+          '5/24/2027': 'School Closure',
+          '5/25/2027': 'School Closure',
+          }
+      }
+      const dayData = {
+        '7/12/2026': [
+          ['Studio C', '9:00 am', '11:30 am', 'Company Class Warm Up', 'lightgreen'],
+          ['Studio C', '11:30 am', '1:00 pm', 'Snow', 'beige'],
+          ['Studio C', '1:00 pm', '4:00 pm', 'Rehearsal', 'skyblue'],
+          ['Studio A', '12:00 pm', '3:00 pm', 'Mirliton Corps', 'pink'],
+          ['Studio A', '3:00 pm', '7:00 pm', 'Ice Skaters', 'lightgreen'],
+          ['Studio B', '12:00 pm', '5:00 pm', 'Mother Ginger', 'goldenrod'],
+          ['Studio D', '9:00 am', '9:00 pm', 'Pictures', 'mediumpurple'],
+          ['Upstairs', '9:00 am', '9:00 pm', 'Costumes', 'gray'],
+          ]
+      }
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const modeSelect = document.getElementById('mode-select');
+      const modeButtons = modeSelect.querySelectorAll('.mode-button');
+      const windows = document.getElementById('windows');
+      const dayWindow = windows.querySelector('.day');
+      const monthWindow = windows.querySelector('.month');
+      const yearWindow = windows.querySelector('.year');
+      const display = document.getElementById('display');
+
+      function addElem(elem, tag, ...classes) {
+        const newElem = document.createElement(tag);
+        newElem.classList.add(...classes);
+        elem.appendChild(newElem);
+        return newElem;
+      }
+      function addText(elem, text, ...classes) {
+        const newElem = addElem(elem, 'span', ...classes);
+        newElem.innerText = text;
+        return newElem;
+      }
+      function dateStr(date) {
+        return date.toLocaleDateString('en-us', {
+          month:'numeric', day:'numeric', year:'numeric'
+          })
+      }
+      function dateNums(date) {
+        return [date.getFullYear(), date.getMonth(), date.getDate()];
+      }
+      function startOfMonth(day) {
+        return new Date(day.getFullYear(), day.getMonth(), 1)
+      }
+      function endOfMonth(day) {
+        return new Date(day.getFullYear(), day.getMonth() + 1, 0)
+      }
+      function startOfWeek(day) {
+        return new Date(day.getFullYear(), day.getMonth(), day.getDate() - day.getDay())
+      }
+      function addTime(date, mode, amount) {
+        const [y, m, d] = dateNums(date);
+        switch (mode.toLowerCase()) {
+          case 'year': return new Date(y + amount, m, 1); break;
+          case 'month': return new Date(y, m + amount, 1); break;
+          case 'day': return new Date(y, m, d + amount); break;
+        }
+      }
+      function selectWindow(index) {
+        for (let i=0; i<windows.children.length; i++) {
+          const check = i == index
+          if (check) state.tab = i;
+          modeSelect.children[i].classList.toggle('active', check);
+          windows.children[i].style.display = check ? '' : 'none';
+        }
+      }
+      function strToHours(timeStr) {
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':').map(Number);
+        if (modifier.toLowerCase() === 'pm' && hours !== 12) {
+          hours += 12;
+        }
+        return hours + (minutes / 60);
+      }
+      function renderDisplay(target, title, template, data) {
+        const titleElem = target.querySelector('.title');
+        const grid = target.querySelector('.grid');
+        titleElem.innerText = title;
+        grid.innerHTML = '';
+        if (data) {
+          for (const [...values] of data) {
+            const row = addElem(grid, 'div', 'row');
+            row.style.gridTemplateColumns = template;
+            row.style.color = values.pop();
+            values.forEach(value => addText(row, value, 'item'));
+          }
+        }
+      }
+      function addWindowHeader(target) {
+        const box = addElem(target, 'div', 'header');
+        const leftBtn = addText(box, '‹', 'nav-btn');
+        const title = addText(box, '', 'title');
+        const rightBtn = addText(box, '›', 'nav-btn');
+        return box;
+      }
+      function buildDayWindow(target, display, startHour, endHour) {
+        target.style.gridTemplateRows = `repeat(${endHour - startHour}}, 1fr)`;
+        const header = addWindowHeader(target);
+        const [prevBtn, nextBtn] = header.querySelectorAll('.nav-btn');
+        prevBtn.addEventListener('click', () => {
+          state.dayWindow = addTime(state.dayWindow, 'day', -1);
+          renderDayWindow(target, display, startHour, endHour, dayData);
+        });
+        nextBtn.addEventListener('click', () => {
+          state.dayWindow = addTime(state.dayWindow, 'day', 1);
+          renderDayWindow(target, display, startHour, endHour, dayData);
+        });
+        const grid = addElem(target, 'div', 'grid');
+        const top = addElem(grid, 'div', 'top');
+        addText(top, 'Time', 'side-header');
+        let time = new Date();
+        time.setHours(startHour, 0, 0, 0);
+        for (let i=startHour; i<=endHour; i++) {
+          const row = addElem(grid, 'div', 'row');
+          const header = addElem(row, 'div', 'side-header');
+          header.innerText = time.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            hour12: true,
+          }).toLowerCase();
+          const color = (i%2 == 0) ? 'white' : 'lightgray';
+          row.style.backgroundColor = color;
+          time.setHours(time.getHours() + 1);
+        }
+      }
+      function renderDayWindow(target, display, startHour, endHour, data) {
+          const title = target.querySelector('.header .title');
+          const grid = target.querySelector('.grid');
+          const rows = grid.children;
+          title.innerText = state.dayWindow.toLocaleDateString('en-us', {
+            month:'long', day:'numeric', year:'numeric'
+          })
+          const key = state.dayWindow.toLocaleDateString('en-us', {
+            month:'numeric', day:'numeric', year:'numeric'
+          });
+          rows[0].innerHTML = rows[0].children[0].outerHTML;
+          rows[1].innerHTML = rows[1].children[0].outerHTML;
+          const locations = [];
+          if (key in data) {
+            for (const [location, start, end, name, color] of data[key]) {
+              let index = locations.indexOf(location) + 1;
+              if (index == 0) {
+              index = locations.length + 1;
+              locations.push(location);
+              const header = addElem(rows[0], 'div', 'top-header');
+              header.innerText = location;
+              header.style.left = `${15*index-8}%`;
+              }
+              const block = addElem(rows[1], 'div', 'event');
+              const offset = strToHours(start) - startHour;
+              const duration = strToHours(end) - strToHours(start);
+              const count = rows.length - 1
+              block.style.top = `${15+85*offset/count}%`;
+              block.style.left = `${15*index-8}%`
+              block.style.height = `${85*duration/count}%`;
+              block.style.backgroundColor = color;
+              block.innerText = name;
+            }
+          }
+          renderDisplay(display, title.innerText, '1fr 1fr 1fr 2fr', data[key]);
+      }
+      function buildMonthWindow(target, display) {
+          const header = addWindowHeader(target);
+          const [prevBtn, nextBtn] = header.querySelectorAll('.nav-btn');
+          prevBtn.addEventListener('click', () => {
+            state.monthWindow = addTime(state.monthWindow, 'month', -1);
+            renderMonthWindow(target, eventData);
+          });
+          nextBtn.addEventListener('click', () => {
+            state.monthWindow = addTime(state.monthWindow, 'month', 1);
+            renderMonthWindow(target, eventData);
+          });
+          const dayHeader = addElem(target, 'div', 'day-header');
+          const grid = addElem(target, 'div', 'grid');
+          for (const name of dayNames) {
+            addText(dayHeader, name, 'day-header-item');
+          }
+          for (let i = 0; i < 42; i++) {
+            const box = addElem(grid, 'div', 'box');
+            const dateText = addElem(box, 'div', 'date');
+            const nameText = addElem(box, 'div', 'name');
+          }
+          return [target, display];
+      }
+      function renderMonthWindow(target, data) {
+        const title = target.querySelector('.header .title');
+        const grid = target.querySelector('.grid');
+        title.innerText = state.monthWindow.toLocaleString('en-US', {month:'long', year:"numeric"});
+        const firstDayOfMonth = startOfMonth(state.monthWindow);
+        const lastDayOfMonth = endOfMonth(state.monthWindow);
+        let day = startOfWeek(firstDayOfMonth);
+        for (let i = 0; i < 42; i++) {
+          const box = grid.children[i];
+          const dateText = box.querySelector('.date');
+          const nameText = box.querySelector('.name');
+          const isActive = day >= firstDayOfMonth && day <= lastDayOfMonth;
+          box.classList.toggle('inactive', !isActive);
+          dateText.innerText = day.getDate();
+          const key = dateStr(day);
+          if (key in data.dates && isActive) {
+            const name = data.dates[key];
+            nameText.innerText = name;
+            box.style.backgroundColor = data.colors[name];
+          } else {
+            nameText.innerText = '';
+            box.style.backgroundColor = '';
+          }
+          day = addTime(day, 'day', 1);
+        }
+      }
+      function buildYearWindow(target, monthOffset, display) {
+        const header = addWindowHeader(target);
+        const [prevBtn, nextBtn] = header.querySelectorAll('.nav-btn');
+        prevBtn.addEventListener('click', () => {
+          state.yearWindow = addTime(state.yearWindow, 'year', -1);
+          renderYearWindow(target, monthOffset, eventData);
+        });
+        nextBtn.addEventListener('click', () => {
+          state.yearWindow = addTime(state.yearWindow, 'year', 1);
+          renderYearWindow(target, monthOffset, eventData);
+        });
+        const grid = addElem(target, 'div', 'grid');
+        for (let i = 0; i < 12; i++) {
+          const month = addElem(grid, 'div', 'month');
+          const banner = addElem(month, 'div', 'banner');
+          const mgrid = addElem(month, 'div', 'mgrid');
+          for (let j = 0; j < 7; j++) addText(mgrid, dayNames[j][0], 'day-name');
+          for (let j = 0; j < 42; j++) addElem(mgrid, 'div', 'date');
+        }
+      }
+      function renderYearWindow(target, monthOffset, data) {
+        const title = target.querySelector('.header .title');
+        const grid = target.querySelector('.grid');
+        let year = state.yearWindow.getFullYear();
+        if (state.yearWindow.getMonth() < monthOffset) year--;
+        if (monthOffset == 0)
+          title.innerText = year;
+        else
+          title.innerText = [year, year + 1].join(' - ');
+        for (let i = 0; i < 12; i++) {
+          const month = new Date(year, i + monthOffset, 1);
+          const monthBox = grid.children[i];
+          const banner = monthBox.querySelector('.banner');
+          const monthGrid = monthBox.querySelector('.mgrid');
+          const firstDay = startOfMonth(month);
+          const lastDay = endOfMonth(month);
+          banner.innerText = month.toLocaleString('en-US', {month:'long', year:'numeric'});
+          for (let j = 0; j < 7; j++) {
+            monthGrid.children[j].innerText = dayNames[j][0];
+          }
+          let day = startOfWeek(firstDay);
+          for (let j = 0; j < 42; j++) {
+            const withinMonth = day >= firstDay && day <= lastDay;
+            const box = monthGrid.children[7 + j];
+            box.innerText = withinMonth ? day.getDate() : '';
+            const key = dateStr(day);
+            if (key in data.dates && withinMonth) {
+              const name = data.dates[key];
+              box.style.backgroundColor = data.colors[name];
+            } else {
+              box.style.backgroundColor = '';
+            }
+            day = addTime(day, 'day', 1);
+          }
+        }
+      }
+
+      buildDayWindow(dayWindow, display, 8, 24);
+      renderDayWindow(dayWindow, display, 8, 24, dayData);
+      buildMonthWindow(monthWindow, display);
+      renderMonthWindow(monthWindow, eventData);
+      buildYearWindow(yearWindow, 6);
+      renderYearWindow(yearWindow, 6, eventData);
+      selectWindow(0);
+
+      modeButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+          selectWindow(index);
+          })
+      })
+
+    </script>
+  
+  </body>
+</html>
