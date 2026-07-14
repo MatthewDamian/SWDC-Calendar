@@ -25,7 +25,7 @@
         height: 100%;
       }
 
-      #left-half {
+      #left-side {
         flex: 1;
         background-image: linear-gradient(to right, #232037, #1c1b1b);
       }
@@ -37,21 +37,6 @@
         background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
-      }
-
-      #help-text {
-        display: flex;
-        display: none;
-        height: 5%;
-        justify-content: space-evenly;
-        align-items: center;
-        color: lightgray;
-      }
-
-      .help-text-item:hover {
-        color: white;
-        text-decoration: underline;
-        cursor: pointer;
       }
 
       #display .title {
@@ -79,18 +64,18 @@
         text-shadow: 1px 1px 5px mediumpurple;
       }
 
-      #right-half {
+      #right-side {
         flex: 3;
       }
 
-      #mode-select {
+      #mode-buttons {
         color: lightgray;
         background-color: #595e68;
         font-size: 0px; /*Required to make browser stop adding space between divs*/
         height: 28px;
       }
 
-      .mode-button {
+      #mode-buttons .button {
         font-size: 16px;
         font-weight: bold;
         position: relative;
@@ -101,11 +86,11 @@
         border-radius: 6px 6px 0 0;
       }
 
-      .mode-button:hover {
+      #mode-buttons .button:hover {
         color: white;
       }
 
-      .mode-button.active {
+      #mode-buttons .button.active {
         background-color: white;
         color: black;
       }
@@ -136,70 +121,68 @@
         cursor: pointer;
       }
 
-      #windows .day {
+      #day-window {
         height: 100%;
       }
 
-      #windows .day .grid {
+      #day-window .grid {
         display: grid;
         grid-template-columns: 1fr;
         height: 90%;
       }
 
-      #windows .day .grid .top {
+      #day-window .grid .top {
         font-weight: bold;
         align-content: center;
-        container-type: size;
         background-image: linear-gradient(to bottom, lightcyan, lightblue);
       }
 
-      #windows .day .grid .row {
+      #day-window .grid .row {
         align-content: center;
-        container-type: size;
       }
 
-      #windows .day .grid .side-header {
+      #day-window .grid .side-header {
         display: inline-block;
-        font-size: 50cqmin;
+        font-size: 2.5cqmin;
         text-align: right;
         white-space: nowrap;
         width: 5%;
       }
 
-      #windows .day .grid .top-header {
-        font-size: 50cqmin;
-        position: absolute;
+      #day-window .grid .top-header {
         display: inline-block;
+        font-size: 2.5cqmin;
+        position: absolute;
         text-align: center;
         width: 15%;
       }
 
-      #windows .day .grid .event {
-        font-size: 50cqmin;
+      #day-window .grid .event {
         display: inline-block;
+        font-size: 2.5cqmin;
         position: absolute;
-        width: 15%;
-        border-radius: 6px;
         text-align: center;
         align-content: center;
+        border-radius: 6px;
+        width: 15%;
       }
 
-      #windows .day .grid .event:hover {
+      #day-window .grid .event:hover {
         box-shadow: 1px 1px 5px black;
         cursor: pointer;
       }
 
-      #windows .month {
+      #month-window {
         height: 100%;
       }
 
-      #windows .month .day-header {
+      #month-window .day-header {
         display: grid;
         height: 5%;
         grid-template-columns: repeat(7, 1fr);
       }
 
-      #windows .month .day-header-item {
+      #month-window .day-header-item {
         align-content: center;
         text-align: center;
         font-size: 2cqmin;
@@ -208,14 +191,14 @@
         padding: 2px;
       }
 
-      #windows .month .grid {
+      #month-window .grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         grid-template-rows: repeat(6, 1fr);
         height: 85%;
       }
 
-      #windows .month .grid .box {
+      #month-window .grid .box {
         position: relative;
         padding: 1px;
         border: 1px solid lightgray;
@@ -223,27 +206,27 @@
         font-size: 2cqmin;
       }
 
-      #windows .month .grid .box.inactive {
+      #month-window .grid .box.inactive {
         color: #888;
         background-color: #ccc;
       }
 
-      #windows .month .grid .box .date {
+      #month-window .grid .box .date {
         position: absolute;
       }
 
-      #windows .month .grid .box .name {
+      #month-window .grid .box .name {
         width: 100%;
         height: 100%;
         text-align: center;
         align-content: center;
       }
 
-      #windows .year {
+      #year-window {
         height: 100%;
       }
 
-      #windows .year .grid {
+      #year-window .grid {
         display: grid;
         margin-left: auto;
         height: 90%;
@@ -252,11 +235,11 @@
         padding: 2px;
       }
 
-      #windows .year .grid .month {
+      #year-window .grid .month {
         padding: 2px;
       }
 
-      #windows .year .grid .month .banner {
+      #year-window .grid .month .banner {
         font-size: 2cqmin;
         font-weight: bold;
         text-align: center;
@@ -265,7 +248,7 @@
         height: 10%;
       }
 
-      #windows .year .grid .month .mgrid {
+      #year-window .grid .month .mgrid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         grid-template-rows: repeat(7, 1fr);
@@ -274,13 +257,13 @@
         height: 90%;
       }
 
-      #windows .year .grid .month .mgrid .day-name {
+      #year-window .grid .month .mgrid .day-name {
         background-image: linear-gradient(to bottom, lightcyan, lightblue);
         border: 1px solid lightgray;
         align-content: center;
       }
 
-      #windows .year .grid .month .mgrid .date {
+      #year-window .grid .month .mgrid .date {
         position: relative;
         background-color: white;
         border: 1px solid lightgray;
@@ -291,31 +274,24 @@
   
   <body>
     
-    <div id="left-half">
+    <div id="left-side">
       <div id="logo"></div>
-      <div id="help-text">
-        <div id="check-all" class="help-text-item">Check All</div>
-        <div id="uncheck-all" class="help-text-item">Uncheck All</div>
-      </div>
-      <div id="checklist">
-        <div class="children"></div>
-      </div>
       <div id="display">
         <div class="title"></div>
         <div class="grid"></div>
       </div>
     </div>
     
-    <div id="right-half">
-      <div id="mode-select">
-        <div class="mode-button">Day</div>
-        <div class="mode-button active">Month</div>
-        <div class="mode-button">Year</div>
+    <div id="right-side">
+      <div id="mode-buttons">
+        <div class="button">Day</div>
+        <div class="button">Month</div>
+        <div class="button">Year</div>
       </div>
       <div id="windows">
-        <div class="day"></div>
-        <div class="month"></div>
-        <div class="year"></div>
+        <div id="day-window"></div>
+        <div id="month-window"></div>
+        <div id="year-window"></div>
       </div>
     </div>
     
@@ -434,12 +410,11 @@
           ]
       }
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const modeSelect = document.getElementById('mode-select');
-      const modeButtons = modeSelect.querySelectorAll('.mode-button');
+      const modeButtons = document.getElementById('mode-buttons');
       const windows = document.getElementById('windows');
-      const dayWindow = windows.querySelector('.day');
-      const monthWindow = windows.querySelector('.month');
-      const yearWindow = windows.querySelector('.year');
+      const dayWindow = document.getElementById('day-window');
+      const monthWindow = document.getElementById('month-window');
+      const yearWindow = document.getElementById('year-window');
       const display = document.getElementById('display');
 
       function addElem(elem, tag, ...classes) {
@@ -471,27 +446,33 @@
         return new Date(day.getFullYear(), day.getMonth(), day.getDate() - day.getDay())
       }
       function addTime(date, mode, amount) {
-        const [y, m, d] = dateNums(date);
         switch (mode.toLowerCase()) {
-          case 'year': return new Date(y + amount, m, 1); break;
-          case 'month': return new Date(y, m + amount, 1); break;
-          case 'day': return new Date(y, m, d + amount); break;
+          case 'year':
+            date.setDate(1);
+            date.setFullYear(date.getFullYear() + amount);
+            break;
+          case 'month':
+            date.setDate(1);
+            date.setMonth(date.getMonth() + amount);
+            break;
+          case 'day':
+            date.setDate(date.getDate() + amount);
+            break;
         }
       }
       function selectWindow(index) {
         for (let i=0; i<windows.children.length; i++) {
           const check = i == index
           if (check) state.tab = i;
-          modeSelect.children[i].classList.toggle('active', check);
+          modeButtons.children[i].classList.toggle('active', check);
           windows.children[i].style.display = check ? '' : 'none';
         }
       }
       function strToHours(timeStr) {
         const [time, modifier] = timeStr.split(' ');
         let [hours, minutes] = time.split(':').map(Number);
-        if (modifier.toLowerCase() === 'pm' && hours !== 12) {
-          hours += 12;
-        }
+        if (hours == 12) hours = 0;
+        if (modifier.toLowerCase() == 'pm') hours += 12;
         return hours + (minutes / 60);
       }
       function renderDisplay(target, title, template, data) {
@@ -508,6 +489,13 @@
           }
         }
       }
+      function registerModeButtons(parent) {
+        [...parent.children].forEach((button, index) => {
+          button.addEventListener('click', () => {
+            selectWindow(index);
+          })
+        })
+      }
       function addWindowHeader(target) {
         const box = addElem(target, 'div', 'header');
         const leftBtn = addText(box, '‹', 'nav-btn');
@@ -520,11 +508,11 @@
         const header = addWindowHeader(target);
         const [prevBtn, nextBtn] = header.querySelectorAll('.nav-btn');
         prevBtn.addEventListener('click', () => {
-          state.dayWindow = addTime(state.dayWindow, 'day', -1);
+          addTime(state.dayWindow, 'day', -1);
           renderDayWindow(target, display, startHour, endHour, dayData);
         });
         nextBtn.addEventListener('click', () => {
-          state.dayWindow = addTime(state.dayWindow, 'day', 1);
+          addTime(state.dayWindow, 'day', 1);
           renderDayWindow(target, display, startHour, endHour, dayData);
         });
         const grid = addElem(target, 'div', 'grid');
@@ -534,11 +522,11 @@
         time.setHours(startHour, 0, 0, 0);
         for (let i=startHour; i<=endHour; i++) {
           const row = addElem(grid, 'div', 'row');
-          const header = addElem(row, 'div', 'side-header');
-          header.innerText = time.toLocaleTimeString('en-US', {
+          const headerText = time.toLocaleTimeString('en-US', {
             hour: 'numeric',
             hour12: true,
           }).toLowerCase();
+          addText(row, headerText, 'side-header');
           const color = (i%2 == 0) ? 'white' : 'lightgray';
           row.style.backgroundColor = color;
           time.setHours(time.getHours() + 1);
@@ -563,8 +551,7 @@
               if (index == 0) {
               index = locations.length + 1;
               locations.push(location);
-              const header = addElem(rows[0], 'div', 'top-header');
-              header.innerText = location;
+              const header = addText(rows[0], location, 'top-header');
               header.style.left = `${15*index-8}%`;
               }
               const block = addElem(rows[1], 'div', 'event');
@@ -584,12 +571,12 @@
           const header = addWindowHeader(target);
           const [prevBtn, nextBtn] = header.querySelectorAll('.nav-btn');
           prevBtn.addEventListener('click', () => {
-            state.monthWindow = addTime(state.monthWindow, 'month', -1);
-            renderMonthWindow(target, eventData);
+            addTime(state.monthWindow, 'month', -1);
+            renderMonthWindow(target, display, eventData);
           });
           nextBtn.addEventListener('click', () => {
-            state.monthWindow = addTime(state.monthWindow, 'month', 1);
-            renderMonthWindow(target, eventData);
+            addTime(state.monthWindow, 'month', 1);
+            renderMonthWindow(target, display, eventData);
           });
           const dayHeader = addElem(target, 'div', 'day-header');
           const grid = addElem(target, 'div', 'grid');
@@ -603,7 +590,7 @@
           }
           return [target, display];
       }
-      function renderMonthWindow(target, data) {
+      function renderMonthWindow(target, display, data) {
         const title = target.querySelector('.header .title');
         const grid = target.querySelector('.grid');
         title.innerText = state.monthWindow.toLocaleString('en-US', {month:'long', year:"numeric"});
@@ -626,18 +613,18 @@
             nameText.innerText = '';
             box.style.backgroundColor = '';
           }
-          day = addTime(day, 'day', 1);
+          addTime(day, 'day', 1);
         }
       }
       function buildYearWindow(target, monthOffset, display) {
         const header = addWindowHeader(target);
         const [prevBtn, nextBtn] = header.querySelectorAll('.nav-btn');
         prevBtn.addEventListener('click', () => {
-          state.yearWindow = addTime(state.yearWindow, 'year', -1);
+          addTime(state.yearWindow, 'year', -1);
           renderYearWindow(target, monthOffset, eventData);
         });
         nextBtn.addEventListener('click', () => {
-          state.yearWindow = addTime(state.yearWindow, 'year', 1);
+          addTime(state.yearWindow, 'year', 1);
           renderYearWindow(target, monthOffset, eventData);
         });
         const grid = addElem(target, 'div', 'grid');
@@ -671,35 +658,30 @@
           }
           let day = startOfWeek(firstDay);
           for (let j = 0; j < 42; j++) {
-            const withinMonth = day >= firstDay && day <= lastDay;
             const box = monthGrid.children[7 + j];
-            box.innerText = withinMonth ? day.getDate() : '';
-            const key = dateStr(day);
-            if (key in data.dates && withinMonth) {
-              const name = data.dates[key];
-              box.style.backgroundColor = data.colors[name];
+            const withinMonth = firstDay <= day && day <= lastDay;
+            if (withinMonth) {
+              box.innerText = day.getDate();
+              const entry = data.dates[dateStr(day)];
+              box.style.backgroundColor = entry ? data.colors[entry] : '';
             } else {
+              box.innerText = '';
               box.style.backgroundColor = '';
             }
-            day = addTime(day, 'day', 1);
+            addTime(day, 'day', 1);
           }
         }
       }
-
+      
+      registerModeButtons(modeButtons);
       buildDayWindow(dayWindow, display, 8, 24);
       renderDayWindow(dayWindow, display, 8, 24, dayData);
       buildMonthWindow(monthWindow, display);
-      renderMonthWindow(monthWindow, eventData);
+      renderMonthWindow(monthWindow, display, eventData);
       buildYearWindow(yearWindow, 6);
       renderYearWindow(yearWindow, 6, eventData);
       selectWindow(0);
-
-      modeButtons.forEach((button, index) => {
-        button.addEventListener('click', () => {
-          selectWindow(index);
-          })
-      })
-
+      
     </script>
   
   </body>
