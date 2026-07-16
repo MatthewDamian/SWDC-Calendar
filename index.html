@@ -417,14 +417,16 @@
       const yearWindow = document.getElementById('year-window');
       const display = document.getElementById('display');
 
-      function addElem(elem, tag, ...classes) {
-        const newElem = document.createElement(tag);
+      function addDiv(elem, ...classes) {
+        const newElem = document.createElement('div');
         newElem.classList.add(...classes);
         elem.appendChild(newElem);
         return newElem;
       }
-      function addText(elem, text, ...classes) {
-        const newElem = addElem(elem, 'span', ...classes);
+      function addSpan(elem, text, ...classes) {
+        const newElem = document.createElement('span');
+        newElem.classList.add(...classes);
+        elem.appendChild(newElem);
         newElem.innerText = text;
         return newElem;
       }
@@ -482,10 +484,10 @@
         grid.innerHTML = '';
         if (data) {
           for (const [...values] of data) {
-            const row = addElem(grid, 'div', 'row');
+            const row = addDiv(grid, 'row');
             row.style.gridTemplateColumns = template;
             row.style.color = values.pop();
-            values.forEach(value => addText(row, value, 'item'));
+            values.forEach(value => addSpan(row, value, 'item'));
           }
         }
       }
@@ -497,10 +499,10 @@
         })
       }
       function addWindowHeader(target) {
-        const box = addElem(target, 'div', 'header');
-        const leftBtn = addText(box, '‹', 'nav-btn');
-        const title = addText(box, '', 'title');
-        const rightBtn = addText(box, '›', 'nav-btn');
+        const box = addDiv(target, 'header');
+        const leftBtn = addSpan(box, '‹', 'nav-btn');
+        const title = addSpan(box, '', 'title');
+        const rightBtn = addSpan(box, '›', 'nav-btn');
         return box;
       }
       function buildDayWindow(target, display, startHour, endHour) {
@@ -515,18 +517,18 @@
           addTime(state.dayWindow, 'day', 1);
           renderDayWindow(target, display, startHour, endHour, dayData);
         });
-        const grid = addElem(target, 'div', 'grid');
-        const top = addElem(grid, 'div', 'top');
-        addText(top, 'Time', 'side-header');
+        const grid = addDiv(target, 'grid');
+        const top = addDiv(grid, 'top');
+        addSpan(top, 'Time', 'side-header');
         let time = new Date();
         time.setHours(startHour, 0, 0, 0);
         for (let i=startHour; i<=endHour; i++) {
-          const row = addElem(grid, 'div', 'row');
+          const row = addDiv(grid, 'row');
           const headerText = time.toLocaleTimeString('en-US', {
             hour: 'numeric',
             hour12: true,
           }).toLowerCase();
-          addText(row, headerText, 'side-header');
+          addSpan(row, headerText, 'side-header');
           const color = (i%2 == 0) ? 'white' : 'lightgray';
           row.style.backgroundColor = color;
           time.setHours(time.getHours() + 1);
@@ -551,10 +553,10 @@
               if (index == 0) {
               index = locations.length + 1;
               locations.push(location);
-              const header = addText(rows[0], location, 'top-header');
+              const header = addSpan(rows[0], location, 'top-header');
               header.style.left = `${15*index-8}%`;
               }
-              const block = addElem(rows[1], 'div', 'event');
+              const block = addDiv(rows[1], 'event');
               const offset = strToHours(start) - startHour;
               const duration = strToHours(end) - strToHours(start);
               const count = rows.length - 1
@@ -578,15 +580,15 @@
             addTime(state.monthWindow, 'month', 1);
             renderMonthWindow(target, display, eventData);
           });
-          const dayHeader = addElem(target, 'div', 'day-header');
-          const grid = addElem(target, 'div', 'grid');
+          const dayHeader = addDiv(target, 'day-header');
+          const grid = addDiv(target, 'grid');
           for (const name of dayNames) {
-            addText(dayHeader, name, 'day-header-item');
+            addSpan(dayHeader, name, 'day-header-item');
           }
           for (let i = 0; i < 42; i++) {
-            const box = addElem(grid, 'div', 'box');
-            const dateText = addElem(box, 'div', 'date');
-            const nameText = addElem(box, 'div', 'name');
+            const box = addDiv(grid, 'box');
+            const dateText = addDiv(box, 'date');
+            const nameText = addDiv(box, 'name');
           }
           return [target, display];
       }
@@ -627,13 +629,13 @@
           addTime(state.yearWindow, 'year', 1);
           renderYearWindow(target, monthOffset, eventData);
         });
-        const grid = addElem(target, 'div', 'grid');
+        const grid = addDiv(target, 'grid');
         for (let i = 0; i < 12; i++) {
-          const month = addElem(grid, 'div', 'month');
-          const banner = addElem(month, 'div', 'banner');
-          const mgrid = addElem(month, 'div', 'mgrid');
-          for (let j = 0; j < 7; j++) addText(mgrid, dayNames[j][0], 'day-name');
-          for (let j = 0; j < 42; j++) addElem(mgrid, 'div', 'date');
+          const month = addDiv(grid, 'month');
+          const banner = addDiv(month, 'banner');
+          const mgrid = addDiv(month, 'mgrid');
+          for (let j = 0; j < 7; j++) addSpan(mgrid, dayNames[j][0], 'day-name');
+          for (let j = 0; j < 42; j++) addDiv(mgrid, 'date');
         }
       }
       function renderYearWindow(target, monthOffset, data) {
