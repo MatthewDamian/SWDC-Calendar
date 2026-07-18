@@ -38,7 +38,35 @@
         background-position: center;
         background-repeat: no-repeat;
       }
-
+      
+      #display {
+        text-align: center;
+      }
+      
+      #day-display, #month-display, #year-display {
+        text-align: left;
+        display: none;
+        font-size: 14px;
+        padding: 5px;
+        gap: 10px;
+      }
+      
+      #day-display.selected, #month-display.selected, #year-display.selected {
+        display: inline-grid;
+      }
+      
+      #day-display {
+        grid-template-columns: 1fr 1fr 1fr 2fr;
+      }
+      
+      #month-display {
+        grid-template-columns: 1fr 2fr;
+      }
+      
+      #year-display {
+        grid-template-columns: 1fr 2fr;
+      }
+      
       #display .title {
         color: white;
         font-weight: bold;
@@ -143,10 +171,11 @@
       
       #window-banner .button:hover {
         cursor: pointer;
+        box-shadow: 1px 1px 3px gray;
       }
       
       #window-banner .button:active {
-        box-shadow: inset 1px 1px 1px gray;
+        box-shadow: inset 1px 1px 3px gray;
         background-image: linear-gradient(to bottom, lightgray, white);
       }
 
@@ -533,7 +562,10 @@
       }
       function render(index) {
         const w = windows[index]
-        w.render(index == 0 ? dayData : eventData);
+        const data = index == 0 ? dayData : eventData
+        w.render(data);
+        displayObj.select(index);
+        displayObj.render(w, data);
         switch (index) {
           case 0: 
             title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
@@ -558,6 +590,69 @@
         render(index);
       }
       
+      class Display {
+        constructor() {
+          this.tables = [];
+          this.tables.push(document.createElement('div'));
+          this.tables.push(document.createElement('div'));
+          this.tables.push(document.createElement('div'));
+          this.tables[0].id = 'day-display';
+          this.tables[1].id = 'month-display';
+          this.tables[2].id = 'year-display';
+          this.selector = new Selector(...this.tables);
+        }
+        
+        select(index) {
+          this.selector.select(index);
+          const data = index == 0 ? dayData : eventData;
+        }
+        
+        render(w, data) {
+          const index = this.selector.index;
+          const elem = this.tables[this.selector.index];
+          switch (index) {
+            case 0:
+              elem.innerHTML = '';
+              const dataTable = data[dateStr(w.date)];
+              if (!dataTable) return;
+              for (const [...params] of dataTable) {
+                const color = params.pop();
+                params.forEach(item => {
+                  const s = addSpan(elem, item);
+                  s.style.color = color;
+                });
+              }
+              break;
+            case 1:
+              elem.innerHTML = '';
+              const firstDay = startOfMonth(w.date);
+              const lastDay = endOfMonth(w.date);
+              let day = firstDay;
+              while (day <= lastDay) {
+                const key = dateStr(day);
+                const event = data.dates[key];
+                if (event) {
+                  const k = addSpan(elem, key);
+                  const e = addSpan(elem, event);
+                  k.style.color = data.colors[event];
+                  e.style.color = data.colors[event];
+                  k.style.textAlign = 'right';
+                };
+                addTime(day, 'day', 1);
+              }
+              break;
+            case 2:
+              elem.innerHTML = '';
+              for (const [name, color] of Object.entries(data.colors)) {
+                const c = addSpan(elem, color);
+                const n = addSpan(elem, name);
+                c.style.color = color;
+                n.style.color = color;
+              }
+              break;
+          }
+        }
+      }
       class DayWindow {
         constructor(startHour, endHour) {
           this.startHour = startHour;
@@ -727,6 +822,9 @@
       const windowElems = windows.map(w => w.elem)
       const windowSelector = new Selector(...windowElems);
       const modeSelector = new Selector(...modeButtons.children);
+      
+      const displayObj = new Display();
+      display.append(...displayObj.tables);
       
       windowWrapper.append(...windowElems);
       [...modeButtons.children].forEach((button, index) => {
