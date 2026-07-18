@@ -68,57 +68,86 @@
         flex: 3;
       }
 
-      #mode-buttons {
-        color: lightgray;
-        background-color: #595e68;
-        font-size: 0px; /*Required to make browser stop adding space between divs*/
-        height: 28px;
-      }
-
-      #mode-buttons .button {
-        font-size: 16px;
-        font-weight: bold;
-        position: relative;
-        left: 0px;
-        display: inline-block;
-        padding: 5px 10px;
-        cursor: pointer;
-        border-radius: 6px 6px 0 0;
-      }
-
-      #mode-buttons .button:hover {
-        color: white;
-      }
-
-      #mode-buttons .button.selected {
-        background-color: white;
-        color: black;
-      }
-
       #windows {
         position: absolute;
         width: 75%;
-        height: calc(100% - 28px);
+        height: 90%;
       }
 
-      #windows .header {
+      #window-banner {
         display: flex;
+        position: relative;
         background-image: linear-gradient(to bottom, white, lightgray);
         justify-content: space-between;
         align-items: center;
         height: 10%;
-        padding: 0 20px;
+        padding: 0 10px;
         text-align: center;
         font-weight: bold;
-        font-size: 4cqmin;
+        font-size: 26px;
+      }
+      
+      #mode-buttons {
+        color: gray;
+        font-size: 0px; /*Required to make browser stop adding space between divs*/
+        height: 28px;
       }
 
-      #windows .header .nav-btn {
-        font-size: 6cqmin;
-      }
-
-      #windows .header .nav-btn:hover {
+      #mode-buttons div {
+        font-size: 16px;
+        font-weight: bold;
+        left: 0px;
+        display: inline-block;
+        padding: 5px 10px;
         cursor: pointer;
+        border-radius: 6px;
+      }
+
+      #mode-buttons div:hover {
+        background-color: lightgray;
+      }
+
+      #mode-buttons div.selected {
+        background-color: #595e68;
+        color: white;
+      }
+
+      #window-banner .header {
+        display: flex;
+        position: absolute;
+        left: 50%;
+        width: 30%;
+        transform: translate(-50%, 0);
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      #window-banner .header .nav-btn {
+        font-size: 6cqmin;
+        transform: translate(0, -7%);
+      }
+
+      #window-banner .header .nav-btn:hover {
+        cursor: pointer;
+      }
+      
+      #window-banner .button {
+        font-size: 16px;
+        font-weight: bold;
+        border: 1px solid gray;
+        border-radius: 6px;
+        box-shadow: 1px 1px 1px gray;
+        background-image: linear-gradient(to bottom, white, lightgray);
+        padding: 4px;
+      }
+      
+      #window-banner .button:hover {
+        cursor: pointer;
+      }
+      
+      #window-banner .button:active {
+        box-shadow: inset 1px 1px 1px gray;
+        background-image: linear-gradient(to bottom, lightgray, white);
       }
 
       #day-window {
@@ -133,7 +162,7 @@
       #day-window .grid {
         display: grid;
         grid-template-columns: 1fr;
-        height: 90%;
+        height: 100%;
       }
 
       #day-window .grid .top {
@@ -205,7 +234,7 @@
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         grid-template-rows: repeat(6, 1fr);
-        height: 85%;
+        height: 95%;
       }
 
       #month-window .grid .box {
@@ -244,7 +273,7 @@
       #year-window .grid {
         display: grid;
         margin-left: auto;
-        height: 90%;
+        height: 100%;
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: repeat(3, 1fr);
         padding: 2px;
@@ -298,10 +327,18 @@
     </div>
     
     <div id="right-side">
-      <div id="mode-buttons">
-        <div class="button">Day</div>
-        <div class="button">Month</div>
-        <div class="button">Year</div>
+      <div id="window-banner">
+        <div id="mode-buttons">
+          <div>Day</div>
+          <div>Month</div>
+          <div>Year</div>
+        </div>
+        <div class="header">
+          <div class="nav-btn">‹</div>
+          <div class="title-text"></div>
+          <div class="nav-btn">›</div>
+        </div>
+        <div id="today-button" class="button">Today</div>
       </div>
       <div id="windows">
       </div>
@@ -436,10 +473,8 @@
         newElem.innerText = text;
         return newElem;
       }
-      function dateStr(date) {
-        return date.toLocaleDateString('en-us', {
-          month:'numeric', day:'numeric', year:'numeric'
-          })
+      function dateStr(date, options={day:'numeric', month:'numeric', year:'numeric'}) {
+        return date.toLocaleDateString('en-us', options);
       }
       function dateNums(date) {
         return [date.getFullYear(), date.getMonth(), date.getDate()];
@@ -497,7 +532,25 @@
         return box;
       }
       function render(index) {
-        windows[index].render(index == 0 ? dayData : eventData);
+        const w = windows[index]
+        w.render(index == 0 ? dayData : eventData);
+        switch (index) {
+          case 0: 
+            title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
+            break;
+          case 1:
+            title.innerText = dateStr(w.date, {month:'long', year:'numeric'});
+            break;
+          case 2:
+            if (w.monthOffset == 0) {
+              title.innerText = dateStr(w.date, {year: 'numeric'});
+            } else {
+              const year = w.date.getFullYear();
+              if (w.date.getMonth() < w.monthOffset) year--;
+              title.innerText = `${year} - ${year+1}`;
+            }
+            break;
+        }
       }
       function selectTab(index) {
         modeSelector.select(index);
@@ -513,8 +566,6 @@
           this.elem = document.createElement('div');
           this.elem.id = 'day-window';
           this.elem.style.gridTemplateRows = `repeat(${endHour - startHour}}, 1fr)`;
-          const header = addWindowHeader(this.elem);
-          const [prevBtn, nextBtn] = header.querySelectorAll('.nav-btn');
           const grid = addDiv(this.elem, 'grid');
           const top = addDiv(grid, 'top');
           addSpan(top, 'Time', 'side-header');
@@ -534,12 +585,8 @@
         }
         
         render(data) {
-          const title = this.elem.querySelector('.header .title');
           const grid = this.elem.querySelector('.grid');
           const rows = grid.children;
-          title.innerText = this.date.toLocaleDateString('en-us', {
-            month:'long', day:'numeric', year:'numeric'
-          })
           const key = this.date.toLocaleDateString('en-us', {
             month:'numeric', day:'numeric', year:'numeric'
           });
@@ -573,7 +620,6 @@
           this.date = new Date();
           this.elem = document.createElement('div');
           this.elem.id = 'month-window';
-          const header = addWindowHeader(this.elem);
           const dayHeader = addDiv(this.elem, 'day-header');
           const grid = addDiv(this.elem, 'grid');
           for (const name of dayNames) {
@@ -587,9 +633,7 @@
         }
         
         render(data) {
-          const title = this.elem.querySelector('.header .title');
           const grid = this.elem.querySelector('.grid');
-          title.innerText = this.date.toLocaleString('en-US', {month:'long', year:"numeric"});
           const firstDayOfMonth = startOfMonth(this.date);
           const lastDayOfMonth = endOfMonth(this.date);
           let day = startOfWeek(firstDayOfMonth);
@@ -619,7 +663,6 @@
           this.date = new Date();
           this.elem = document.createElement('div');
           this.elem.id = 'year-window';
-          const header = addWindowHeader(this.elem);
           const grid = addDiv(this.elem, 'grid');
           for (let i = 0; i < 12; i++) {
             const month = addDiv(grid, 'month');
@@ -631,14 +674,9 @@
         }
         
         render(data) {
-          const title = this.elem.querySelector('.header .title');
           const grid = this.elem.querySelector('.grid');
           let year = this.date.getFullYear();
           if (this.date.getMonth() < this.monthOffset) year--;
-          if (this.monthOffset == 0)
-            title.innerText = year;
-          else
-            title.innerText = [year, year + 1].join(' - ');
           for (let i = 0; i < 12; i++) {
             const month = new Date(year, i + this.monthOffset, 1);
             const monthBox = grid.children[i];
@@ -694,15 +732,24 @@
       [...modeButtons.children].forEach((button, index) => {
         button.addEventListener('click', () => selectTab(index))
       })
-      let [lnav, rnav] = windowElems[0].querySelectorAll('.nav-btn');
-      lnav.addEventListener('click', () => {addTime(windows[0].date, 'day', -1); render(0)});
-      rnav.addEventListener('click', () => {addTime(windows[0].date, 'day', 1); render(0)});
-      [lnav, rnav] = windowElems[1].querySelectorAll('.nav-btn');
-      lnav.addEventListener('click', () => {addTime(windows[1].date, 'month', -1); render(1)});
-      rnav.addEventListener('click', () => {addTime(windows[1].date, 'month', 1); render(1)});
-      [lnav, rnav] = windowElems[2].querySelectorAll('.nav-btn');
-      lnav.addEventListener('click', () => {addTime(windows[2].date, 'year', -1); render(2)});
-      rnav.addEventListener('click', () => {addTime(windows[2].date, 'year', 1); render(2)});
+      
+      const windowHeader = document.querySelector('#window-banner .header');
+      const [lnav, title, rnav] = windowHeader.children;
+      lnav.addEventListener('click', () => {
+        const i = modeSelector.index;
+        addTime(windows[i].date, ['day', 'month', 'year'][i], -1);
+        render(i);
+      });
+      rnav.addEventListener('click', () => {
+        const i = modeSelector.index;
+        addTime(windows[i].date, ['day', 'month', 'year'][i], 1);
+        render(i);
+      })
+      const todayButton = document.getElementById('today-button');
+      todayButton.addEventListener('click', () => {
+        windows[modeSelector.index].date.setTime(Date.now());
+        render(modeSelector.index);
+      })
       
       selectTab(0);
     </script>
