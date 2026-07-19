@@ -21,7 +21,7 @@
 
       body {
         display: flex;
-        background-color: #47587f;
+        background-color: #4c4a67;
         height: 100%;
       }
 
@@ -31,23 +31,31 @@
       }
 
       #logo {
-        margin: 10px;
+        padding: 10px;
         height: 20%;
         background-image: url('https://images.squarespace-cdn.com/content/v1/5fa31a9e206c8a69fd49cfda/1611602029932-VTFLL1ATNQGALUG35LPA/png.png');
         background-size: contain;
+        background-origin: content-box;
         background-position: center;
         background-repeat: no-repeat;
       }
       
       #display {
         text-align: center;
+        height: calc(80% - 20px);
+        margin: 10px;
+        border: 1px solid gray;
+        border-radius: 6px;
+        overflow: auto;
+        scrollbar-color: white #1d1c1f;
       }
       
       #day-display, #month-display, #year-display {
-        text-align: left;
         display: none;
-        font-size: 14px;
-        padding: 5px;
+        max-height: 100%;
+        text-align: left;
+        font-size: 0.9cqw;
+        padding: 15px 10px;
         gap: 10px;
       }
       
@@ -56,42 +64,42 @@
       }
       
       #day-display {
-        grid-template-columns: 1fr 1fr 1fr 2fr;
+        grid-template-columns: fit-content(33%) 1fr max-content;
+        text-wrap: balance;
+        text-wrap: pretty;
+      }
+      
+      #day-display .title {
+        grid-column: span 3;
+        color: white;
+        text-align: center;
+        font-size: 1.5cqw;
+      }
+      
+      #day-display .header {
+        color: white;
+        font-weight: bold;
       }
       
       #month-display {
-        grid-template-columns: 1fr 2fr;
+        grid-template-columns: max-content 1fr;
+      }
+      
+      #month-display .title, #year-display .title {
+        grid-column: span 2;
+        color: white;
+        text-align: center;
+        font-size: 1.5cqw;
       }
       
       #year-display {
-        grid-template-columns: 1fr 2fr;
+        grid-template-columns: max-content 1fr;
       }
       
-      #display .title {
-        color: white;
-        font-weight: bold;
-        text-align: center;
-        padding: 20px;
+      #year-display .color-box {
+        aspect-ratio: 1;
       }
-
-      #display .grid {
-        margin: 5px;
-        padding: 5px;
-        font-size: 2cqmin;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px 0;
-        /* border: 1px solid #55577c; */
-      }
-
-      #display .grid .row {
-        display: grid;
-      }
-
-      #display .grid .row:hover {
-        text-shadow: 1px 1px 5px mediumpurple;
-      }
-
+      
       #right-side {
         flex: 3;
       }
@@ -112,17 +120,16 @@
         padding: 0 10px;
         text-align: center;
         font-weight: bold;
-        font-size: 26px;
+        font-size: 2cqw;
       }
       
       #mode-buttons {
         color: gray;
         font-size: 0px; /*Required to make browser stop adding space between divs*/
-        height: 28px;
       }
 
       #mode-buttons div {
-        font-size: 16px;
+        font-size: 1.25cqw;
         font-weight: bold;
         left: 0px;
         display: inline-block;
@@ -151,7 +158,7 @@
       }
       
       #window-banner .header .nav-btn {
-        font-size: 6cqmin;
+        font-size: 3cqw;
         transform: translate(0, -7%);
       }
 
@@ -160,7 +167,7 @@
       }
       
       #window-banner .button {
-        font-size: 16px;
+        font-size: 1.25cqw;
         font-weight: bold;
         border: 1px solid gray;
         border-radius: 6px;
@@ -192,6 +199,7 @@
         display: grid;
         grid-template-columns: 1fr;
         height: 100%;
+        font-size: 1.25cqw;
       }
 
       #day-window .grid .top {
@@ -206,7 +214,6 @@
 
       #day-window .grid .side-header {
         display: inline-block;
-        font-size: 2.5cqmin;
         text-align: right;
         white-space: nowrap;
         width: 5%;
@@ -214,7 +221,6 @@
 
       #day-window .grid .top-header {
         display: inline-block;
-        font-size: 2.5cqmin;
         position: absolute;
         text-align: center;
         width: 15%;
@@ -222,7 +228,6 @@
 
       #day-window .grid .event {
         display: inline-block;
-        font-size: 2.5cqmin;
         position: absolute;
         text-align: center;
         align-content: center;
@@ -253,7 +258,7 @@
       #month-window .day-header-item {
         align-content: center;
         text-align: center;
-        font-size: 2cqmin;
+        font-size: 1cqw;
         background-image: linear-gradient(to bottom, lightcyan, lightblue);
         border: 1px solid lightgray;
         padding: 2px;
@@ -271,7 +276,7 @@
         padding: 1px;
         border: 1px solid lightgray;
         background-color: white;
-        font-size: 2cqmin;
+        font-size: 1cqw;
       }
 
       #month-window .grid .box.inactive {
@@ -313,7 +318,7 @@
       }
 
       #year-window .grid .month .banner {
-        font-size: 2cqmin;
+        font-size: 1cqw;
         font-weight: bold;
         text-align: center;
         align-content: center;
@@ -325,7 +330,7 @@
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         grid-template-rows: repeat(7, 1fr);
-        font-size: 2cqmin;
+        font-size: 1cqw;
         text-align: center;
         height: 90%;
       }
@@ -350,8 +355,6 @@
     <div id="left-side">
       <div id="logo"></div>
       <div id="display">
-        <div class="title"></div>
-        <div class="grid"></div>
       </div>
     </div>
     
@@ -613,10 +616,14 @@
           switch (index) {
             case 0:
               elem.innerHTML = '';
+              addSpan(elem, 'Schedule', 'title');
+              addSpan(elem, '', 'title');
               const dataTable = data[dateStr(w.date)];
               if (!dataTable) return;
               for (const [...params] of dataTable) {
                 const color = params.pop();
+                params.unshift(params.pop());
+                params[2] = params[2] + ' - ' + params.pop();
                 params.forEach(item => {
                   const s = addSpan(elem, item);
                   s.style.color = color;
@@ -625,6 +632,8 @@
               break;
             case 1:
               elem.innerHTML = '';
+              addSpan(elem, 'Events', 'title');
+              addSpan(elem, '', 'title');
               const firstDay = startOfMonth(w.date);
               const lastDay = endOfMonth(w.date);
               let day = firstDay;
@@ -643,10 +652,12 @@
               break;
             case 2:
               elem.innerHTML = '';
+              addSpan(elem, 'Legend', 'title');
+              addSpan(elem, '', 'title');
               for (const [name, color] of Object.entries(data.colors)) {
-                const c = addSpan(elem, color);
+                const c = addDiv(elem, 'color-box');
                 const n = addSpan(elem, name);
-                c.style.color = color;
+                c.style.backgroundColor = color;
                 n.style.color = color;
               }
               break;
