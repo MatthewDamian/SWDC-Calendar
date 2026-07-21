@@ -46,6 +46,8 @@
         margin: 10px;
         border: 1px solid gray;
         border-radius: 6px;
+        overflow: auto;
+        scrollbar-color: white #1d1c1f;
       }
       
       #day-display, #month-display, #year-display {
@@ -55,8 +57,6 @@
         font-size: 0.9cqw;
         padding: 15px 10px;
         gap: 10px;
-        overflow: auto;
-        scrollbar-color: white #1d1c1f;
       }
       
       #day-display.selected, #month-display.selected, #year-display.selected {
@@ -416,559 +416,447 @@
     
     <script>
       
-      async function main() {
-        const categories = {};
-        const testData = {};
-        
-        fetch('https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv').then(
-          response => response.text().then(
-          data => {
-            let mode;
-            let date;
-            for (const row of data.split(/\r?\n/)) {
-              const contents = row.split(',');
-              const filtered = contents.filter(s => s != '')
-              if (filtered.length == 0) continue;
-              if (filtered.length == 1) {mode = contents[0].toLowerCase(); continue;}
-              if (mode == 'categories') {
-                const [name, color] = contents.slice(1);
-                categories[name] = color;
-              } else if (mode == 'events') {
-                if (contents[0] != '') {
-                  date = contents[0];
-                  let [title, category] = contents.slice(1);
-                  testData[date] = {title:title, category:category, schedule:[]};
-                } else {
-                  const entry = contents.slice(1);
-                  testData[date].schedule.push(entry);
-                }
-              }
+      const categories = {};
+      const testData = {};
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      
+      function addDiv(elem, ...classes) {
+        const newElem = document.createElement('div');
+        newElem.classList.add(...classes);
+        elem.appendChild(newElem);
+        return newElem;
+      }
+      function addSpan(elem, text, ...classes) {
+        const newElem = document.createElement('span');
+        newElem.classList.add(...classes);
+        elem.appendChild(newElem);
+        newElem.innerText = text;
+        return newElem;
+      }
+      function dateStr(date, options={day:'numeric', month:'numeric', year:'numeric'}) {
+        return date.toLocaleDateString('en-us', options);
+      }
+      function dateNums(date) {
+        return [date.getFullYear(), date.getMonth(), date.getDate()];
+      }
+      function startOfMonth(day) {
+        return new Date(day.getFullYear(), day.getMonth(), 1)
+      }
+      function endOfMonth(day) {
+        return new Date(day.getFullYear(), day.getMonth() + 1, 0)
+      }
+      function startOfWeek(day) {
+        return new Date(day.getFullYear(), day.getMonth(), day.getDate() - day.getDay())
+      }
+      function addTime(date, mode, amount) {
+        switch (mode.toLowerCase()) {
+          case 'year':
+            date.setDate(1);
+            date.setFullYear(date.getFullYear() + amount);
+            break;
+          case 'month':
+            date.setDate(1);
+            date.setMonth(date.getMonth() + amount);
+            break;
+          case 'day':
+            date.setDate(date.getDate() + amount);
+            break;
+        }
+      }
+      function strToHours(timeStr) {
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':').map(Number);
+        if (hours == 12) hours = 0;
+        if (modifier.toLowerCase() == 'pm') hours += 12;
+        return hours + (minutes / 60);
+      }
+      function render(index) {
+        const w = windows[index]
+        w.render(testData);
+        displayObj.selector.select(index);
+        displayObj.render(w, testData);
+        switch (index) {
+          case 0:
+            title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
+            break;
+          case 1:
+            title.innerText = dateStr(w.date, {month:'long', year:'numeric'});
+            break;
+          case 2:
+            if (w.monthOffset == 0) {
+              title.innerText = dateStr(w.date, {year: 'numeric'});
+            } else {
+              const year = w.date.getFullYear();
+              if (w.date.getMonth() < w.monthOffset) year--;
+              title.innerText = `${year} - ${year+1}`;
             }
-            render(windowSelector.index);
-          }
-        ));
-        
-        const eventData = {
-          'colors': {
-          'Nutcracker Rehearsal': 'pink',
-          'No Class': 'darkgray',
-          'Pajama Day': 'skyblue',
-          'Master Class': 'goldenrod',
-          'Parent Observation': 'lightgreen',
-          
-          'Nutcracker Week': 'pink',
-          'School Closure': 'darkgray',
-          'Winter Break': 'skyblue',
-          'Spring Break': 'lightgreen',
-          'Class Observation': 'goldenrod',
-          },
-          'dates': {
-            
-            '7/4/2026': 'Nutcracker Rehearsal',
-            '7/11/2026': 'Nutcracker Rehearsal',
-            '7/18/2026': 'Nutcracker Rehearsal',
-            '7/25/2026': 'Nutcracker Rehearsal',
-            '7/6/2026': 'No Class',
-            '7/7/2026': 'Pajama Day',
-            '7/20/2026': 'Master Class',
-            '7/27/2026': 'Parent Observation',
-            '7/28/2026': 'Parent Observation',
-            '7/29/2026': 'Parent Observation',
-            '7/30/2026': 'Parent Observation',
-            '7/31/2026': 'Parent Observation',
-            
-            '10/26/2026': 'Class Observation',
-            '10/27/2026': 'Class Observation',
-            '10/28/2026': 'Class Observation',
-            '10/29/2026': 'Class Observation',
-            '10/30/2026': 'Class Observation',
-            '1/25/2027': 'Class Observation',
-            '1/26/2027': 'Class Observation',
-            '1/27/2027': 'Class Observation',
-            '1/28/2027': 'Class Observation',
-            '1/29/2027': 'Class Observation',
-            '3/22/2027': 'Class Observation',
-            '3/23/2027': 'Class Observation',
-            '3/24/2027': 'Class Observation',
-            '3/25/2027': 'Class Observation',
-            '3/26/2027': 'Class Observation',
-            '5/24/2027': 'Class Observation',
-            '5/25/2027': 'Class Observation',
-            '5/26/2027': 'Class Observation',
-            '5/27/2027': 'Class Observation',
-            '5/28/2027': 'Class Observation',
-            
-            '9/1/2026': 'School Closure',
-            '10/31/2026': 'School Closure',
-            '11/26/2026': 'School Closure',
-            '11/27/2026': 'School Closure',
-            '11/28/2026': 'School Closure',
-            '11/29/2026': 'School Closure',
-            '11/30/2026': 'School Closure',
-            '12/13/2026': 'Nutcracker Week',
-            '12/14/2026': 'Nutcracker Week',
-            '12/15/2026': 'Nutcracker Week',
-            '12/16/2026': 'Nutcracker Week',
-            '12/17/2026': 'Nutcracker Week',
-            '12/18/2026': 'Nutcracker Week',
-            '12/19/2026': 'Nutcracker Week',
-            '12/20/2026': 'Nutcracker Week',
-            '12/21/2026': 'Nutcracker Week',
-            
-            '12/22/2026': 'Winter Break',
-            '12/23/2026': 'Winter Break',
-            '12/24/2026': 'Winter Break',
-            '12/25/2026': 'Winter Break',
-            '12/26/2026': 'Winter Break',
-            '12/27/2026': 'Winter Break',
-            '12/28/2026': 'Winter Break',
-            '12/29/2026': 'Winter Break',
-            '12/30/2026': 'Winter Break',
-            '12/31/2026': 'Winter Break',
-            '1/1/2027': 'Winter Break',
-            '1/2/2027': 'Winter Break',
-            '1/3/2027': 'Winter Break',
-            '1/4/2027': 'Winter Break',
-            '1/19/2027': 'School Closure',
-            '2/16/2027': 'School Closure',
-            '4/6/2027': 'Spring Break',
-            '4/7/2027': 'Spring Break',
-            '4/8/2027': 'Spring Break',
-            '4/9/2027': 'Spring Break',
-            '4/10/2027': 'Spring Break',
-            '4/11/2027': 'Spring Break',
-            '4/12/2027': 'Spring Break',
-            '5/23/2027': 'School Closure',
-            '5/24/2027': 'School Closure',
-            '5/25/2027': 'School Closure',
-            }
+            break;
         }
-        let dayData = {
-          [dateStr(new Date())]: [
-            ['Studio C', '9:00 am', '11:30 am', 'Company Class Warm Up', 'lightgreen'],
-            ['Studio C', '11:30 am', '1:00 pm', 'Snow', 'beige'],
-            ['Studio C', '1:00 pm', '4:00 pm', 'Rehearsal', 'skyblue'],
-            ['Studio A', '12:00 pm', '3:00 pm', 'Mirliton Corps', 'pink'],
-            ['Studio A', '3:00 pm', '7:00 pm', 'Ice Skaters', 'lightgreen'],
-            ['Studio B', '12:00 pm', '5:00 pm', 'Mother Ginger', 'goldenrod'],
-            ['Studio D', '9:00 am', '9:00 pm', 'Pictures', 'mediumpurple'],
-            ['Upstairs', '9:00 am', '9:00 pm', 'Costumes', 'gray'],
-            ]
+      }
+      function selectTab(index) {
+        modeSelector.select(index);
+        windowSelector.select(index);
+        render(index);
+        localStorage.setItem('currentTab', index);
+      }
+      function loadCategoryPage(target, data) {
+        for (const row of data.split(/\r?\n/)) {
+          const contents = row.split(',');
+          const filtered = contents.filter(s => s != '')
+          if (filtered.length == 0) continue;
+          const [name, color] = contents;
+          target[name] = color;
         }
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        
-        function addDiv(elem, ...classes) {
-          const newElem = document.createElement('div');
-          newElem.classList.add(...classes);
-          elem.appendChild(newElem);
-          return newElem;
-        }
-        function addSpan(elem, text, ...classes) {
-          const newElem = document.createElement('span');
-          newElem.classList.add(...classes);
-          elem.appendChild(newElem);
-          newElem.innerText = text;
-          return newElem;
-        }
-        function dateStr(date, options={day:'numeric', month:'numeric', year:'numeric'}) {
-          return date.toLocaleDateString('en-us', options);
-        }
-        function dateNums(date) {
-          return [date.getFullYear(), date.getMonth(), date.getDate()];
-        }
-        function startOfMonth(day) {
-          return new Date(day.getFullYear(), day.getMonth(), 1)
-        }
-        function endOfMonth(day) {
-          return new Date(day.getFullYear(), day.getMonth() + 1, 0)
-        }
-        function startOfWeek(day) {
-          return new Date(day.getFullYear(), day.getMonth(), day.getDate() - day.getDay())
-        }
-        function addTime(date, mode, amount) {
-          switch (mode.toLowerCase()) {
-            case 'year':
-              date.setDate(1);
-              date.setFullYear(date.getFullYear() + amount);
-              break;
-            case 'month':
-              date.setDate(1);
-              date.setMonth(date.getMonth() + amount);
-              break;
-            case 'day':
-              date.setDate(date.getDate() + amount);
-              break;
+      }
+      function loadDataPage(target, data) {
+        let date;
+        for (const row of data.split(/\r?\n/)) {
+          const contents = row.split(',');
+          const filtered = contents.filter(s => s != '')
+          if (filtered.length == 0) continue;
+          if (contents[0] != '') {
+            date = contents[0];
+            const [title, category] = contents.slice(1);
+            target[date] = {title:title, category:category, schedule:[]};
+          } else {
+            const entry = contents.slice(1);
+            target[date].schedule.push(entry);
           }
         }
-        function strToHours(timeStr) {
-          const [time, modifier] = timeStr.split(' ');
-          let [hours, minutes] = time.split(':').map(Number);
-          if (hours == 12) hours = 0;
-          if (modifier.toLowerCase() == 'pm') hours += 12;
-          return hours + (minutes / 60);
+      }
+      function fetchData(categoryObj, dataObj) {
+        const categoryURL = 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629'
+        const dataURL = 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0'
+        const promises = [
+          fetch(categoryURL).then(response => response.text()),
+          fetch(dataURL).then(response => response.text())
+        ]
+        Promise.all(promises).then(data => {
+          localStorage.setItem('categoryData', data[0]);
+          localStorage.setItem('eventData', data[1]);
+          loadCategoryPage(categoryObj, data[0]);
+          loadDataPage(dataObj, data[1]);
+          render(currentTab)
+        });
+      }
+      function getStored(key, value=null) {
+        let result = localStorage.getItem(key);
+        if (result === null) result = value;
+        return result;
+      }
+      
+      class Display {
+        constructor() {
+          this.tables = [];
+          this.tables.push(document.createElement('div'));
+          this.tables.push(document.createElement('div'));
+          this.tables.push(document.createElement('div'));
+          this.tables[0].id = 'day-display';
+          this.tables[1].id = 'month-display';
+          this.tables[2].id = 'year-display';
+          this.selector = new Selector(...this.tables);
         }
-        function renderDisplay(target, title, template, data) {
-          const titleElem = target.querySelector('.title');
-          const grid = target.querySelector('.grid');
-          titleElem.innerText = title;
-          grid.innerHTML = '';
-          if (data) {
-            for (const [...values] of data) {
-              const row = addDiv(grid, 'row');
-              row.style.gridTemplateColumns = template;
-              row.style.color = values.pop();
-              values.forEach(value => addSpan(row, value, 'item'));
-            }
-          }
-        }
-        function addWindowHeader(target) {
-          const box = addDiv(target, 'header');
-          const leftBtn = addSpan(box, '‹', 'nav-btn');
-          const title = addSpan(box, '', 'title');
-          const rightBtn = addSpan(box, '›', 'nav-btn');
-          return box;
-        }
-        function render(index) {
-          const w = windows[index]
-          w.render(testData);
-          displayObj.select(index);
-          displayObj.render(w, testData);
+        
+        render(w, data) {
+          const index = this.selector.index;
+          const elem = this.tables[this.selector.index];
           switch (index) {
-            case 0: 
-              title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
+            case 0:
+              let i = 0;
+              const colors = ['pink', 'darkgray', 'skyblue', 'goldenrod', 'lightgreen'];
+              elem.innerHTML = '';
+              addSpan(elem, 'Schedule', 'title');
+              addSpan(elem, '', 'title');
+              const dataTable = data[dateStr(w.date)];
+              if (!dataTable || dataTable.schedule.length == 0) return;
+              for (const [...params] of dataTable.schedule) {
+                params[2] = params[2] + ' - ' + params.pop();
+                params.forEach(item => {
+                  const s = addSpan(elem, item);
+                  s.style.color = colors[i];
+                });
+                i++;
+                if (i >= colors.length) i = 0;
+              }
               break;
             case 1:
-              title.innerText = dateStr(w.date, {month:'long', year:'numeric'});
+              elem.innerHTML = '';
+              addSpan(elem, 'Events', 'title');
+              addSpan(elem, '', 'title');
+              const firstDay = startOfMonth(w.date);
+              const lastDay = endOfMonth(w.date);
+              let day = firstDay;
+              while (day <= lastDay) {
+                const key = dateStr(day);
+                if (key in data) {
+                  const {title, category} = data[key];
+                  const k = addSpan(elem, key);
+                  const e = addSpan(elem, title);
+                  k.style.color = categories[category];
+                  e.style.color = categories[category];
+                  k.style.textAlign = 'right';
+                };
+                addTime(day, 'day', 1);
+              }
               break;
             case 2:
-              if (w.monthOffset == 0) {
-                title.innerText = dateStr(w.date, {year: 'numeric'});
-              } else {
-                const year = w.date.getFullYear();
-                if (w.date.getMonth() < w.monthOffset) year--;
-                title.innerText = `${year} - ${year+1}`;
+              elem.innerHTML = '';
+              addSpan(elem, 'Legend', 'title');
+              addSpan(elem, '', 'title');
+              for (const [name, color] of Object.entries(categories)) {
+                const c = addDiv(elem, 'color-box');
+                const n = addSpan(elem, name);
+                c.style.backgroundColor = color;
+                n.style.color = color;
               }
               break;
           }
         }
-        function selectTab(index) {
-          modeSelector.select(index);
-          windowSelector.select(index);
-          render(index);
+      }
+      class DayWindow {
+        constructor(startHour, endHour) {
+          this.startHour = startHour;
+          this.endHour = endHour;
+          this.date = new Date();
+          this.elem = document.createElement('div');
+          this.elem.id = 'day-window';
+          this.elem.style.gridTemplateRows = `repeat(${endHour - startHour}}, 1fr)`;
+          const grid = addDiv(this.elem, 'grid');
+          const top = addDiv(grid, 'top');
+          addSpan(top, 'Time', 'side-header');
+          let time = new Date();
+          time.setHours(startHour, 0, 0, 0);
+          for (let i=startHour; i<=endHour; i++) {
+            const row = addDiv(grid, 'row');
+            const headerText = time.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              hour12: true,
+            }).toLowerCase();
+            const s = addSpan(row, headerText, 'side-header');
+            const color = (i%2 == 0) ? 'white' : 'lightgray';
+            row.style.backgroundColor = color;
+            time.setHours(time.getHours() + 1);
+          }
         }
         
-        class Display {
-          constructor() {
-            this.tables = [];
-            this.tables.push(document.createElement('div'));
-            this.tables.push(document.createElement('div'));
-            this.tables.push(document.createElement('div'));
-            this.tables[0].id = 'day-display';
-            this.tables[1].id = 'month-display';
-            this.tables[2].id = 'year-display';
-            this.selector = new Selector(...this.tables);
-          }
-          
-          select(index) {
-            this.selector.select(index);
-            const data = index == 0 ? dayData : eventData;
-          }
-          
-          render(w, data) {
-            const index = this.selector.index;
-            const elem = this.tables[this.selector.index];
-            switch (index) {
-              case 0:
-                let i = 0;
-                const colors = ['pink', 'darkgray', 'skyblue', 'goldenrod', 'lightgreen'];
-                elem.innerHTML = '';
-                addSpan(elem, 'Schedule', 'title');
-                addSpan(elem, '', 'title');
-                const dataTable = data[dateStr(w.date)];
-                if (!dataTable || dataTable.schedule.length == 0) return;
-                for (const [...params] of dataTable.schedule) {
-                  params[2] = params[2] + ' - ' + params.pop();
-                  params.forEach(item => {
-                    const s = addSpan(elem, item);
-                    s.style.color = colors[i];
-                  });
-                  i++;
-                  if (i >= colors.length) i = 0;
-                }
-                break;
-              case 1:
-                elem.innerHTML = '';
-                addSpan(elem, 'Events', 'title');
-                addSpan(elem, '', 'title');
-                const firstDay = startOfMonth(w.date);
-                const lastDay = endOfMonth(w.date);
-                let day = firstDay;
-                while (day <= lastDay) {
-                  const key = dateStr(day);
-                  if (key in data) {
-                    const {title, category} = data[key];
-                    const k = addSpan(elem, key);
-                    const e = addSpan(elem, title);
-                    k.style.color = categories[category];
-                    e.style.color = categories[category];
-                    k.style.textAlign = 'right';
-                  };
-                  addTime(day, 'day', 1);
-                }
-                break;
-              case 2:
-                elem.innerHTML = '';
-                addSpan(elem, 'Legend', 'title');
-                addSpan(elem, '', 'title');
-                for (const [name, color] of Object.entries(categories)) {
-                  const c = addDiv(elem, 'color-box');
-                  const n = addSpan(elem, name);
-                  c.style.backgroundColor = color;
-                  n.style.color = color;
-                }
-                break;
-            }
-          }
-        }
-        class DayWindow {
-          constructor(startHour, endHour) {
-            this.startHour = startHour;
-            this.endHour = endHour;
-            this.date = new Date();
-            this.elem = document.createElement('div');
-            this.elem.id = 'day-window';
-            this.elem.style.gridTemplateRows = `repeat(${endHour - startHour}}, 1fr)`;
-            const grid = addDiv(this.elem, 'grid');
-            const top = addDiv(grid, 'top');
-            addSpan(top, 'Time', 'side-header');
-            let time = new Date();
-            time.setHours(startHour, 0, 0, 0);
-            for (let i=startHour; i<=endHour; i++) {
-              const row = addDiv(grid, 'row');
-              const headerText = time.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                hour12: true,
-              }).toLowerCase();
-              const s = addSpan(row, headerText, 'side-header');
-              const color = (i%2 == 0) ? 'white' : 'lightgray';
-              row.style.backgroundColor = color;
-              time.setHours(time.getHours() + 1);
-            }
-          }
-          
-          render(data) {
-            const grid = this.elem.querySelector('.grid');
-            const rows = grid.children;
-            const key = this.date.toLocaleDateString('en-us', {
-              month:'numeric', day:'numeric', year:'numeric'
-            });
-            rows[0].innerHTML = rows[0].children[0].outerHTML;
-            rows[1].innerHTML = rows[1].children[0].outerHTML;
-            const locations = [];
-            const colors = ['pink', 'darkgray', 'skyblue', 'goldenrod', 'lightgreen'];
-            let i = 0;
-            if (key in data && data[key].schedule.length > 0) {
-              for (const [name, location, start, end] of data[key].schedule) {
-                let index = locations.indexOf(location) + 1;
-                if (index == 0) {
-                  index = locations.length + 1;
-                  locations.push(location);
-                  const header = addSpan(rows[0], location, 'top-header');
-                  header.style.left = `${15*index-8}%`;
-                }
-                const block = addDiv(rows[1], 'event');
-                const offset = strToHours(start) - this.startHour;
-                const duration = strToHours(end) - strToHours(start);
-                const count = rows.length - 1
-                block.style.top = `${100*(offset + 1)/(count+1)}%`;
-                block.style.left = `${15*index-8}%`
-                block.style.height = `${100*duration/(count+1)}%`;
-                block.style.backgroundColor = colors[i]; i++; if (i >= colors.length) i = 0;
-                block.innerText = name;
+        render(data) {
+          const grid = this.elem.querySelector('.grid');
+          const rows = grid.children;
+          const key = this.date.toLocaleDateString('en-us', {
+            month:'numeric', day:'numeric', year:'numeric'
+          });
+          rows[0].innerHTML = rows[0].children[0].outerHTML;
+          rows[1].innerHTML = rows[1].children[0].outerHTML;
+          const locations = [];
+          const colors = ['pink', 'darkgray', 'skyblue', 'goldenrod', 'lightgreen'];
+          let i = 0;
+          if (key in data && data[key].schedule.length > 0) {
+            for (const [name, location, start, end] of data[key].schedule) {
+              let index = locations.indexOf(location) + 1;
+              if (index == 0) {
+                index = locations.length + 1;
+                locations.push(location);
+                const header = addSpan(rows[0], location, 'top-header');
+                header.style.left = `${15*index-8}%`;
               }
+              const block = addDiv(rows[1], 'event');
+              const offset = strToHours(start) - this.startHour;
+              const duration = strToHours(end) - strToHours(start);
+              const count = rows.length - 1
+              block.style.top = `${100*(offset + 1)/(count+1)}%`;
+              block.style.left = `${15*index-8}%`
+              block.style.height = `${100*duration/(count+1)}%`;
+              block.style.backgroundColor = colors[i]; i++; if (i >= colors.length) i = 0;
+              block.innerText = name;
             }
           }
         }
-        class MonthWindow {
-          constructor() {
-            this.date = new Date();
-            this.elem = document.createElement('div');
-            this.elem.id = 'month-window';
-            const dayHeader = addDiv(this.elem, 'day-header');
-            const grid = addDiv(this.elem, 'grid');
-            for (const name of dayNames) {
-              addSpan(dayHeader, name, 'day-header-item');
-            }
-            for (let i = 0; i < 42; i++) {
-              const box = addDiv(grid, 'box');
-              const dateText = addDiv(box, 'date');
-              const nameText = addDiv(box, 'name');
-            }
+      }
+      class MonthWindow {
+        constructor() {
+          this.date = new Date();
+          this.elem = document.createElement('div');
+          this.elem.id = 'month-window';
+          const dayHeader = addDiv(this.elem, 'day-header');
+          const grid = addDiv(this.elem, 'grid');
+          for (const name of dayNames) {
+            addSpan(dayHeader, name, 'day-header-item');
           }
-          
-          render(data) {
-            const grid = this.elem.querySelector('.grid');
-            const firstDayOfMonth = startOfMonth(this.date);
-            const lastDayOfMonth = endOfMonth(this.date);
+          for (let i = 0; i < 42; i++) {
+            const box = addDiv(grid, 'box');
+            const dateText = addDiv(box, 'date');
+            const nameText = addDiv(box, 'name');
+          }
+        }
+        
+        render(data) {
+          const grid = this.elem.querySelector('.grid');
+          const firstDayOfMonth = startOfMonth(this.date);
+          const lastDayOfMonth = endOfMonth(this.date);
+          const today = dateStr(new Date());
+          let day = startOfWeek(firstDayOfMonth);
+          for (let i = 0; i < 42; i++) {
+            const box = grid.children[i];
+            const dateText = box.querySelector('.date');
+            const nameText = box.querySelector('.name');
+            const isActive = day >= firstDayOfMonth && day <= lastDayOfMonth;
+            box.classList.toggle('inactive', !isActive);
+            dateText.innerText = day.getDate();
+            const key = dateStr(day);
+            box.classList.toggle('today', key==today);
+            if (key in data && isActive) {
+              const {title, category} = data[key];
+              nameText.innerText = title;
+              box.style.backgroundColor = categories[category];
+            } else {
+              nameText.innerText = '';
+              box.style.backgroundColor = '';
+            }
+            addTime(day, 'day', 1);
+          }
+        }
+      }
+      class YearWindow {
+        constructor(monthOffset = 0) {
+          this.monthOffset = monthOffset;
+          this.date = new Date();
+          this.elem = document.createElement('div');
+          this.elem.id = 'year-window';
+          const grid = addDiv(this.elem, 'grid');
+          for (let i = 0; i < 12; i++) {
+            const month = addDiv(grid, 'month');
+            const banner = addDiv(month, 'banner');
+            const mgrid = addDiv(month, 'mgrid');
+            for (let j = 0; j < 7; j++) addSpan(mgrid, dayNames[j][0], 'day-name');
+            for (let j = 0; j < 42; j++) addDiv(mgrid, 'date');
+          }
+        }
+        
+        render(data) {
+          const grid = this.elem.querySelector('.grid');
+          let year = this.date.getFullYear();
+          if (this.date.getMonth() < this.monthOffset) year--;
+          for (let i = 0; i < 12; i++) {
+            const month = new Date(year, i + this.monthOffset, 1);
+            const monthBox = grid.children[i];
+            const banner = monthBox.querySelector('.banner');
+            const monthGrid = monthBox.querySelector('.mgrid');
+            const firstDay = startOfMonth(month);
+            const lastDay = endOfMonth(month);
             const today = dateStr(new Date());
-            let day = startOfWeek(firstDayOfMonth);
-            for (let i = 0; i < 42; i++) {
-              const box = grid.children[i];
-              const dateText = box.querySelector('.date');
-              const nameText = box.querySelector('.name');
-              const isActive = day >= firstDayOfMonth && day <= lastDayOfMonth;
-              box.classList.toggle('inactive', !isActive);
-              dateText.innerText = day.getDate();
-              const key = dateStr(day);
-              box.classList.toggle('today', key==today);
-              if (key in data && isActive) {
-                const {title, category} = data[key];
-                nameText.innerText = title;
-                box.style.backgroundColor = categories[category];
+            banner.innerText = month.toLocaleString('en-US', {month:'long', year:'numeric'});
+            for (let j = 0; j < 7; j++) {
+              monthGrid.children[j].innerText = dayNames[j][0];
+            }
+            let day = startOfWeek(firstDay);
+            for (let j = 0; j < 42; j++) {
+              const box = monthGrid.children[7 + j];
+              const withinMonth = firstDay <= day && day <= lastDay;
+              if (withinMonth) {
+                box.innerText = day.getDate();
+                const key = dateStr(day);
+                if (key in data) {
+                  const {title, category} = data[key];
+                  box.style.backgroundColor = categories[category];
+                } else {
+                  box.style.backgroundColor = '';
+                }
+                box.classList.toggle('today', key==today);
               } else {
-                nameText.innerText = '';
+                box.innerText = '';
                 box.style.backgroundColor = '';
+                box.classList.toggle('today', false);
               }
               addTime(day, 'day', 1);
             }
           }
         }
-        class YearWindow {
-          constructor(monthOffset = 0) {
-            this.monthOffset = monthOffset;
-            this.date = new Date();
-            this.elem = document.createElement('div');
-            this.elem.id = 'year-window';
-            const grid = addDiv(this.elem, 'grid');
-            for (let i = 0; i < 12; i++) {
-              const month = addDiv(grid, 'month');
-              const banner = addDiv(month, 'banner');
-              const mgrid = addDiv(month, 'mgrid');
-              for (let j = 0; j < 7; j++) addSpan(mgrid, dayNames[j][0], 'day-name');
-              for (let j = 0; j < 42; j++) addDiv(mgrid, 'date');
-            }
-          }
-          
-          render(data) {
-            const grid = this.elem.querySelector('.grid');
-            let year = this.date.getFullYear();
-            if (this.date.getMonth() < this.monthOffset) year--;
-            for (let i = 0; i < 12; i++) {
-              const month = new Date(year, i + this.monthOffset, 1);
-              const monthBox = grid.children[i];
-              const banner = monthBox.querySelector('.banner');
-              const monthGrid = monthBox.querySelector('.mgrid');
-              const firstDay = startOfMonth(month);
-              const lastDay = endOfMonth(month);
-              const today = dateStr(new Date());
-              banner.innerText = month.toLocaleString('en-US', {month:'long', year:'numeric'});
-              for (let j = 0; j < 7; j++) {
-                monthGrid.children[j].innerText = dayNames[j][0];
-              }
-              let day = startOfWeek(firstDay);
-              for (let j = 0; j < 42; j++) {
-                const box = monthGrid.children[7 + j];
-                const withinMonth = firstDay <= day && day <= lastDay;
-                if (withinMonth) {
-                  box.innerText = day.getDate();
-                  const key = dateStr(day);
-                  if (key in data) {
-                    const {title, category} = data[key];
-                    box.style.backgroundColor = categories[category];
-                  } else {
-                    box.style.backgroundColor = '';
-                  }
-                  box.classList.toggle('today', key==today);
-                } else {
-                  box.innerText = '';
-                  box.style.backgroundColor = '';
-                  box.classList.toggle('today', false);
-                }
-                addTime(day, 'day', 1);
-              }
-            }
-          }
-        }
-        class Selector {
-          constructor(...elems) {
-            this.index = 0;
-            this.elems = elems;
-            this.className = 'selected';
-          }
-          
-          select(index) {
-            this.index = index;
-            this.elems.forEach((elem, i) => {
-              elem.classList.toggle(this.className, i==index);
-            })
-          }
+      }
+      class Selector {
+        constructor(...elems) {
+          this.index = 0;
+          this.elems = elems;
+          this.className = 'selected';
         }
         
-        const modeButtons = document.getElementById('mode-buttons');
-        const display = document.getElementById('display');
-        const windowWrapper = document.getElementById('windows')
-        const windows = [new DayWindow(8, 24), new MonthWindow(), new YearWindow(6)];
-        const windowElems = windows.map(w => w.elem)
-        const windowSelector = new Selector(...windowElems);
-        const modeSelector = new Selector(...modeButtons.children);
-        
-        const displayObj = new Display();
-        display.append(...displayObj.tables);
-        
-        windowWrapper.append(...windowElems);
-        [...modeButtons.children].forEach((button, index) => {
-          button.addEventListener('click', () => selectTab(index))
-        })
-        
-        const windowHeader = document.querySelector('#window-banner .header');
-        const [lnav, title, rnav] = windowHeader.children;
-        lnav.addEventListener('click', () => {
-          const i = modeSelector.index;
-          addTime(windows[i].date, ['day', 'month', 'year'][i], -1);
-          render(i);
-        });
-        rnav.addEventListener('click', () => {
-          const i = modeSelector.index;
-          addTime(windows[i].date, ['day', 'month', 'year'][i], 1);
-          render(i);
-        })
-        const todayButton = document.getElementById('today-button');
-        todayButton.addEventListener('click', () => {
-          windows[modeSelector.index].date.setTime(Date.now());
-          render(modeSelector.index);
-        })
-        windowElems[2].addEventListener('click', event => {
-          const elem = event.target;
-          if (elem.classList.contains('date') && elem.innerText != '') {
-            const mElem = elem.parentElement.parentElement;
-            const mGrid = mElem.parentElement.children;
-            const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
-            const day = Number(elem.innerText);
-            windows[0].date = new Date(windows[2].date.getFullYear(), month, Number(elem.innerText));
-            selectTab(0);
-          } else if (elem.classList.contains('banner')) {
-            const mElem = elem.parentElement;
-            const mGrid = mElem.parentElement.children;
-            const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
-            windows[1].date = new Date(windows[2].date.getFullYear(), month, 1);
-            selectTab(1);
-          }
-        });
-        windowElems[1].addEventListener('click', event => {
-          const elem = event.target.parentElement;
-          if (elem.classList.contains('box')) {
-            const grid = elem.parentElement.children;
-            const date = startOfWeek(startOfMonth(windows[1].date));
-            addTime(date, 'day', [...grid].indexOf(elem));
-            windows[0].date.setTime(date);
-            selectTab(0);
-          }
-        })
-        
-        selectTab(1);
+        select(index) {
+          this.index = index;
+          this.elems.forEach((elem, i) => {
+            elem.classList.toggle(this.className, i==index);
+          })
+        }
       }
       
-      main();
+      let currentTab = Number(getStored('currentTab', 1));
+      loadCategoryPage(categories, getStored('categoryData', ''));
+      loadDataPage(testData, getStored('eventData', ''));
+      fetchData(categories, testData);
+      
+      const modeButtons = document.getElementById('mode-buttons');
+      const display = document.getElementById('display');
+      const windowWrapper = document.getElementById('windows');
+      const windows = [new DayWindow(8, 24), new MonthWindow(), new YearWindow(6)];
+      const windowElems = windows.map(w => w.elem);
+      const windowSelector = new Selector(...windowElems);
+      const modeSelector = new Selector(...modeButtons.children);
+      
+      const displayObj = new Display();
+      display.append(...displayObj.tables);
+      
+      windowWrapper.append(...windowElems);
+      
+      [...modeButtons.children].forEach((button, index) => {
+        button.addEventListener('click', () => selectTab(index))
+      })
+      
+      const windowHeader = document.querySelector('#window-banner .header');
+      const [lnav, title, rnav] = windowHeader.children;
+      lnav.addEventListener('click', () => {
+        const i = modeSelector.index;
+        addTime(windows[i].date, ['day', 'month', 'year'][i], -1);
+        render(i);
+      });
+      rnav.addEventListener('click', () => {
+        const i = modeSelector.index;
+        addTime(windows[i].date, ['day', 'month', 'year'][i], 1);
+        render(i);
+      })
+      const todayButton = document.getElementById('today-button');
+      todayButton.addEventListener('click', () => {
+        for (let i = 0; i < windows.length; i++){
+          windows[i].date.setTime(Date.now());
+        }
+        render(modeSelector.index);
+      })
+      windowElems[2].addEventListener('click', event => {
+        const elem = event.target;
+        if (elem.classList.contains('date') && elem.innerText != '') {
+          const mElem = elem.parentElement.parentElement;
+          const mGrid = mElem.parentElement.children;
+          const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
+          const day = Number(elem.innerText);
+          windows[0].date = new Date(windows[2].date.getFullYear(), month, Number(elem.innerText));
+          selectTab(0);
+        } else if (elem.classList.contains('banner')) {
+          const mElem = elem.parentElement;
+          const mGrid = mElem.parentElement.children;
+          const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
+          windows[1].date = new Date(windows[2].date.getFullYear(), month, 1);
+          selectTab(1);
+        }
+      });
+      windowElems[1].addEventListener('click', event => {
+        const elem = event.target.parentElement;
+        if (elem.classList.contains('box')) {
+          const grid = elem.parentElement.children;
+          const date = startOfWeek(startOfMonth(windows[1].date));
+          addTime(date, 'day', [...grid].indexOf(elem));
+          windows[0].date.setTime(date);
+          selectTab(0);
+        }
+      })
+      
+      selectTab(currentTab);
       
     </script>
   
