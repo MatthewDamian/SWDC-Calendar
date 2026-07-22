@@ -12,7 +12,6 @@
         min-height: 0;
         font-family: sans-serif;
         box-sizing: border-box;
-        user-select: none;
       }
 
       html {
@@ -74,6 +73,13 @@
         color: white;
         text-align: center;
         font-size: 1.5cqw;
+      }
+      
+      #day-display .subtitle {
+        grid-column: span 3;
+        color: lightgray;
+        text-align: center;
+        font-size: 1cqw;
       }
       
       #day-display .header {
@@ -160,6 +166,7 @@
       #window-banner .header .nav-btn {
         font-size: 3cqw;
         transform: translate(0, -7%);
+        user-select: none;
       }
 
       #window-banner .header .nav-btn:hover {
@@ -195,17 +202,31 @@
         display: block;
       }
 
-      #day-window .grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        height: 100%;
-        font-size: 1.25cqw;
-      }
-
-      #day-window .grid .top {
+      #day-window .top {
+        height: 6%;
         font-weight: bold;
         align-content: center;
         background-image: linear-gradient(to bottom, lightcyan, lightblue);
+      }
+
+      #day-window .top .header {
+        display: inline-block;
+        position: absolute;
+        text-align: center;
+        width: 15%;
+      }
+      
+      #day-window .top .first-header {
+        display: inline-block;
+        text-align: right;
+        width: 5%;
+      }
+
+      #day-window .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        height: 94%;
+        font-size: 1.25cqw;
       }
 
       #day-window .grid .row {
@@ -219,13 +240,6 @@
         width: 5%;
       }
 
-      #day-window .grid .top-header {
-        display: inline-block;
-        position: absolute;
-        text-align: center;
-        width: 15%;
-      }
-
       #day-window .grid .event {
         display: inline-block;
         position: absolute;
@@ -237,7 +251,6 @@
 
       #day-window .grid .event:hover {
         box-shadow: 1px 1px 5px black;
-        cursor: pointer;
       }
 
       #month-window {
@@ -302,8 +315,12 @@
         border: 1px solid black;
       }
       
-      #month-window .grid .box.today:hover {
+      #month-window .grid .box.today {
         border: 2px solid black;
+      }
+      
+      #month-window .grid .box.today:hover,
+      #month-window .grid .box.selected:hover {
         box-shadow: inset 1px 1px 3px black;
       }
       
@@ -372,9 +389,15 @@
         align-content: center;
       }
       
-      #year-window .grid .month .mgrid .date:hover {
+      #year-window .grid .month .mgrid .date:hover,
+      #year-window .grid .month .mgrid .date.selected {
         cursor: pointer;
         border: 1px solid black;
+      }
+      
+      #year-window .grid .month .mgrid .date.selected:hover {
+        cursor: pointer;
+        border: 2px solid black;
       }
       
       #year-window .grid .month .mgrid .date.today {
@@ -391,7 +414,9 @@
   <body>
     
     <div id="left-side">
-      <div id="logo"></div>
+      <a href="https://www.swwdance.org/" target="_blank" rel="noopener noreferrer">
+        <div id="logo"></div>
+      </a>
       <div id="display">
       </div>
     </div>
@@ -416,9 +441,11 @@
     
     <script>
       
+      const eventData = {};
+      const weeklyData = {};
       const categories = {};
-      const testData = {};
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'aquamarine', 'mediumpurple'];
       
       function addDiv(elem, ...classes) {
         const newElem = document.createElement('div');
@@ -449,14 +476,17 @@
         return new Date(day.getFullYear(), day.getMonth(), day.getDate() - day.getDay())
       }
       function addTime(date, mode, amount) {
+        let month;
         switch (mode.toLowerCase()) {
           case 'year':
-            date.setDate(1);
+            month = date.getMonth();
             date.setFullYear(date.getFullYear() + amount);
+            if (date.getMonth() != month) date.setMonth(date.getMonth(), 0);
             break;
           case 'month':
-            date.setDate(1);
-            date.setMonth(date.getMonth() + amount);
+            month = date.getMonth() + amount;
+            date.setMonth(month);
+            if (date.getMonth() != month) date.setMonth(date.getMonth(), 0);
             break;
           case 'day':
             date.setDate(date.getDate() + amount);
@@ -472,9 +502,9 @@
       }
       function render(index) {
         const w = windows[index]
-        w.render(testData);
+        w.render(eventData);
         displayObj.selector.select(index);
-        displayObj.render(w, testData);
+        displayObj.render(w, eventData);
         switch (index) {
           case 0:
             title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
@@ -496,8 +526,8 @@
       function selectTab(index) {
         modeSelector.select(index);
         windowSelector.select(index);
-        render(index);
         localStorage.setItem('currentTab', index);
+        render(index);
       }
       function loadCategoryPage(target, data) {
         for (const key in target) delete target[key];
@@ -526,25 +556,45 @@
           }
         }
       }
-      function fetchData(categoryObj, dataObj) {
-        const categoryURL = 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629'
-        const dataURL = 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0'
+      function loadWeekPage(target, data) {
+        for (const key in target) delete target[key];
+        let day;
+        for (const row of data.split(/\r?\n/)) {
+          const contents = row.split(',');
+          const filtered = contents.filter(s => s != '')
+          if (filtered.length == 0) continue;
+          if (filtered.length == 1) {
+            day = filtered[0];
+            target[day] = [];
+            continue;
+          };
+          if (!(day in target)) continue;
+          target[day].push(contents);
+        }
+      }
+      function fetchData(dataObj, weekObj, categoryObj, dataURL, weekDataURL, categoryURL) {
         const promises = [
-          fetch(categoryURL).then(response => response.text()),
-          fetch(dataURL).then(response => response.text())
+          fetch(dataURL).then(response => response.text()),
+          fetch(weekDataURL).then(response => response.text()),
+          fetch(categoryURL).then(response => response.text())
         ]
         Promise.all(promises).then(data => {
-          localStorage.setItem('categoryData', data[0]);
-          localStorage.setItem('eventData', data[1]);
-          loadCategoryPage(categoryObj, data[0]);
-          loadDataPage(dataObj, data[1]);
+          localStorage.setItem('eventData', data[0]);
+          localStorage.setItem('weekData', data[1]);
+          localStorage.setItem('categoryData', data[2]);
+          loadDataPage(dataObj, data[0]);
+          loadWeekPage(weekObj, data[1]);
+          loadCategoryPage(categoryObj, data[2]);
           render(currentTab)
         });
       }
-      function getStored(key, value=null) {
+      function getStored(key, value='') {
         let result = localStorage.getItem(key);
         if (result === null) result = value;
         return result;
+      }
+      function syncDates(date) {
+        windows.forEach(w => w.date.setTime(date.getTime()))
       }
       
       class Display {
@@ -565,26 +615,33 @@
           switch (index) {
             case 0:
               let i = 0;
-              const colors = ['pink', 'darkgray', 'skyblue', 'goldenrod', 'lightgreen'];
+              const key = dateStr(w.date);
+              const dataTable = data[key];
+              const dataExists = dataTable && (dataTable.schedule.length > 0 || dataTable.category == 'No Class');
+              const title = dataExists ? dataTable.title : 'Schedule';
+              const weekday = dayNames[w.date.getDay()];
               elem.innerHTML = '';
-              addSpan(elem, 'Schedule', 'title');
-              addSpan(elem, '', 'title');
-              const dataTable = data[dateStr(w.date)];
-              if (!dataTable || dataTable.schedule.length == 0) return;
-              for (const [...params] of dataTable.schedule) {
+              addSpan(elem, `${title}`, 'title');
+              addSpan(elem, `${weekday} ${key}\n\n\n`, 'subtitle');
+              let schedule;
+              if (weekday in weeklyData) schedule = weeklyData[weekday];
+              if (dataExists) schedule = dataTable.schedule;
+              if (!schedule) return;
+              for (let [...params] of schedule) {
+                params = params.slice(0,4);
                 params[2] = params[2] + ' - ' + params.pop();
                 params.forEach(item => {
                   const s = addSpan(elem, item);
-                  s.style.color = colors[i];
+                  s.style.color = palette[i];
                 });
                 i++;
-                if (i >= colors.length) i = 0;
+                if (i >= palette.length) i = 0;
               }
+              addSpan(elem, '\n', 'title');
               break;
             case 1:
               elem.innerHTML = '';
-              addSpan(elem, 'Events', 'title');
-              addSpan(elem, '', 'title');
+              addSpan(elem, 'Events\n\n', 'title');
               const firstDay = startOfMonth(w.date);
               const lastDay = endOfMonth(w.date);
               let day = firstDay;
@@ -600,42 +657,45 @@
                 };
                 addTime(day, 'day', 1);
               }
+              addSpan(elem, '\n', 'title');
               break;
             case 2:
               elem.innerHTML = '';
-              addSpan(elem, 'Legend', 'title');
-              addSpan(elem, '', 'title');
+              addSpan(elem, 'Legend\n\n', 'title');
               for (const [name, color] of Object.entries(categories)) {
                 const c = addDiv(elem, 'color-box');
                 const n = addSpan(elem, name);
                 c.style.backgroundColor = color;
                 n.style.color = color;
               }
+              addSpan(elem, '\n', 'title');
               break;
           }
         }
       }
       class DayWindow {
-        constructor(startHour, endHour) {
-          this.startHour = startHour;
-          this.endHour = endHour;
+        constructor() {
           this.date = new Date();
           this.elem = document.createElement('div');
           this.elem.id = 'day-window';
-          this.elem.style.gridTemplateRows = `repeat(${endHour - startHour}}, 1fr)`;
-          const grid = addDiv(this.elem, 'grid');
-          const top = addDiv(grid, 'top');
-          addSpan(top, 'Time', 'side-header');
+          this.top = addDiv(this.elem, 'top');
+          this.grid = addDiv(this.elem, 'grid');
+          addSpan(this.top, 'Time', 'first-header');
+          this.buildGridRows(8, 24);
+        }
+        
+        buildGridRows(startHour, endHour) {
+          this.grid.innerHTML = '';
           let time = new Date();
           time.setHours(startHour, 0, 0, 0);
           for (let i=startHour; i<=endHour; i++) {
-            const row = addDiv(grid, 'row');
+            const row = addDiv(this.grid, 'row');
             const headerText = time.toLocaleTimeString('en-US', {
               hour: 'numeric',
               hour12: true,
             }).toLowerCase();
             const s = addSpan(row, headerText, 'side-header');
-            const color = (i%2 == 0) ? 'white' : 'lightgray';
+            const color = ((i-startHour) % 2 == 0) ? 'lightgray' : 'white';
             row.style.backgroundColor = color;
             time.setHours(time.getHours() + 1);
           }
@@ -647,30 +707,44 @@
           const key = this.date.toLocaleDateString('en-us', {
             month:'numeric', day:'numeric', year:'numeric'
           });
-          rows[0].innerHTML = rows[0].children[0].outerHTML;
-          rows[1].innerHTML = rows[1].children[0].outerHTML;
+          const dataTable = data[key];
+          const weekday = dayNames[this.date.getDay()];
+          let schedule;
+          if (weekday in weeklyData) schedule = weeklyData[weekday];
+          if (dataTable && (dataTable.schedule.length > 0 || dataTable.category == 'No Class')) {
+            schedule = dataTable.schedule;
+          }
+          this.top.innerHTML = this.top.children[0].outerHTML;
+          this.grid.innerHTML = '';
+          let [startHour, endHour] = [14, 21];
+          if (!schedule || schedule.length == 0) {
+            this.buildGridRows(startHour, endHour);
+            return;
+          };
           const locations = [];
-          const colors = ['pink', 'darkgray', 'skyblue', 'goldenrod', 'lightgreen'];
+          for (const [name, location, start, end] of schedule) {
+            startHour = Math.floor(Math.min(startHour, strToHours(start)));
+            endHour = Math.ceil(Math.max(endHour, strToHours(end)));
+          }
+          this.buildGridRows(startHour, endHour);
           let i = 0;
-          if (key in data && data[key].schedule.length > 0) {
-            for (const [name, location, start, end] of data[key].schedule) {
-              let index = locations.indexOf(location) + 1;
-              if (index == 0) {
-                index = locations.length + 1;
-                locations.push(location);
-                const header = addSpan(rows[0], location, 'top-header');
-                header.style.left = `${15*index-8}%`;
-              }
-              const block = addDiv(rows[1], 'event');
-              const offset = strToHours(start) - this.startHour;
-              const duration = strToHours(end) - strToHours(start);
-              const count = rows.length - 1
-              block.style.top = `${100*(offset + 1)/(count+1)}%`;
-              block.style.left = `${15*index-8}%`
-              block.style.height = `${100*duration/(count+1)}%`;
-              block.style.backgroundColor = colors[i]; i++; if (i >= colors.length) i = 0;
-              block.innerText = name;
+          for (const [name, location, start, end] of schedule) {
+            let index = locations.indexOf(location) + 1;
+            if (index == 0) {
+              index = locations.length + 1;
+              locations.push(location);
+              const header = addSpan(this.top, location, 'header');
+              header.style.left = `${15*index-8}%`;
             }
+            const block = addDiv(rows[0], 'event');
+            const offset = strToHours(start) - startHour;
+            const duration = strToHours(end) - strToHours(start);
+            const count = rows.length
+            block.style.top = `${6+94*offset/count}%`;
+            block.style.left = `${15*index-8}%`
+            block.style.height = `${94*duration/count}%`;
+            block.style.backgroundColor = palette[i]; i++; if (i >= palette.length) i = 0;
+            block.innerText = name;
           }
         }
       }
@@ -696,6 +770,7 @@
           const firstDayOfMonth = startOfMonth(this.date);
           const lastDayOfMonth = endOfMonth(this.date);
           const today = dateStr(new Date());
+          const selected = dateStr(this.date);
           let day = startOfWeek(firstDayOfMonth);
           for (let i = 0; i < 42; i++) {
             const box = grid.children[i];
@@ -706,6 +781,7 @@
             dateText.innerText = day.getDate();
             const key = dateStr(day);
             box.classList.toggle('today', key==today);
+            box.classList.toggle('selected', key==selected);
             if (key in data && isActive) {
               const {title, category} = data[key];
               nameText.innerText = title;
@@ -746,6 +822,7 @@
             const firstDay = startOfMonth(month);
             const lastDay = endOfMonth(month);
             const today = dateStr(new Date());
+            const selected = dateStr(this.date);
             banner.innerText = month.toLocaleString('en-US', {month:'long', year:'numeric'});
             for (let j = 0; j < 7; j++) {
               monthGrid.children[j].innerText = dayNames[j][0];
@@ -764,10 +841,12 @@
                   box.style.backgroundColor = '';
                 }
                 box.classList.toggle('today', key==today);
+                box.classList.toggle('selected', key==selected);
               } else {
                 box.innerText = '';
                 box.style.backgroundColor = '';
                 box.classList.toggle('today', false);
+                box.classList.toggle('selected', false);
               }
               addTime(day, 'day', 1);
             }
@@ -790,14 +869,20 @@
       }
       
       let currentTab = Number(getStored('currentTab', 1));
-      loadCategoryPage(categories, getStored('categoryData', ''));
-      loadDataPage(testData, getStored('eventData', ''));
-      fetchData(categories, testData);
+      loadDataPage(eventData, getStored('eventData'));
+      loadWeekPage(weeklyData, getStored('weekData'));
+      loadCategoryPage(categories, getStored('categoryData'));
+      fetchData(
+        eventData, weeklyData, categories,
+        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
+        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
+        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
+      );
       
       const modeButtons = document.getElementById('mode-buttons');
       const display = document.getElementById('display');
       const windowWrapper = document.getElementById('windows');
-      const windows = [new DayWindow(8, 24), new MonthWindow(), new YearWindow(6)];
+      const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
       const windowElems = windows.map(w => w.elem);
       const windowSelector = new Selector(...windowElems);
       const modeSelector = new Selector(...modeButtons.children);
@@ -816,11 +901,13 @@
       lnav.addEventListener('click', () => {
         const i = modeSelector.index;
         addTime(windows[i].date, ['day', 'month', 'year'][i], -1);
+        syncDates(windows[i].date);
         render(i);
       });
       rnav.addEventListener('click', () => {
         const i = modeSelector.index;
         addTime(windows[i].date, ['day', 'month', 'year'][i], 1);
+        syncDates(windows[i].date);
         render(i);
       })
       const todayButton = document.getElementById('today-button');
@@ -837,13 +924,15 @@
           const mGrid = mElem.parentElement.children;
           const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
           const day = Number(elem.innerText);
-          windows[0].date = new Date(windows[2].date.getFullYear(), month, Number(elem.innerText));
+          const date = new Date(windows[2].date.getFullYear(), month, Number(elem.innerText));
+          syncDates(date);
           selectTab(0);
         } else if (elem.classList.contains('banner')) {
           const mElem = elem.parentElement;
           const mGrid = mElem.parentElement.children;
           const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
-          windows[1].date = new Date(windows[2].date.getFullYear(), month, 1);
+          const date = new Date(windows[2].date.getFullYear(), month, 1);
+          syncDates(date);
           selectTab(1);
         }
       });
@@ -853,7 +942,7 @@
           const grid = elem.parentElement.children;
           const date = startOfWeek(startOfMonth(windows[1].date));
           addTime(date, 'day', [...grid].indexOf(elem));
-          windows[0].date.setTime(date);
+          syncDates(date);
           selectTab(0);
         }
       })
