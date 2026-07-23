@@ -30,6 +30,54 @@
         background-color: #4c4a67;
       }
       
+      #print-container {
+        display: none;
+        width: 100%;
+        text-align: center;
+        text-wrap: balance;
+        margin: 0.5in;
+      }
+      
+      #print-container .title {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 5px;
+      }
+      
+      #print-container .subtitle {
+        font-size: 16px;
+      }
+      
+      #print-container .notes {
+        font-size: 16px;
+        padding: 20px;
+      }
+      
+      #print-container table {
+        display: inline-block;
+        text-align: left;
+        font-size: 16px;
+        border-collapse: collapse;
+      }
+      
+      #print-container th, #print-container td {
+        border: 1px solid black;
+        padding: 10px;
+      }
+      
+      #print-container th {
+        text-wrap: nowrap;
+      }
+      
+      @media print {
+        #left-side, #right-side {
+          display: none;
+        }
+        #print-container {
+          display: block;
+        }
+      }
+      
       #left-side {
         flex: 1;
         background-image: linear-gradient(to right, #232037, #1c1b1b);
@@ -45,7 +93,20 @@
         background-repeat: no-repeat;
       }
       
+      #icons {
+        position: absolute;
+        right: 0;
+        padding: 10px;
+        text-align: right;
+      }
+      
+      #icons svg {
+        cursor: pointer;
+        width: 8%;
+      }
+      
       #display {
+        position: relative;
         text-align: center;
         height: calc(80% - 20px);
         margin: 10px;
@@ -69,7 +130,7 @@
       }
       
       #day-display {
-        grid-template-columns: fit-content(38%) 1fr max-content;
+        grid-template-columns: 4fr 3fr max-content;
         text-wrap: balance;
         text-wrap: pretty;
       }
@@ -426,6 +487,13 @@
         <div id="logo"></div>
       </a>
       <div id="display">
+        <div id="icons">
+          <svg onclick="printSchedule()" xmlns="http://w3.org" viewBox="0 0 24 24" fill="lightgray" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10h16a2 2 0 012 2v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a2 2 0 012-2z"/>
+            <path d="M18 10V4a1 1 0 00-1-1H7a1 1 0 00-1 1v6M6 16h12v6H6z"/>
+            <circle cx="18" cy="13" r="1" fill="currentColor"/>
+          </svg>
+        </div>
       </div>
     </div>
     
@@ -447,6 +515,9 @@
       </div>
     </div>
     
+    <div id="print-container">
+    </div>
+    
     <script>
       
       const eventData = {};
@@ -455,11 +526,14 @@
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'aquamarine', 'mediumpurple'];
       
-      function addDiv(elem, ...classes) {
-        const newElem = document.createElement('div');
+      function addElem(elem, tag, ...classes) {
+        const newElem = document.createElement(tag);
         newElem.classList.add(...classes);
         elem.appendChild(newElem);
         return newElem;
+      }
+      function addDiv(elem, ...classes) {
+        return addElem(elem, 'div', ...classes);
       }
       function addSpan(elem, text, ...classes) {
         const newElem = document.createElement('span');
@@ -544,10 +618,21 @@
         render(index);
         localStorage.setItem('currentTab', index);
       }
+      function csvLineToArray(s) {
+        let array = [];
+        for (const match of s.trim().matchAll(/(".*?"),?|([^"]+)/g)) {
+          if (match[1] === undefined) {
+            array.push(...match[2].replace(/,$/g, '').split(','));
+          } else {
+            array.push(match[1].replace(/^"|"$/g, ''));
+          }
+        }
+        return array;
+      }
       function loadCategoryPage(target, data) {
         for (const key in target) delete target[key];
         for (const row of data.split(/\r?\n/)) {
-          const contents = row.split(',');
+          const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
           const [name, color] = contents;
@@ -558,13 +643,13 @@
         let date;
         for (const key in target) delete target[key];
         for (const row of data.split(/\r?\n/)) {
-          const contents = row.split(',');
+          const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
           if (contents[0] != '') {
             date = contents[0];
-            const [title, category] = contents.slice(1);
-            target[date] = {title:title, category:category, schedule:[]};
+            const [title, category, notes] = contents.slice(1);
+            target[date] = {title:title, category:category, notes:notes, schedule:[]};
           } else {
             const entry = contents.slice(1);
             target[date].schedule.push(entry);
@@ -575,7 +660,7 @@
         for (const key in target) delete target[key];
         let day;
         for (const row of data.split(/\r?\n/)) {
-          const contents = row.split(',');
+          const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
           if (filtered.length == 1) {
@@ -607,6 +692,40 @@
         let result = localStorage.getItem(key);
         if (result === null) result = value;
         return result;
+      }
+      function printSchedule() {
+        const container = document.getElementById('print-container');
+        container.innerHTML = '';
+        const title = addDiv(container, 'title');
+        const subtitle = addDiv(container, 'subtitle');
+        const notes = addDiv(container, 'notes');
+        const table = addElem(container, 'table');
+        const thead = addElem(table, 'thead');
+        const tbody = addElem(table, 'tbody');
+        const w = windows[0];
+        const key = dateStr(w.date);
+        let dataTable = eventData[key];
+        const weekday = dayNames[w.date.getDay()];
+        if (!dataTable && weekday in weeklyData) {
+          dataTable = {title: 'Schedule', schedule: weeklyData[weekday], category: '', notes: ''};
+        }
+        if (!dataTable) return;
+        title.innerText = dataTable.title;
+        subtitle.innerText = `${weekday} ${key}`;
+        notes.innerText = `${dataTable.notes}`;
+        const header = addElem(thead, 'tr');
+        for (const text of ['Description', 'Location', 'Start Time', 'End Time', 'Instructors']) {
+          const elem = addElem(header, 'th');
+          elem.innerText = text;
+        }
+        for (const items of dataTable.schedule) {
+          const row = addElem(tbody, 'tr');
+          for (const item of items) {
+            const elem = addElem(row, 'td');
+            elem.innerText = item;
+          }
+        }
+        window.print();
       }
       
       class Display {
@@ -966,7 +1085,6 @@
       })
       
       selectTab(currentTab);
-      
     </script>
   
   </body>
