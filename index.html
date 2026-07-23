@@ -204,6 +204,7 @@
 
       #day-window .top {
         height: 6%;
+        font-size: 1.25cqw;
         font-weight: bold;
         align-content: center;
         background-image: linear-gradient(to bottom, lightcyan, lightblue);
@@ -247,6 +248,7 @@
         align-content: center;
         border-radius: 6px;
         width: 15%;
+        padding: 3px;
       }
 
       #day-window .grid .event:hover {
@@ -486,7 +488,8 @@
           case 'month':
             month = date.getMonth() + amount;
             date.setMonth(month);
-            if (date.getMonth() != month) date.setMonth(date.getMonth(), 0);
+            if (month < 0) month += 12;
+            if (date.getMonth() % 12 != month % 12) date.setMonth(date.getMonth(), 0);
             break;
           case 'day':
             date.setDate(date.getDate() + amount);
@@ -516,7 +519,7 @@
             if (w.monthOffset == 0) {
               title.innerText = dateStr(w.date, {year: 'numeric'});
             } else {
-              const year = w.date.getFullYear();
+              let year = w.date.getFullYear();
               if (w.date.getMonth() < w.monthOffset) year--;
               title.innerText = `${year} - ${year+1}`;
             }
@@ -524,10 +527,16 @@
         }
       }
       function selectTab(index) {
+        const viewed = windows[windowSelector.index].date.getTime();
+        const selected = windows[0].date.getTime();
+        if (index > windowSelector.index) {
+          windows[index].date.setTime(viewed);
+          windows[index].selected.setTime(selected);
+        }
         modeSelector.select(index);
         windowSelector.select(index);
-        localStorage.setItem('currentTab', index);
         render(index);
+        localStorage.setItem('currentTab', index);
       }
       function loadCategoryPage(target, data) {
         for (const key in target) delete target[key];
@@ -592,9 +601,6 @@
         let result = localStorage.getItem(key);
         if (result === null) result = value;
         return result;
-      }
-      function syncDates(date) {
-        windows.forEach(w => w.date.setTime(date.getTime()))
       }
       
       class Display {
@@ -751,6 +757,7 @@
       class MonthWindow {
         constructor() {
           this.date = new Date();
+          this.selected = new Date();
           this.elem = document.createElement('div');
           this.elem.id = 'month-window';
           const dayHeader = addDiv(this.elem, 'day-header');
@@ -770,7 +777,7 @@
           const firstDayOfMonth = startOfMonth(this.date);
           const lastDayOfMonth = endOfMonth(this.date);
           const today = dateStr(new Date());
-          const selected = dateStr(this.date);
+          const selected = dateStr(this.selected);
           let day = startOfWeek(firstDayOfMonth);
           for (let i = 0; i < 42; i++) {
             const box = grid.children[i];
@@ -798,6 +805,7 @@
         constructor(monthOffset = 0) {
           this.monthOffset = monthOffset;
           this.date = new Date();
+          this.selected = new Date();
           this.elem = document.createElement('div');
           this.elem.id = 'year-window';
           const grid = addDiv(this.elem, 'grid');
@@ -808,6 +816,12 @@
             for (let j = 0; j < 7; j++) addSpan(mgrid, dayNames[j][0], 'day-name');
             for (let j = 0; j < 42; j++) addDiv(mgrid, 'date');
           }
+        }
+        
+        getFirstDay() {
+          let year = this.date.getFullYear();
+          if (this.date.getMonth() < this.monthOffset) year--;
+          return new Date(year, this.monthOffset, 1);
         }
         
         render(data) {
@@ -822,7 +836,7 @@
             const firstDay = startOfMonth(month);
             const lastDay = endOfMonth(month);
             const today = dateStr(new Date());
-            const selected = dateStr(this.date);
+            const selected = dateStr(this.selected);
             banner.innerText = month.toLocaleString('en-US', {month:'long', year:'numeric'});
             for (let j = 0; j < 7; j++) {
               monthGrid.children[j].innerText = dayNames[j][0];
@@ -901,13 +915,11 @@
       lnav.addEventListener('click', () => {
         const i = modeSelector.index;
         addTime(windows[i].date, ['day', 'month', 'year'][i], -1);
-        syncDates(windows[i].date);
         render(i);
       });
       rnav.addEventListener('click', () => {
         const i = modeSelector.index;
         addTime(windows[i].date, ['day', 'month', 'year'][i], 1);
-        syncDates(windows[i].date);
         render(i);
       })
       const todayButton = document.getElementById('today-button');
@@ -922,17 +934,17 @@
         if (elem.classList.contains('date') && elem.innerText != '') {
           const mElem = elem.parentElement.parentElement;
           const mGrid = mElem.parentElement.children;
-          const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
-          const day = Number(elem.innerText);
-          const date = new Date(windows[2].date.getFullYear(), month, Number(elem.innerText));
-          syncDates(date);
+          const day = windows[2].getFirstDay();
+          addTime(day, 'month', [...mGrid].indexOf(mElem));
+          day.setDate(Number(elem.innerText));
+          windows[0].date.setTime(day.getTime());
           selectTab(0);
         } else if (elem.classList.contains('banner')) {
           const mElem = elem.parentElement;
           const mGrid = mElem.parentElement.children;
-          const month = [...mGrid].indexOf(mElem) + + windows[2].monthOffset;
-          const date = new Date(windows[2].date.getFullYear(), month, 1);
-          syncDates(date);
+          const day = windows[2].getFirstDay();
+          addTime(day, 'month', [...mGrid].indexOf(mElem))
+          windows[1].date.setTime(day.getTime());
           selectTab(1);
         }
       });
@@ -942,7 +954,7 @@
           const grid = elem.parentElement.children;
           const date = startOfWeek(startOfMonth(windows[1].date));
           addTime(date, 'day', [...grid].indexOf(elem));
-          syncDates(date);
+          windows[0].date.setTime(date.getTime());
           selectTab(0);
         }
       })
