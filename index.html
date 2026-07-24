@@ -35,55 +35,8 @@
         height: 100%;
       }
       
-      #print-container {
-        display: none;
-        width: 100%;
-        text-align: center;
-        text-wrap: balance;
-        margin: 0;
-      }
-      
-      #print-container .title {
-        font-size: 24px;
-        font-weight: bold;
-        padding: 5px;
-      }
-      
-      #print-container .subtitle {
-        font-size: 16px;
-      }
-      
-      #print-container .notes {
-        font-size: 16px;
-        padding: 20px;
-      }
-      
-      #print-container table {
-        display: inline-block;
-        text-align: left;
-        font-size: 16px;
-        border-collapse: collapse;
-      }
-      
-      #print-container th, #print-container td {
-        border: 1px solid black;
-        padding: 10px;
-      }
-      
-      #print-container th {
-        text-wrap: nowrap;
-      }
-      
-      @media print {
-        #site-wrapper {
-          display: none;
-        }
-        #print-container {
-          display: block;
-        }
-      }
-      
       #left-side {
+        position: relative;
         flex: 1;
         background-image: linear-gradient(to right, #232037, #1c1b1b);
       }
@@ -100,6 +53,7 @@
       
       #icons {
         position: absolute;
+        right: 0;
         padding: 10px;
         text-align: right;
       }
@@ -150,6 +104,7 @@
         grid-column: span 3;
         color: lightgray;
         text-align: center;
+        text-wrap: balance;
         font-size: var(--font-size-1);
       }
       
@@ -178,13 +133,8 @@
       }
       
       #right-side {
+        position: relative;
         flex: 3;
-      }
-
-      #windows {
-        position: absolute;
-        width: 75%;
-        height: 90%;
       }
 
       #window-banner {
@@ -200,6 +150,12 @@
         font-size: var(--font-size-4);
       }
       
+      #windows {
+        position: absolute;
+        width: 100%;
+        height: 90%;
+      }
+
       #mode-buttons {
         color: gray;
         font-size: 0px; /*Required to make browser stop adding space between divs*/
@@ -289,6 +245,7 @@
       }
       
       #day-window .top .first-header {
+        padding-left: 5px;
         display: inline-block;
         text-align: right;
         width: 5%;
@@ -306,6 +263,7 @@
       }
 
       #day-window .grid .side-header {
+        padding-left: 5px;
         display: inline-block;
         text-align: right;
         white-space: nowrap;
@@ -481,6 +439,69 @@
       
       #year-window .grid .month .mgrid .date.today:hover {
         border: 4px solid black;
+      }
+      
+      #print-container {
+        display: none;
+        width: 100%;
+        text-align: center;
+        text-wrap: balance;
+        margin: 0;
+      }
+      
+      #print-container .title {
+        font-size: 28px;
+        font-weight: bold;
+        padding: 5px;
+      }
+      
+      #print-container .subtitle {
+        font-size: 20px;
+      }
+      
+      #print-container .notes {
+        font-size: 16px;
+        padding: 20px;
+      }
+      
+      #print-container table {
+        display: inline-block;
+        text-align: left;
+        font-size: 16px;
+        border-collapse: collapse;
+      }
+      
+      #print-container th, #print-container td {
+        border: 1px solid black;
+        padding: 10px;
+      }
+      
+      #print-container th {
+        text-wrap: nowrap;
+      }
+      
+      @media (orientation: portrait) {
+        :root {
+          --font-size-0: 0.9cqh;
+          --font-size-1: 1cqh;
+          --font-size-2: 1.25cqh;
+          --font-size-3: 1.5cqh;
+          --font-size-4: 2cqh;
+          --font-size-5: 3cqh;
+        }
+        #logo {background-size: 50% 100%;}
+        #left-side {height: 50%;}
+        #right-side {height: 50%;}
+        #site-wrapper {display: block;}
+      }
+      
+      @media print {
+        #site-wrapper {
+          display: none;
+        }
+        #print-container {
+          display: block;
+        }
       }
     </style>
   </head>
@@ -733,13 +754,13 @@
         const tbody = addElem(table, 'tbody');
         const w = windows[0];
         const key = dateStr(w.date);
-        let dataTable = eventData[key];
         const weekday = dayNames[w.date.getDay()];
         const weekData = indexDateRangeMap(weeklyData, w.date, {});
-        if (!dataTable && weekday in weekData) {
-          dataTable = {title: 'Schedule', schedule: weekData[weekday], category: '', notes: ''};
+        let dataTable = eventData[key] ? {...eventData[key]} : {title: 'Schedule', schedule: [], category: '', notes: ''};
+        if (dataTable.schedule.length == 0 && dataTable.category != 'No Class') {
+          dataTable.title = 'Schedule';
+          if (weekday in weekData) dataTable.schedule = weekData[weekday];
         }
-        if (!dataTable) return;
         title.innerText = dataTable.title;
         subtitle.innerText = `${weekday} ${key}`;
         notes.innerText = `${dataTable.notes}`;
@@ -785,24 +806,23 @@
           const index = this.selector.index;
           const elem = this.tables[this.selector.index];
           const printIcon = document.getElementById('print-icon');
-          const weekData = indexDateRangeMap(weeklyData, w.date, {});
           switch (index) {
             case 0:
               printIcon.style.display = 'inline-block';
               const key = dateStr(w.date);
-              const dataTable = data[key];
-              const dataExists = dataTable && (dataTable.schedule.length > 0 || dataTable.category == 'No Class');
-              const title = dataExists ? dataTable.title : 'Schedule';
               const weekday = dayNames[w.date.getDay()];
+              const weekData = indexDateRangeMap(weeklyData, w.date, {});
+              let dataTable = data[key] ? {...data[key]} : {title: 'Schedule', schedule: [], category: '', notes: ''};
+              if (dataTable.schedule.length == 0 && dataTable.category != 'No Class') {
+                dataTable.title = 'Schedule';
+                if (weekday in weekData) dataTable.schedule = weekData[weekday];
+              }
               elem.innerHTML = '';
-              addSpan(elem, `${title}`, 'title');
-              addSpan(elem, `${weekday} ${key}\n\n\n`, 'subtitle');
-              let schedule;
-              if (weekday in weekData) schedule = weekData[weekday];
-              if (dataExists) schedule = dataTable.schedule;
-              if (!schedule) return;
+              addSpan(elem, `${dataTable.title}`, 'title');
+              addSpan(elem, `${weekday} ${key}\n\n`, 'subtitle');
+              addSpan(elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle')
               let i = 0;
-              for (let [...params] of schedule) {
+              for (let [...params] of dataTable.schedule) {
                 params = params.slice(0,4);
                 params[2] = params[2] + ' - ' + params.pop();
                 params.forEach(item => {
@@ -912,14 +932,14 @@
               index = locations.length + 1;
               locations.push(location);
               const header = addSpan(this.top, location, 'header');
-              header.style.left = `${15*index-8}%`;
+              header.style.left = `${15*index-6}%`;
             }
             const block = addDiv(rows[0], 'event');
             const offset = strToHours(start) - startHour;
             const duration = strToHours(end) - strToHours(start);
             const count = rows.length
             block.style.top = `${6+94*offset/count}%`;
-            block.style.left = `${15*index-8}%`
+            block.style.left = `${15*index-6}%`
             block.style.height = `${94*duration/count}%`;
             block.style.backgroundColor = palette[i]; i++; if (i >= palette.length) i = 0;
             block.innerText = name;
