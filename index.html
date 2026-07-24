@@ -694,11 +694,11 @@
           if (!(duration in target)) continue;
           if (dayNames.includes(firstValue)) {
             day = firstValue;
-            target[duration][day] = [];
+            target[duration][day] = [contents.slice(1,6)];
             continue;
           };
           if (!(day in target[duration])) continue;
-          target[duration][day].push(contents);
+          target[duration][day].push(contents.slice(1,6));
         }
       }
       function fetchData(dataObj, weekObj, categoryObj, dataURL, weekDataURL, categoryURL) {
@@ -1065,25 +1065,23 @@
         'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
       );
       
-      const modeButtons = document.getElementById('mode-buttons');
       const display = document.getElementById('display');
       const windowWrapper = document.getElementById('windows');
-      const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
-      const windowElems = windows.map(w => w.elem);
-      const windowSelector = new Selector(...windowElems);
-      const modeSelector = new Selector(...modeButtons.children);
+      const windowHeader = document.querySelector('#window-banner .header');
+      const modeButtons = document.getElementById('mode-buttons').children;
+      const todayButton = document.getElementById('today-button');
+      const [lnav, title, rnav] = windowHeader.children;
       
       const displayObj = new Display();
       display.append(...displayObj.tables);
-      
+      const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
+      const windowElems = windows.map(w => w.elem);
       windowWrapper.append(...windowElems);
-      
-      [...modeButtons.children].forEach((button, index) => {
+      const windowSelector = new Selector(...windowElems);
+      const modeSelector = new Selector(...modeButtons);
+      [...modeButtons].forEach((button, index) => {
         button.addEventListener('click', () => selectTab(index))
       })
-      
-      const windowHeader = document.querySelector('#window-banner .header');
-      const [lnav, title, rnav] = windowHeader.children;
       lnav.addEventListener('click', () => {
         const i = modeSelector.index;
         addTime(windows[i].date, ['day', 'month', 'year'][i], -1);
@@ -1096,7 +1094,6 @@
         syncDates();
         render(i);
       })
-      const todayButton = document.getElementById('today-button');
       todayButton.addEventListener('click', () => {
         for (let i = 0; i < windows.length; i++){
           windows[i].date.setTime(Date.now());
