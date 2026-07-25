@@ -4,6 +4,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Southwest Washington Dance Center (SWDC) calendar and schedule viewer">
     <title>SWDC Calendar</title>
     <style>
       * {
@@ -29,7 +30,7 @@
         background-color: #4c4a67;
       }
       
-      #site-wrapper {
+      main {
         display: flex;
         width: 100%;
         height: 100%;
@@ -74,8 +75,8 @@
         scrollbar-color: white #1d1c1f;
       }
       
-      #day-display, #month-display, #year-display {
-        display: none;
+      #display-window {
+        display: inline-grid;
         max-height: 100%;
         text-align: left;
         font-size: var(--font-size-0);
@@ -83,24 +84,19 @@
         gap: 10px;
       }
       
-      #day-display.selected, #month-display.selected, #year-display.selected {
-        display: inline-grid;
-      }
-      
-      #day-display {
+      #display-window.day {
         grid-template-columns: 4fr 3fr max-content;
         text-wrap: balance;
-        text-wrap: pretty;
       }
       
-      #day-display .title {
+      #display-window.day .title {
         grid-column: span 3;
         color: white;
         text-align: center;
         font-size: var(--font-size-3);
       }
       
-      #day-display .subtitle {
+      #display-window.day .subtitle {
         grid-column: span 3;
         color: lightgray;
         text-align: center;
@@ -108,33 +104,27 @@
         font-size: var(--font-size-1);
       }
       
-      #day-display .header {
-        color: white;
-        font-weight: bold;
-      }
-      
-      #month-display {
+      #display-window.month,
+      #display-window.year {
         grid-template-columns: max-content 1fr;
       }
       
-      #month-display .title, #year-display .title {
+      #display-window.month .title,
+      #display-window.year .title {
         grid-column: span 2;
         color: white;
         text-align: center;
         font-size: var(--font-size-3);
       }
       
-      #year-display {
-        grid-template-columns: max-content 1fr;
-      }
-      
-      #year-display .color-box {
+      #display-window.year .color-box {
         aspect-ratio: 1;
       }
       
       #right-side {
         position: relative;
         flex: 3;
+        user-select: none;
       }
 
       #window-banner {
@@ -150,12 +140,6 @@
         font-size: var(--font-size-4);
       }
       
-      #windows {
-        position: absolute;
-        width: 100%;
-        height: 90%;
-      }
-
       #mode-buttons {
         color: gray;
         font-size: 0px; /*Required to make browser stop adding space between divs*/
@@ -220,6 +204,12 @@
         background-image: linear-gradient(to bottom, lightgray, white);
       }
 
+      #windows {
+        position: absolute;
+        width: 100%;
+        height: 90%;
+      }
+
       #day-window {
         height: 100%;
         display: none;
@@ -245,10 +235,9 @@
       }
       
       #day-window .top .first-header {
-        padding-left: 5px;
         display: inline-block;
         text-align: right;
-        width: 5%;
+        width: 7%;
       }
 
       #day-window .grid {
@@ -263,11 +252,10 @@
       }
 
       #day-window .grid .side-header {
-        padding-left: 5px;
         display: inline-block;
         text-align: right;
         white-space: nowrap;
-        width: 5%;
+        width: 7%;
       }
 
       #day-window .grid .event {
@@ -275,7 +263,6 @@
         position: absolute;
         text-align: center;
         align-content: center;
-        user-select: none;
         border-radius: 6px;
         width: 15%;
         padding: 3px;
@@ -492,25 +479,21 @@
         #logo {background-size: 50% 100%;}
         #left-side {height: 50%;}
         #right-side {height: 50%;}
-        #site-wrapper {display: block;}
+        main {display: block;}
       }
       
       @media print {
-        #site-wrapper {
-          display: none;
-        }
-        #print-container {
-          display: block;
-        }
+        main {display: none;}
+        #print-container {display: block;}
       }
     </style>
   </head>
   
   <body>
     
-    <div id="site-wrapper">
+    <main>
       <div id="left-side">
-        <a href="https://www.swwdance.org/" target="_blank" rel="noopener noreferrer">
+        <a href="https://www.swwdance.org/" target="_blank" rel="noopener noreferrer" aria-label="SWDC Homepage">
           <div id="logo"></div>
         </a>
         <div id="display">
@@ -527,33 +510,31 @@
       <div id="right-side">
         <div id="window-banner">
           <div id="mode-buttons">
-            <div>Day</div>
-            <div>Month</div>
-            <div>Year</div>
+            <div onclick="selectTab(0)">Day</div>
+            <div onclick="selectTab(1)">Month</div>
+            <div onclick="selectTab(2)">Year</div>
           </div>
           <div class="header">
-            <div class="nav-btn">‹</div>
+            <div onclick="navigate(-1)" class="nav-btn">‹</div>
             <div class="title-text"></div>
-            <div class="nav-btn">›</div>
+            <div onclick="navigate(1)" class="nav-btn">›</div>
           </div>
-          <div id="today-button" class="button">Today</div>
+          <div id="today-button" onclick="goToDate(Date.now())" class="button">Today</div>
         </div>
         <div id="windows">
         </div>
       </div>
-    </div>
+    </main>
     
     <div id="print-container">
     </div>
     
     <script>
       
-      const eventData = {};
-      const weeklyData = {};
-      const categories = {};
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'aquamarine', 'mediumpurple'];
       
+      // Deterministic Functions
       function addElem(elem, tag, ...classes) {
         const newElem = document.createElement(tag);
         newElem.classList.add(...classes);
@@ -570,11 +551,23 @@
         newElem.innerText = text;
         return newElem;
       }
+      function selectFrom(nodes, index) {
+        [...nodes].forEach((n, i) => {
+          n.classList.toggle('selected', i == index);
+        })
+      }
       function dateStr(date, options={day:'numeric', month:'numeric', year:'numeric'}) {
         return date.toLocaleDateString('en-us', options);
       }
       function titleCase(text) {
         return text.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+      }
+      function objClear(obj) {
+        Object.keys(obj).forEach(key => delete obj[key]);
+      }
+      function objSet(obj, newObj) {
+        objClear(obj);
+        Object.assign(obj, newObj);
       }
       function startOfMonth(day) {
         return new Date(day.getFullYear(), day.getMonth(), 1)
@@ -611,46 +604,6 @@
         if (modifier.toLowerCase() == 'pm') hours += 12;
         return hours + (minutes / 60);
       }
-      function render(index) {
-        const w = windows[index]
-        w.render(eventData);
-        displayObj.selector.select(index);
-        displayObj.render(w, eventData);
-        switch (index) {
-          case 0:
-            title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
-            break;
-          case 1:
-            title.innerText = dateStr(w.date, {month:'long', year:'numeric'});
-            break;
-          case 2:
-            if (w.monthOffset == 0) {
-              title.innerText = dateStr(w.date, {year: 'numeric'});
-            } else {
-              let year = w.date.getFullYear();
-              if (w.date.getMonth() < w.monthOffset) year--;
-              title.innerText = `${year} - ${year+1}`;
-            }
-            break;
-        }
-      }
-      function syncDates() {
-        const time0 = windows[0].date.getTime();
-        const time = windows[windowSelector.index].date.getTime();
-        for (let i = windowSelector.index + 1; i < windows.length; i++) {
-          windows[i].date.setTime(time);
-        };
-        windows.slice(1).forEach(w => {
-          w.selected.setTime(time0);
-        })
-      }
-      function selectTab(index) {
-        syncDates();
-        render(index);
-        modeSelector.select(index);
-        windowSelector.select(index);
-        localStorage.setItem('currentTab', index);
-      }
       function csvLineToArray(s) {
         let array = [];
         for (const match of s.trim().matchAll(/(".*?"),?|([^"]+)/g)) {
@@ -669,19 +622,29 @@
         }
         return defaultValue;
       }
-      function loadCategoryPage(target, data) {
-        for (const key in target) delete target[key];
+      function getElemIndex(target, depth=1) {
+        let parent = target.parentElement;
+        let child = target;
+        for (let i = 1; i < depth; i++) {
+          child = parent;
+          parent = child.parentElement;
+        }
+        return [...parent.children].indexOf(child);
+      }
+      function parseCategoryPage(data) {
+        const result = {};
         for (const row of data.split(/\r?\n/)) {
           const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
           const [name, color] = contents;
-          target[titleCase(name)] = color;
+          result[titleCase(name)] = color;
         }
+        return result
       }
-      function loadDataPage(target, data) {
+      function parseDataPage(data) {
         let date;
-        for (const key in target) delete target[key];
+        const result = {};
         for (const row of data.split(/\r?\n/)) {
           const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
@@ -691,15 +654,16 @@
             let [title, category, notes] = contents.slice(1);
             title = titleCase(title);
             category = titleCase(category);
-            target[date] = {title:title, category:category, notes:notes, schedule:[]};
+            result[date] = {title:title, category:category, notes:notes, schedule:[]};
           } else {
             const entry = contents.slice(1);
-            target[date].schedule.push(entry);
+            result[date].schedule.push(entry);
           }
         }
+        return result;
       }
-      function loadWeekPage(target, data) {
-        for (const key in target) delete target[key];
+      function parseWeekPage(data) {
+        const result = {}
         let duration;
         let day;
         for (const row of data.split(/\r?\n/)) {
@@ -709,30 +673,34 @@
           const firstValue = titleCase(contents[0]);
           if (firstValue == 'Duration') {
             duration = contents.slice(1,3).join('-');
-            target[duration] = {};
+            result[duration] = {};
             continue;
           }
-          if (!(duration in target)) continue;
+          if (!(duration in result)) continue;
           if (dayNames.includes(firstValue)) {
             day = firstValue;
-            target[duration][day] = [contents.slice(1,6)];
+            result[duration][day] = [contents.slice(1,6)];
             continue;
           };
-          if (!(day in target[duration])) continue;
-          target[duration][day].push(contents.slice(1,6));
+          if (!(day in result[duration])) continue;
+          result[duration][day].push(contents.slice(1,6));
         }
+        return result;
       }
-      function fetchData(dataObj, weekObj, categoryObj, dataURL, weekDataURL, categoryURL) {
+      
+      // Non Deterministic Functions
+      function fetchData(dataURL, weekDataURL, categoryURL) {
         const promises = [
-          fetch(dataURL).then(response => response.text()),
-          fetch(weekDataURL).then(response => response.text()),
-          fetch(categoryURL).then(response => response.text())
+          fetch(dataURL).then(response => response.ok ? response.text() : null),
+          fetch(weekDataURL).then(response => response.ok ? response.text() : null),
+          fetch(categoryURL).then(response => response.ok ? response.text() : null),
         ]
         Promise.all(promises).then(data => {
-          loadDataPage(dataObj, data[0]);
-          loadWeekPage(weekObj, data[1]);
-          loadCategoryPage(categoryObj, data[2]);
-          render(currentTab)
+          if (!data.every(Boolean)) return;
+          objSet(eventData, parseDataPage(data[0]));
+          objSet(weeklyData, parseWeekPage(data[1]));
+          objSet(categories, parseCategoryPage(data[2]));
+          render(currentTab);
           localStorage.setItem('eventData', data[0]);
           localStorage.setItem('weekData', data[1]);
           localStorage.setItem('categoryData', data[2]);
@@ -780,92 +748,139 @@
         }
         window.print();
       }
-      function getElemIndex(target, depth=1) {
-        let parent = target.parentElement;
-        let child = target;
-        for (let i = 1; i < depth; i++) {
-          child = parent;
-          parent = child.parentElement;
+      function getData(date) {
+        const key = dateStr(date);
+        const weekday = dayNames[date.getDay()];
+        const weekData = indexDateRangeMap(weeklyData, date, {});
+        const dataTable = eventData[key] ? {...eventData[key]} : {title: 'Schedule', schedule: [], category: '', notes: ''};
+        if (dataTable.schedule.length == 0 && dataTable.category != 'No Class') {
+          dataTable.title = 'Schedule';
+          if (weekday in weekData) dataTable.schedule = weekData[weekday];
         }
-        return [...parent.children].indexOf(child);
+        return dataTable;
+      }
+      function render(index) {
+        const w = windows[index];
+        w.render();
+        displayObj.render(w.date, index);
+        const title = document.querySelector('#window-banner .header .title-text');
+        switch (index) {
+          case 0:
+            title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
+            break;
+          case 1:
+            title.innerText = dateStr(w.date, {month:'long', year:'numeric'});
+            break;
+          case 2:
+            if (w.monthOffset == 0) {
+              title.innerText = dateStr(w.date, {year: 'numeric'});
+            } else {
+              let year = w.date.getFullYear();
+              if (w.date.getMonth() < w.monthOffset) year--;
+              title.innerText = `${year} - ${year+1}`;
+            }
+            break;
+        }
+      }
+      function syncDates() {
+        const time0 = windows[0].date.getTime();
+        const time = windows[currentTab].date.getTime();
+        for (let i = currentTab + 1; i < windows.length; i++) {
+          windows[i].date.setTime(time);
+        };
+        windows.slice(1).forEach(w => {
+          w.selected.setTime(time0);
+        })
+      }
+      function selectTab(index) {
+        currentTab = index;
+        selectFrom(document.getElementById('mode-buttons').children, index);
+        selectFrom(document.getElementById('windows').children, index);
+        syncDates();
+        render(index);
+        localStorage.setItem('currentTab', index);
+      }
+      function navigate(amount) {
+        const i = currentTab;
+        addTime(windows[i].date, ['day', 'month', 'year'][i], amount);
+        syncDates();
+        render(i);
+      }
+      function goToDate(date) {
+        for (let i = 0; i < windows.length; i++) {
+          windows[i].date.setTime(date);
+        }
+        syncDates();
+        render(currentTab);
       }
       
-      class Display {
+      class DisplayWindow {
         constructor() {
-          this.tables = [];
-          this.tables.push(document.createElement('div'));
-          this.tables.push(document.createElement('div'));
-          this.tables.push(document.createElement('div'));
-          this.tables[0].id = 'day-display';
-          this.tables[1].id = 'month-display';
-          this.tables[2].id = 'year-display';
-          this.selector = new Selector(...this.tables);
+          this.elem = document.createElement('div');
+          this.elem.id = 'display-window';
+          this.icon = document.getElementById('print-icon');
         }
         
-        render(w, data) {
-          const index = this.selector.index;
-          const elem = this.tables[this.selector.index];
-          const printIcon = document.getElementById('print-icon');
+        render(date, index) {
           switch (index) {
             case 0:
-              printIcon.style.display = 'inline-block';
-              const key = dateStr(w.date);
-              const weekday = dayNames[w.date.getDay()];
-              const weekData = indexDateRangeMap(weeklyData, w.date, {});
-              let dataTable = data[key] ? {...data[key]} : {title: 'Schedule', schedule: [], category: '', notes: ''};
-              if (dataTable.schedule.length == 0 && dataTable.category != 'No Class') {
-                dataTable.title = 'Schedule';
-                if (weekday in weekData) dataTable.schedule = weekData[weekday];
-              }
-              elem.innerHTML = '';
-              addSpan(elem, `${dataTable.title}`, 'title');
-              addSpan(elem, `${weekday} ${key}\n\n`, 'subtitle');
-              addSpan(elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle')
+              this.icon.style.display = 'inline-block';
+              this.elem.className = 'day';
+              const key = dateStr(date);
+              const weekday = dayNames[date.getDay()];
+              const weekData = indexDateRangeMap(weeklyData, date, {});
+              const dataTable = getData(date);
+              this.elem.innerHTML = '';
+              addSpan(this.elem, `${dataTable.title}`, 'title');
+              addSpan(this.elem, `${weekday} ${key}\n\n`, 'subtitle');
+              addSpan(this.elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle')
               let i = 0;
               for (let [...params] of dataTable.schedule) {
                 params = params.slice(0,4);
                 params[2] = params[2] + ' - ' + params.pop();
                 params.forEach(item => {
-                  const s = addSpan(elem, item);
+                  const s = addSpan(this.elem, item);
                   s.style.color = palette[i];
                 });
                 i++;
                 if (i >= palette.length) i = 0;
               }
-              addSpan(elem, '\n', 'title');
+              addSpan(this.elem, '\n', 'title');
               break;
             case 1:
-              printIcon.style.display = 'none';
-              elem.innerHTML = '';
-              addSpan(elem, 'Events\n\n', 'title');
-              const firstDay = startOfMonth(w.date);
-              const lastDay = endOfMonth(w.date);
+              this.icon.style.display = 'none';
+              this.elem.className = 'month';
+              this.elem.innerHTML = '';
+              addSpan(this.elem, 'Events\n\n', 'title');
+              const firstDay = startOfMonth(date);
+              const lastDay = endOfMonth(date);
               let day = firstDay;
               while (day <= lastDay) {
                 const key = dateStr(day);
-                if (key in data) {
-                  const {title, category} = data[key];
-                  const k = addSpan(elem, key);
-                  const e = addSpan(elem, title);
+                if (key in eventData) {
+                  const {title, category} = eventData[key];
+                  const k = addSpan(this.elem, key);
+                  const e = addSpan(this.elem, title);
                   k.style.color = categories[category];
                   e.style.color = categories[category];
                   k.style.textAlign = 'right';
                 };
                 addTime(day, 'day', 1);
               }
-              addSpan(elem, '\n', 'title');
+              addSpan(this.elem, '\n', 'title');
               break;
             case 2:
-              printIcon.style.display = 'none';
-              elem.innerHTML = '';
-              addSpan(elem, 'Legend\n\n', 'title');
+              this.icon.style.display = 'none';
+              this.elem.className = 'year';
+              this.elem.innerHTML = '';
+              addSpan(this.elem, 'Legend\n\n', 'title');
               for (const [name, color] of Object.entries(categories)) {
-                const c = addDiv(elem, 'color-box');
-                const n = addSpan(elem, name);
+                const c = addDiv(this.elem, 'color-box');
+                const n = addSpan(this.elem, name);
                 c.style.backgroundColor = color;
                 n.style.color = color;
               }
-              addSpan(elem, '\n', 'title');
+              addSpan(this.elem, '\n', 'title');
               break;
           }
         }
@@ -898,35 +913,21 @@
           }
         }
         
-        render(data) {
+        render() {
           const grid = this.elem.querySelector('.grid');
           const rows = grid.children;
-          const key = this.date.toLocaleDateString('en-us', {
-            month:'numeric', day:'numeric', year:'numeric'
-          });
-          const dataTable = data[key];
-          const weekday = dayNames[this.date.getDay()];
-          const weekData = indexDateRangeMap(weeklyData, this.date, {});
-          let schedule;
-          if (weekday in weekData) schedule = weekData[weekday];
-          if (dataTable && (dataTable.schedule.length > 0 || dataTable.category == 'No Class')) {
-            schedule = dataTable.schedule;
-          }
+          const dataTable = getData(this.date);
           this.top.innerHTML = this.top.children[0].outerHTML;
           this.grid.innerHTML = '';
           let [startHour, endHour] = [14, 21];
-          if (!schedule || schedule.length == 0) {
-            this.buildGridRows(startHour, endHour);
-            return;
-          };
           const locations = [];
-          for (const [name, location, start, end] of schedule) {
+          for (const [name, location, start, end] of dataTable.schedule) {
             startHour = Math.floor(Math.min(startHour, strToHours(start)));
             endHour = Math.ceil(Math.max(endHour, strToHours(end)));
           }
           this.buildGridRows(startHour, endHour);
           let i = 0;
-          for (const [name, location, start, end] of schedule) {
+          for (const [name, location, start, end] of dataTable.schedule) {
             let index = locations.indexOf(location) + 1;
             if (index == 0) {
               index = locations.length + 1;
@@ -964,7 +965,7 @@
           }
         }
         
-        render(data) {
+        render() {
           const grid = this.elem.querySelector('.grid');
           const firstDayOfMonth = startOfMonth(this.date);
           const lastDayOfMonth = endOfMonth(this.date);
@@ -981,8 +982,8 @@
             const key = dateStr(day);
             box.classList.toggle('today', key==today);
             box.classList.toggle('selected', key==selected);
-            if (key in data && isActive) {
-              const {title, category} = data[key];
+            if (key in eventData && isActive) {
+              const {title, category} = eventData[key];
               nameText.innerText = title;
               box.style.backgroundColor = categories[category];
             } else {
@@ -1016,7 +1017,7 @@
           return new Date(year, this.monthOffset, 1);
         }
         
-        render(data) {
+        render() {
           const grid = this.elem.querySelector('.grid');
           let year = this.date.getFullYear();
           if (this.date.getMonth() < this.monthOffset) year--;
@@ -1040,8 +1041,8 @@
               if (withinMonth) {
                 box.innerText = day.getDate();
                 const key = dateStr(day);
-                if (key in data) {
-                  const {title, category} = data[key];
+                if (key in eventData) {
+                  const {title, category} = eventData[key];
                   box.style.backgroundColor = categories[category];
                 } else {
                   box.style.backgroundColor = '';
@@ -1059,69 +1060,10 @@
           }
         }
       }
-      class Selector {
-        constructor(...elems) {
-          this.index = 0;
-          this.elems = elems;
-          this.className = 'selected';
-        }
-        
-        select(index) {
-          this.index = index;
-          this.elems.forEach((elem, i) => {
-            elem.classList.toggle(this.className, i==index);
-          })
-        }
-      }
       
-      let currentTab = Number(getStored('currentTab', 1));
-      loadDataPage(eventData, getStored('eventData'));
-      loadWeekPage(weeklyData, getStored('weekData'));
-      loadCategoryPage(categories, getStored('categoryData'));
-      fetchData(
-        eventData, weeklyData, categories,
-        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
-        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
-        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
-      );
-      
-      const display = document.getElementById('display');
-      const windowWrapper = document.getElementById('windows');
-      const windowHeader = document.querySelector('#window-banner .header');
-      const modeButtons = document.getElementById('mode-buttons').children;
-      const todayButton = document.getElementById('today-button');
-      const [lnav, title, rnav] = windowHeader.children;
-      
-      const displayObj = new Display();
-      display.append(...displayObj.tables);
+      const displayObj = new DisplayWindow();
       const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
-      const windowElems = windows.map(w => w.elem);
-      windowWrapper.append(...windowElems);
-      const windowSelector = new Selector(...windowElems);
-      const modeSelector = new Selector(...modeButtons);
-      [...modeButtons].forEach((button, index) => {
-        button.addEventListener('click', () => selectTab(index))
-      })
-      lnav.addEventListener('click', () => {
-        const i = modeSelector.index;
-        addTime(windows[i].date, ['day', 'month', 'year'][i], -1);
-        syncDates();
-        render(i);
-      });
-      rnav.addEventListener('click', () => {
-        const i = modeSelector.index;
-        addTime(windows[i].date, ['day', 'month', 'year'][i], 1);
-        syncDates();
-        render(i);
-      })
-      todayButton.addEventListener('click', () => {
-        for (let i = 0; i < windows.length; i++){
-          windows[i].date.setTime(Date.now());
-        }
-        syncDates();
-        render(modeSelector.index);
-      })
-      windowElems[2].addEventListener('click', event => {
+      windows[2].elem.addEventListener('click', event => {
         const elem = event.target;
         const day = windows[2].getFirstDay();
         if (elem.classList.contains('date') && elem.innerText != '') {
@@ -1135,7 +1077,7 @@
           selectTab(1);
         }
       });
-      windowElems[1].addEventListener('click', event => {
+      windows[1].elem.addEventListener('click', event => {
         const elem = event.target;
         const date = startOfWeek(startOfMonth(windows[1].date));
         if (elem.parentElement.classList.contains('box')) {
@@ -1145,7 +1087,18 @@
         }
       })
       
+      document.getElementById('display').append(displayObj.elem);
+      document.getElementById('windows').append(...windows.map(w => w.elem));
+      const eventData = parseDataPage(getStored('eventData'));
+      const weeklyData = parseWeekPage(getStored('weekData'));
+      const categories = parseCategoryPage(getStored('categoryData'));
+      let currentTab = Number(getStored('currentTab', 1));
       selectTab(currentTab);
+      fetchData(
+        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
+        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
+        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
+      );
     </script>
   
   </body>
