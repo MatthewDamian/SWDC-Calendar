@@ -2,10 +2,11 @@
 
 <html lang="en">
   <head>
+    <title>SWDC Calendar</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Southwest Washington Dance Center (SWDC) calendar and schedule viewer">
-    <title>SWDC Calendar</title>
+    <link rel="preload" as="image" href="https://images.squarespace-cdn.com/content/v1/5fa31a9e206c8a69fd49cfda/1611602029932-VTFLL1ATNQGALUG35LPA/png.png" fetchpriority="high">
     <style>
       * {
         margin: 0;
@@ -82,6 +83,15 @@
         font-size: var(--font-size-0);
         padding: 15px 10px;
         gap: 10px;
+      }
+      
+      #display-window .row {
+        display: contents;
+        cursor: default;
+      }
+      
+      #display-window .row.isHovering {
+        text-shadow: 1px 1px 0px mediumpurple;
       }
       
       #display-window.day {
@@ -268,8 +278,16 @@
         padding: 3px;
       }
 
-      #day-window .grid .event:hover {
+      #day-window .grid .event.isHovering {
         box-shadow: 1px 1px 5px black;
+      }
+      
+      #day-window .grid .current-time {
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        border: 1px dashed black;
+        text-align: right;
       }
 
       #month-window {
@@ -329,6 +347,7 @@
       }
       
       #month-window .grid .box:hover,
+      #month-window .grid .box.isHovering,
       #month-window .grid .box.selected {
         cursor: pointer;
         border: 1px solid black;
@@ -339,6 +358,7 @@
       }
       
       #month-window .grid .box.today:hover,
+      #month-window .grid .box.today.isHovering,
       #month-window .grid .box.selected:hover {
         box-shadow: inset 1px 1px 3px black;
       }
@@ -494,7 +514,7 @@
     <main>
       <div id="left-side">
         <a href="https://www.swwdance.org/" target="_blank" rel="noopener noreferrer" aria-label="SWDC Homepage">
-          <div id="logo"></div>
+          <div id="logo" fetchpriority="high"></div>
         </a>
         <div id="display">
           <div id="icons">
@@ -700,7 +720,7 @@
           objSet(eventData, parseDataPage(data[0]));
           objSet(weeklyData, parseWeekPage(data[1]));
           objSet(categories, parseCategoryPage(data[2]));
-          render(currentTab);
+          refresh();
           localStorage.setItem('eventData', data[0]);
           localStorage.setItem('weekData', data[1]);
           localStorage.setItem('categoryData', data[2]);
@@ -759,29 +779,6 @@
         }
         return dataTable;
       }
-      function render(index) {
-        const w = windows[index];
-        w.render();
-        displayObj.render(w.date, index);
-        const title = document.querySelector('#window-banner .header .title-text');
-        switch (index) {
-          case 0:
-            title.innerText = dateStr(w.date, {day:'numeric', month:'long', year:'numeric'});
-            break;
-          case 1:
-            title.innerText = dateStr(w.date, {month:'long', year:'numeric'});
-            break;
-          case 2:
-            if (w.monthOffset == 0) {
-              title.innerText = dateStr(w.date, {year: 'numeric'});
-            } else {
-              let year = w.date.getFullYear();
-              if (w.date.getMonth() < w.monthOffset) year--;
-              title.innerText = `${year} - ${year+1}`;
-            }
-            break;
-        }
-      }
       function syncDates() {
         const time0 = windows[0].date.getTime();
         const time = windows[currentTab].date.getTime();
@@ -793,25 +790,40 @@
         })
       }
       function selectTab(index) {
-        currentTab = index;
         selectFrom(document.getElementById('mode-buttons').children, index);
         selectFrom(document.getElementById('windows').children, index);
         syncDates();
-        render(index);
+        windows[currentTab].onExit();
+        currentTab = index;
+        windows[currentTab].onEnter();
+        displayObj.render();
+        linkDisplay(currentTab);
         localStorage.setItem('currentTab', index);
       }
+      function refresh() {
+        windows[currentTab].onExit();
+        windows[currentTab].onEnter();
+        displayObj.render();
+        linkDisplay(currentTab);
+      }
+      function linkDisplay(index) {
+        hoverLinker.abort();
+        if (index == 0 || index == 1) {
+          for (let i = 0; i < displayObj.rows.length; i++) {
+            hoverLinker.link(displayObj.rows[i], windows[index].events[i]);
+          }
+        }
+      }
       function navigate(amount) {
-        const i = currentTab;
-        addTime(windows[i].date, ['day', 'month', 'year'][i], amount);
-        syncDates();
-        render(i);
+        const w = windows[currentTab];
+        addTime(w.date, ['day', 'month', 'year'][currentTab], amount);
+        refresh();
       }
       function goToDate(date) {
         for (let i = 0; i < windows.length; i++) {
           windows[i].date.setTime(date);
         }
-        syncDates();
-        render(currentTab);
+        refresh();
       }
       
       class DisplayWindow {
@@ -819,18 +831,21 @@
           this.elem = document.createElement('div');
           this.elem.id = 'display-window';
           this.icon = document.getElementById('print-icon');
+          this.rows = [];
         }
         
-        render(date, index) {
-          switch (index) {
+        render() {
+          const date = windows[currentTab].date;
+          this.rows.length = 0;
+          switch (currentTab) {
             case 0:
               this.icon.style.display = 'inline-block';
+              this.elem.innerHTML = '';
               this.elem.className = 'day';
               const key = dateStr(date);
               const weekday = dayNames[date.getDay()];
               const weekData = indexDateRangeMap(weeklyData, date, {});
               const dataTable = getData(date);
-              this.elem.innerHTML = '';
               addSpan(this.elem, `${dataTable.title}`, 'title');
               addSpan(this.elem, `${weekday} ${key}\n\n`, 'subtitle');
               addSpan(this.elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle')
@@ -838,8 +853,10 @@
               for (let [...params] of dataTable.schedule) {
                 params = params.slice(0,4);
                 params[2] = params[2] + ' - ' + params.pop();
+                const row = addDiv(this.elem, 'row');
+                this.rows.push(row);
                 params.forEach(item => {
-                  const s = addSpan(this.elem, item);
+                  const s = addSpan(row, item);
                   s.style.color = palette[i];
                 });
                 i++;
@@ -858,9 +875,11 @@
               while (day <= lastDay) {
                 const key = dateStr(day);
                 if (key in eventData) {
+                  const row = addDiv(this.elem, 'row');
+                  this.rows.push(row);
                   const {title, category} = eventData[key];
-                  const k = addSpan(this.elem, key);
-                  const e = addSpan(this.elem, title);
+                  const k = addSpan(row, key);
+                  const e = addSpan(row, title);
                   k.style.color = categories[category];
                   e.style.color = categories[category];
                   k.style.textAlign = 'right';
@@ -875,8 +894,10 @@
               this.elem.innerHTML = '';
               addSpan(this.elem, 'Legend\n\n', 'title');
               for (const [name, color] of Object.entries(categories)) {
-                const c = addDiv(this.elem, 'color-box');
-                const n = addSpan(this.elem, name);
+                const row = addDiv(this.elem, 'row');
+                this.rows.push(row);
+                const c = addDiv(row, 'color-box');
+                const n = addSpan(row, name);
                 c.style.backgroundColor = color;
                 n.style.color = color;
               }
@@ -893,23 +914,52 @@
           this.top = addDiv(this.elem, 'top');
           this.grid = addDiv(this.elem, 'grid');
           addSpan(this.top, 'Time', 'first-header');
-          this.buildGridRows(8, 24);
+          this.startHour = 14;
+          this.endHour = 21;
+          this.buildGridRows();
+          this.events = []
         }
         
-        buildGridRows(startHour, endHour) {
+        buildGridRows() {
           this.grid.innerHTML = '';
           let time = new Date();
-          time.setHours(startHour, 0, 0, 0);
-          for (let i=startHour; i<=endHour; i++) {
+          time.setHours(this.startHour, 0, 0, 0);
+          for (let i=this.startHour; i<=this.endHour; i++) {
             const row = addDiv(this.grid, 'row');
             const headerText = time.toLocaleTimeString('en-US', {
               hour: 'numeric',
               hour12: true,
             }).toLowerCase();
             const s = addSpan(row, headerText, 'side-header');
-            const color = ((i-startHour) % 2 == 0) ? 'lightgray' : 'white';
+            const color = ((i-this.startHour) % 2 == 0) ? 'lightgray' : 'white';
             row.style.backgroundColor = color;
             time.setHours(time.getHours() + 1);
+          }
+        }
+        
+        onEnter() {
+          const title = document.querySelector('#window-banner .header .title-text');
+          title.innerText = dateStr(this.date, {day:'numeric', month:'long', year:'numeric'});
+          this.render();
+          this.intervalUpdate();
+          this.intervalID = setInterval(() => this.intervalUpdate(), 1000);
+        }
+        
+        onExit() {
+          clearInterval(this.intervalID);
+        }
+        
+        intervalUpdate() {
+          const now = new Date();
+          this.timeDiv.style.display = 'none';
+          if (dateStr(this.date) == dateStr(now)) {
+            const offset = now.getHours() + now.getMinutes()/60 - this.startHour;
+            const rowCount = this.endHour - this.startHour + 1;
+            if (offset >= 0 && offset < rowCount - 1) {
+              this.timeDiv.style.display = 'block'
+              this.timeDiv.innerText = now.toLocaleTimeString();
+              this.timeDiv.style.top = `${6+94*offset/rowCount}%`
+            }
           }
         }
         
@@ -919,13 +969,14 @@
           const dataTable = getData(this.date);
           this.top.innerHTML = this.top.children[0].outerHTML;
           this.grid.innerHTML = '';
-          let [startHour, endHour] = [14, 21];
+          this.events.length = 0;
+          [this.startHour, this.endHour] = [14, 21];
           const locations = [];
           for (const [name, location, start, end] of dataTable.schedule) {
-            startHour = Math.floor(Math.min(startHour, strToHours(start)));
-            endHour = Math.ceil(Math.max(endHour, strToHours(end)));
+            this.startHour = Math.floor(Math.min(this.startHour, strToHours(start)));
+            this.endHour = Math.ceil(Math.max(this.endHour, strToHours(end)));
           }
-          this.buildGridRows(startHour, endHour);
+          this.buildGridRows();
           let i = 0;
           for (const [name, location, start, end] of dataTable.schedule) {
             let index = locations.indexOf(location) + 1;
@@ -936,15 +987,17 @@
               header.style.left = `${15*index-6}%`;
             }
             const block = addDiv(rows[0], 'event');
-            const offset = strToHours(start) - startHour;
+            this.events.push(block);
+            const offset = strToHours(start) - this.startHour;
             const duration = strToHours(end) - strToHours(start);
-            const count = rows.length
+            const count = rows.length;
             block.style.top = `${6+94*offset/count}%`;
             block.style.left = `${15*index-6}%`
             block.style.height = `${94*duration/count}%`;
             block.style.backgroundColor = palette[i]; i++; if (i >= palette.length) i = 0;
             block.innerText = name;
           }
+          this.timeDiv = addDiv(rows[0], 'current-time');
         }
       }
       class MonthWindow {
@@ -953,6 +1006,7 @@
           this.selected = new Date();
           this.elem = document.createElement('div');
           this.elem.id = 'month-window';
+          this.events = [];
           const dayHeader = addDiv(this.elem, 'day-header');
           const grid = addDiv(this.elem, 'grid');
           for (const name of dayNames) {
@@ -965,12 +1019,21 @@
           }
         }
         
+        onEnter() {
+          const title = document.querySelector('#window-banner .header .title-text');
+          title.innerText = dateStr(this.date, {month:'long', year:'numeric'});
+          this.render();
+        }
+        
+        onExit() {}
+        
         render() {
           const grid = this.elem.querySelector('.grid');
           const firstDayOfMonth = startOfMonth(this.date);
           const lastDayOfMonth = endOfMonth(this.date);
           const today = dateStr(new Date());
           const selected = dateStr(this.selected);
+          this.events.length = 0;
           let day = startOfWeek(firstDayOfMonth);
           for (let i = 0; i < 42; i++) {
             const box = grid.children[i];
@@ -983,6 +1046,7 @@
             box.classList.toggle('today', key==today);
             box.classList.toggle('selected', key==selected);
             if (key in eventData && isActive) {
+              this.events.push(box);
               const {title, category} = eventData[key];
               nameText.innerText = title;
               box.style.backgroundColor = categories[category];
@@ -1010,6 +1074,20 @@
             for (let j = 0; j < 42; j++) addDiv(mgrid, 'date');
           }
         }
+        
+        onEnter() {
+          const title = document.querySelector('#window-banner .header .title-text');
+          if (this.monthOffset == 0) {
+            title.innerText = dateStr(this.date, {year: 'numeric'});
+          } else {
+            let year = this.date.getFullYear();
+            if (this.date.getMonth() < this.monthOffset) year--;
+            title.innerText = `${year} - ${year+1}`;
+          }
+          this.render();
+        }
+        
+        onExit() {}
         
         getFirstDay() {
           let year = this.date.getFullYear();
@@ -1061,6 +1139,35 @@
         }
       }
       
+      class HoverLinker {
+        constructor() {
+          this.controller = new AbortController();
+          this.links = []
+        }
+        
+        link(...elems) {
+          this.links.push(elems);
+          const index = this.links.length-1;
+          elems.forEach(elem => {
+            elem.addEventListener('mouseenter', () => this.setAll(index, true), {signal: this.controller.signal});
+            elem.addEventListener('mouseleave', () => this.setAll(index, false), {signal: this.controller.signal});
+          });
+        }
+        
+        setAll(index, bool) {
+          this.links[index].forEach(elem => {
+            elem.classList.toggle('isHovering', bool);
+          })
+        }
+        
+        abort() {
+          this.links.length = 0;
+          this.controller.abort();
+          this.controller = new AbortController();
+        }
+      }
+      
+      const hoverLinker = new HoverLinker();
       const displayObj = new DisplayWindow();
       const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
       windows[2].elem.addEventListener('click', event => {
@@ -1099,6 +1206,7 @@
         'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
         'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
       );
+    
     </script>
   
   </body>
