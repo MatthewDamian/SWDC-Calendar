@@ -94,7 +94,7 @@
       }
       
       #display-window span {
-        padding: 5px 0;
+        padding: 5px;
       }
       
       #display-window.day {
@@ -132,6 +132,8 @@
       
       #display-window.year .color-box {
         aspect-ratio: 1;
+        background-clip: content-box;
+        padding: 5px;
       }
       
       #right-side {
@@ -1159,6 +1161,7 @@
         setAll(index, bool) {
           this.links[index].forEach(elem => {
             elem.classList.toggle('isHovering', bool);
+            if (bool) elem.scrollIntoView();
           })
         }
         
