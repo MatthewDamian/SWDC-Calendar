@@ -364,7 +364,8 @@
       
       #month-window .grid .box.today:hover,
       #month-window .grid .box.today.isHovering,
-      #month-window .grid .box.selected:hover {
+      #month-window .grid .box.selected:hover,
+      #month-window .grid .box.selected.isHovering {
         box-shadow: inset 1px 1px 3px black;
       }
       
@@ -828,6 +829,7 @@
         for (let i = 0; i < windows.length; i++) {
           windows[i].date.setTime(date);
         }
+        syncDates();
         refresh();
       }
       
@@ -1048,8 +1050,8 @@
             box.classList.toggle('inactive', !isActive);
             dateText.innerText = day.getDate();
             const key = dateStr(day);
-            box.classList.toggle('today', key==today);
-            box.classList.toggle('selected', key==selected);
+            box.classList.toggle('today', isActive && key==today);
+            box.classList.toggle('selected', isActive && key==selected);
             if (key in eventData && isActive) {
               this.events.push(box);
               const {title, category} = eventData[key];
@@ -1161,11 +1163,13 @@
         setAll(index, bool) {
           this.links[index].forEach(elem => {
             elem.classList.toggle('isHovering', bool);
-            if (bool) elem.scrollIntoView();
           })
         }
         
         abort() {
+          for (let i = 0; i < this.links.length; i++) {
+            this.setAll(i, false);
+          }
           this.links.length = 0;
           this.controller.abort();
           this.controller = new AbortController();
