@@ -82,7 +82,6 @@
         text-align: left;
         font-size: var(--font-size-0);
         padding: 15px 10px;
-        gap: 10px;
       }
       
       #display-window .row {
@@ -91,7 +90,11 @@
       }
       
       #display-window .row.isHovering {
-        text-shadow: 1px 1px 0px mediumpurple;
+        text-shadow: 0px 0px 5px currentColor;
+      }
+      
+      #display-window span {
+        padding: 5px 0;
       }
       
       #display-window.day {
@@ -279,7 +282,7 @@
       }
 
       #day-window .grid .event.isHovering {
-        box-shadow: 1px 1px 5px black;
+        box-shadow: 1px 1px 3px black;
       }
       
       #day-window .grid .current-time {
@@ -1138,7 +1141,6 @@
           }
         }
       }
-      
       class HoverLinker {
         constructor() {
           this.controller = new AbortController();
@@ -1172,10 +1174,11 @@
       const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
       windows[2].elem.addEventListener('click', event => {
         const elem = event.target;
-        const day = windows[2].getFirstDay();
-        if (elem.classList.contains('date') && elem.innerText != '') {
+        let day = windows[2].getFirstDay();
+        if (elem.classList.contains('date')) {
           addTime(day, 'month', getElemIndex(elem, 3));
-          day.setDate(Number(elem.innerText));
+          day = startOfWeek(day);
+          addTime(day, 'day', getElemIndex(elem, 1) - 7);
           windows[0].date.setTime(day.getTime());
           selectTab(0);
         } else if (elem.classList.contains('banner')) {
