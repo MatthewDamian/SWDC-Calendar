@@ -39,7 +39,7 @@
       
       #left-side {
         position: relative;
-        flex: 1;
+        flex: 2;
         background-image: linear-gradient(to right, #232037, #1c1b1b);
       }
 
@@ -94,11 +94,11 @@
       }
       
       #display-window span {
-        padding: 5px;
+        padding: 0.5em 0.8em;
       }
       
       #display-window.day {
-        grid-template-columns: 4fr 3fr max-content;
+        grid-template-columns: fit-content(40%) 1fr max-content;
         text-wrap: balance;
       }
       
@@ -138,7 +138,7 @@
       
       #right-side {
         position: relative;
-        flex: 3;
+        flex: 5;
         user-select: none;
       }
 
@@ -290,9 +290,15 @@
       #day-window .grid .current-time {
         position: absolute;
         width: 100%;
-        height: 1px;
+        height: 0px;
         border: 1px dashed black;
         text-align: right;
+      }
+      
+      #day-window .grid .current-time span {
+        position: absolute;
+        transform: translate(-100%, -100%);
+        text-wrap: nowrap;
       }
 
       #month-window {
@@ -520,7 +526,7 @@
     <main>
       <div id="left-side">
         <a href="https://www.swwdance.org/" target="_blank" rel="noopener noreferrer" aria-label="SWDC Homepage">
-          <div id="logo" fetchpriority="high"></div>
+          <div id="logo"></div>
         </a>
         <div id="display">
           <div id="icons">
@@ -578,9 +584,9 @@
         return newElem;
       }
       function selectFrom(nodes, index) {
-        [...nodes].forEach((n, i) => {
+        for (const [i, n] of [...nodes].entries()) {
           n.classList.toggle('selected', i == index);
-        })
+        }
       }
       function dateStr(date, options={day:'numeric', month:'numeric', year:'numeric'}) {
         return date.toLocaleDateString('en-us', options);
@@ -588,11 +594,8 @@
       function titleCase(text) {
         return text.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
       }
-      function objClear(obj) {
-        Object.keys(obj).forEach(key => delete obj[key]);
-      }
       function objSet(obj, newObj) {
-        objClear(obj);
+        for (const key in obj) delete obj[key];
         Object.assign(obj, newObj);
       }
       function startOfMonth(day) {
@@ -642,9 +645,8 @@
         return array;
       }
       function indexDateRangeMap(map, date, defaultValue) {
-        for (const [range, value] of Object.entries(map)) {
-          const [start, end] = range.split('-').map(str => new Date(str));
-          if (start <= date && date <= end) return value;
+        for (const entry of map) {
+          if (entry.startDate <= date && date <= entry.endDate) return entry;
         }
         return defaultValue;
       }
@@ -689,8 +691,7 @@
         return result;
       }
       function parseWeekPage(data) {
-        const result = {}
-        let duration;
+        const result = []
         let day;
         for (const row of data.split(/\r?\n/)) {
           const contents = csvLineToArray(row);
@@ -698,18 +699,19 @@
           if (filtered.length == 0) continue;
           const firstValue = titleCase(contents[0]);
           if (firstValue == 'Duration') {
-            duration = contents.slice(1,3).join('-');
-            result[duration] = {};
+            const [startDate, endDate] = contents.slice(1,3);
+            result.push({startDate: new Date(startDate), endDate: new Date(endDate)})
             continue;
           }
-          if (!(duration in result)) continue;
+          if (result.length == 0) continue;
+          const lastEntry = result.at(-1);
           if (dayNames.includes(firstValue)) {
             day = firstValue;
-            result[duration][day] = [contents.slice(1,6)];
-            continue;
+            lastEntry[day] = [];
+          }
+          if (day in lastEntry) {
+            lastEntry[day].push(contents.slice(1,6));
           };
-          if (!(day in result[duration])) continue;
-          result[duration][day].push(contents.slice(1,6));
         }
         return result;
       }
@@ -791,9 +793,9 @@
         for (let i = currentTab + 1; i < windows.length; i++) {
           windows[i].date.setTime(time);
         };
-        windows.slice(1).forEach(w => {
+        for (const w of windows.slice(1)) {
           w.selected.setTime(time0);
-        })
+        };
       }
       function selectTab(index) {
         selectFrom(document.getElementById('mode-buttons').children, index);
@@ -844,37 +846,30 @@
         render() {
           const date = windows[currentTab].date;
           this.rows.length = 0;
+          this.elem.innerHTML = '';
+          this.elem.className = ['day', 'month', 'year'][currentTab];
+          this.icon.style.display = (currentTab == 0) ? 'inline-block' : 'none';
           switch (currentTab) {
             case 0:
-              this.icon.style.display = 'inline-block';
-              this.elem.innerHTML = '';
-              this.elem.className = 'day';
               const key = dateStr(date);
               const weekday = dayNames[date.getDay()];
-              const weekData = indexDateRangeMap(weeklyData, date, {});
               const dataTable = getData(date);
               addSpan(this.elem, `${dataTable.title}`, 'title');
               addSpan(this.elem, `${weekday} ${key}\n\n`, 'subtitle');
               addSpan(this.elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle')
-              let i = 0;
-              for (let [...params] of dataTable.schedule) {
-                params = params.slice(0,4);
-                params[2] = params[2] + ' - ' + params.pop();
+              for (let [index, params] of dataTable.schedule.entries()) {
+                const [description, location, startTime, endTime, instructors] = params;
+                const timeRange = startTime + ' - ' + endTime;
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
-                params.forEach(item => {
+                for (const item of [description, location, timeRange]) {
                   const s = addSpan(row, item);
-                  s.style.color = palette[i];
-                });
-                i++;
-                if (i >= palette.length) i = 0;
+                  s.style.color = palette[index % palette.length];
+                }
               }
               addSpan(this.elem, '\n', 'title');
               break;
             case 1:
-              this.icon.style.display = 'none';
-              this.elem.className = 'month';
-              this.elem.innerHTML = '';
               addSpan(this.elem, 'Events\n\n', 'title');
               const firstDay = startOfMonth(date);
               const lastDay = endOfMonth(date);
@@ -896,9 +891,6 @@
               addSpan(this.elem, '\n', 'title');
               break;
             case 2:
-              this.icon.style.display = 'none';
-              this.elem.className = 'year';
-              this.elem.innerHTML = '';
               addSpan(this.elem, 'Legend\n\n', 'title');
               for (const [name, color] of Object.entries(categories)) {
                 const row = addDiv(this.elem, 'row');
@@ -960,11 +952,12 @@
           const now = new Date();
           this.timeDiv.style.display = 'none';
           if (dateStr(this.date) == dateStr(now)) {
-            const offset = now.getHours() + now.getMinutes()/60 - this.startHour;
+            const time = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
+            const offset = time - this.startHour;
             const rowCount = this.endHour - this.startHour + 1;
-            if (offset >= 0 && offset < rowCount - 1) {
+            if (offset >= 0 && offset <= rowCount - 2/60) {
               this.timeDiv.style.display = 'block'
-              this.timeDiv.innerText = now.toLocaleTimeString();
+              this.timeDivText.innerText = now.toLocaleTimeString();
               this.timeDiv.style.top = `${6+94*offset/rowCount}%`
             }
           }
@@ -984,8 +977,7 @@
             this.endHour = Math.ceil(Math.max(this.endHour, strToHours(end)));
           }
           this.buildGridRows();
-          let i = 0;
-          for (const [name, location, start, end] of dataTable.schedule) {
+          for (const [i, [name, location, start, end]] of dataTable.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
             if (index == 0) {
               index = locations.length + 1;
@@ -1001,10 +993,11 @@
             block.style.top = `${6+94*offset/count}%`;
             block.style.left = `${15*index-6}%`
             block.style.height = `${94*duration/count}%`;
-            block.style.backgroundColor = palette[i]; i++; if (i >= palette.length) i = 0;
+            block.style.backgroundColor = palette[i % palette.length];
             block.innerText = name;
           }
           this.timeDiv = addDiv(rows[0], 'current-time');
+          this.timeDivText = addSpan(this.timeDiv);
         }
       }
       class MonthWindow {
@@ -1154,16 +1147,16 @@
         link(...elems) {
           this.links.push(elems);
           const index = this.links.length-1;
-          elems.forEach(elem => {
+          for (const elem of elems) {
             elem.addEventListener('mouseenter', () => this.setAll(index, true), {signal: this.controller.signal});
             elem.addEventListener('mouseleave', () => this.setAll(index, false), {signal: this.controller.signal});
-          });
+          };
         }
         
         setAll(index, bool) {
-          this.links[index].forEach(elem => {
+          for (const elem of this.links[index]) {
             elem.classList.toggle('isHovering', bool);
-          })
+          };
         }
         
         abort() {
