@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Southwest Washington Dance Center (SWDC) calendar and schedule viewer">
-    <link rel="preload" as="image" href="https://images.squarespace-cdn.com/content/v1/5fa31a9e206c8a69fd49cfda/1611602029932-VTFLL1ATNQGALUG35LPA/png.png" fetchpriority="high">
+    <link rel="preload" as="image" fetchpriority="high" href="https://images.squarespace-cdn.com/content/v1/5fa31a9e206c8a69fd49cfda/1611602029932-VTFLL1ATNQGALUG35LPA/png.png">
     <style>
       * {
         margin: 0;
@@ -14,11 +14,12 @@
         min-height: 0;
         font-family: sans-serif;
         box-sizing: border-box;
+        user-select: none;
       }
       
       :root {
         height: 100%;
-        --font-size-0: 0.9cqw;
+        background-color: #4c4a67;
         --font-size-1: 1cqw;
         --font-size-2: 1.25cqw;
         --font-size-3: 1.5cqw;
@@ -28,7 +29,6 @@
       
       body {
         height: 100%;
-        background-color: #4c4a67;
       }
       
       main {
@@ -81,7 +81,7 @@
         display: inline-grid;
         max-height: 100%;
         text-align: left;
-        font-size: var(--font-size-0);
+        font-size: var(--font-size-1);
         padding: 15px 10px;
       }
       
@@ -108,14 +108,14 @@
       }
       
       #display-window.day .title {
-        grid-column: span 3;
+        grid-column: 1 / -1;
         color: white;
         text-align: center;
         font-size: var(--font-size-3);
       }
       
       #display-window.day .subtitle {
-        grid-column: span 3;
+        grid-column: 1 / -1;
         color: lightgray;
         text-align: center;
         text-wrap: balance;
@@ -129,7 +129,7 @@
       
       #display-window.month .title,
       #display-window.year .title {
-        grid-column: span 2;
+        grid-column: 1 / -1;
         color: white;
         text-align: center;
         font-size: var(--font-size-3);
@@ -145,7 +145,6 @@
         position: relative;
         width: 70%;
         height: 100%;
-        user-select: none;
       }
 
       #window-banner {
@@ -198,7 +197,6 @@
       #window-banner .header .nav-btn {
         font-size: var(--font-size-5);
         transform: translate(0, -7%);
-        user-select: none;
       }
 
       #window-banner .header .nav-btn:hover {
@@ -283,6 +281,7 @@
         display: inline-block;
         position: absolute;
         text-align: center;
+        text-wrap: balance;
         align-content: center;
         border-radius: 6px;
         width: 15%;
@@ -291,6 +290,7 @@
 
       #day-window .grid .event.isHovering {
         box-shadow: 1px 1px 3px black;
+        border: 1px solid black;
       }
       
       #day-window .grid .current-time {
@@ -346,39 +346,8 @@
         font-size: var(--font-size-1);
       }
       
-      #month-window .grid .box.today {
-        border: 2px solid black;
-      }
-      
-      #month-window .grid .box.today .date {
-        font-weight: bold;
-      }
-
-      #month-window .grid .box.inactive {
-        color: #888;
-        background-color: #ccc;
-      }
-
       #month-window .grid .box .date {
         position: absolute;
-      }
-      
-      #month-window .grid .box:hover,
-      #month-window .grid .box.isHovering,
-      #month-window .grid .box.selected {
-        cursor: pointer;
-        border: 1px solid black;
-      }
-      
-      #month-window .grid .box.today {
-        border: 2px solid black;
-      }
-      
-      #month-window .grid .box.today:hover,
-      #month-window .grid .box.today.isHovering,
-      #month-window .grid .box.selected:hover,
-      #month-window .grid .box.selected.isHovering {
-        box-shadow: inset 1px 1px 3px black;
       }
       
       #month-window .grid .box .name {
@@ -386,6 +355,31 @@
         height: 100%;
         text-align: center;
         align-content: center;
+      }
+
+      #month-window .grid .box.inactive {
+        color: #888;
+        background-color: #ccc;
+      }
+
+      #month-window .grid .box:hover,
+      #month-window .grid .box.isHovering {
+        cursor: pointer;
+        box-shadow: 1px 1px 3px black;
+        border: 1px solid black;
+        z-index: 1;
+      }
+      
+      #month-window .grid .box.selected {
+        border: 1px solid black;
+      }
+      
+      #month-window .grid .box.today {
+        border: 2px solid black;
+      }
+      
+      #month-window .grid .box.today .date {
+        font-weight: bold;
       }
 
       #year-window {
@@ -403,11 +397,8 @@
         height: 100%;
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: repeat(3, 1fr);
-        border: 2px solid #4c4a67;
-      }
-
-      #year-window .grid .month {
-        border: 2px solid #4c4a67;
+        padding: 3px;
+        gap: 3px;
       }
 
       #year-window .grid .month .banner {
@@ -512,7 +503,6 @@
       
       @media (orientation: portrait) {
         :root {
-          --font-size-0: 0.9cqh;
           --font-size-1: 1cqh;
           --font-size-2: 1.25cqh;
           --font-size-3: 1.5cqh;
@@ -889,7 +879,7 @@
                   s.style.color = palette[index % palette.length];
                 }
               }
-              addSpan(this.elem, '\n', 'title');
+              addSpan(this.elem, '', 'title');
               break;
             case 1:
               addSpan(this.elem, 'Events\n\n', 'title');
@@ -910,7 +900,7 @@
                 };
                 addTime(day, 'day', 1);
               }
-              addSpan(this.elem, '\n', 'title');
+              addSpan(this.elem, '', 'title');
               break;
             case 2:
               addSpan(this.elem, 'Legend\n\n', 'title');
@@ -922,7 +912,7 @@
                 c.style.color = color;
                 n.style.color = color;
               }
-              addSpan(this.elem, '\n', 'title');
+              addSpan(this.elem, '', 'title');
               break;
           }
         }
@@ -977,10 +967,10 @@
             const time = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
             const offset = time - this.startHour;
             const rowCount = this.endHour - this.startHour + 1;
-            if (offset >= 0 && offset <= rowCount - 2/60) {
+            if (offset >= 0 && offset <= rowCount) {
               this.timeDiv.style.display = 'block'
               this.timeDivText.innerText = now.toLocaleTimeString();
-              this.timeDiv.style.top = `${6+94*offset/rowCount}%`
+              this.timeDiv.style.bottom = `${94*(1 - offset/rowCount)}%`
             }
           }
         }
@@ -1000,7 +990,6 @@
           }
           const count = this.endHour - this.startHour + 1;
           this.buildGridRows();
-          let pending;
           for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
             if (index == 0) {
@@ -1019,10 +1008,6 @@
             block.style.height = `${94*duration/count}%`;
             block.style.backgroundColor = palette[i % palette.length];
             block.innerText = name;
-          }
-          if (pending) {
-            const [pstart, block] = pending;
-            block.style.height = `${94*(this.endHour - pstart)/count}%`
           }
           this.timeDiv = addDiv(rows[0], 'current-time');
           this.timeDivText = addSpan(this.timeDiv, '');
@@ -1223,10 +1208,10 @@
       const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
       windows[2].elem.addEventListener('click', event => {
         const elem = event.target;
-        let day = windows[2].getFirstDay();
+        const day = windows[2].getFirstDay();
         if (elem.classList.contains('date')) {
           addTime(day, 'month', getElemIndex(elem, 3));
-          day = startOfWeek(day);
+          addTime(day, 'day', -day.getDay());
           addTime(day, 'day', getElemIndex(elem, 1) - 7);
           windows[0].date.setTime(day.getTime());
           selectTab(0);
