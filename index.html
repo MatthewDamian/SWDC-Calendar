@@ -37,6 +37,12 @@
         height: 100%;
       }
       
+      .divider {
+        position: absolute;
+        z-index: 1;
+        touch-action: none;
+      }
+      
       #section-1 {
         position: relative;
         width: 30%;
@@ -130,13 +136,6 @@
         aspect-ratio: 1;
         margin: 5px;
         background-color: currentColor;
-      }
-      
-      #divider {
-        position: absolute;
-        cursor: col-resize;
-        z-index: 1;
-        touch-action: none;
       }
       
       #section-2 {
@@ -1212,23 +1211,17 @@
           this.elem2 = elem2;
           this.thickness = 12;
           this.divider = document.createElement('div');
-          this.divider.id = 'divider';
+          this.divider.className = 'divider';
           this.elem1.after(this.divider);
           this.mediaQuery = window.matchMedia('(orientation: portrait)');
           this.mediaQuery.addEventListener('change', () => this.reset());
           this.divider.addEventListener('dblclick', () => this.reset());
           this.divider.addEventListener('pointerdown', e => {
             const controller = new AbortController();
-            window.addEventListener('pointermove', e => {
-              this.updateAdjacent(e);
-              this.updateDivider();
-            }, {signal: controller.signal});
-            window.addEventListener('pointerup', e => {
-              controller.abort();
-              this.updateDivider();
-            }, {signal: controller.signal});
+            window.addEventListener('pointermove', e => this.onDrag(e), {signal: controller.signal});
+            window.addEventListener('pointerup', e => controller.abort(), {signal: controller.signal});
           })
-          this.updateDivider();
+          this.reset();
         }
         
         reset() {
@@ -1236,18 +1229,14 @@
           this.elem1.style.removeProperty('height');
           this.elem2.style.removeProperty('width');
           this.elem2.style.removeProperty('height');
-          this.updateDivider();
-        }
-        
-        updateDivider() {
           const orientation = this.mediaQuery.matches ? 'horizontal' : 'vertical';
           const prect = this.elem1.parentElement.getBoundingClientRect();
           const rect1 = this.elem1.getBoundingClientRect();
           const rect2 = this.elem2.getBoundingClientRect();
           if (orientation == 'vertical') {
             this.divider.style.width = `${this.thickness}px`;
-            this.divider.style.height = '100%';
             this.divider.style.cursor = 'ew-resize';
+            this.divider.style.height = '100%';
             this.divider.style.top = '0';
             const pixels = rect1.right - this.thickness / 2;
             this.divider.style.left = `${100*(pixels)/prect.width}%`;
@@ -1261,7 +1250,7 @@
           }
         }
         
-        updateAdjacent(e) {
+        onDrag(e) {
           const orientation = this.mediaQuery.matches ? 'horizontal' : 'vertical';
           const prect = this.elem1.parentElement.getBoundingClientRect();
           const rect1 = this.elem1.getBoundingClientRect();
@@ -1271,15 +1260,16 @@
             const w2 = rect2.right - e.clientX;
             this.elem1.style.width = `${100*w1/prect.width}%`;
             this.elem2.style.width = `${100*w2/prect.width}%`;
+            this.divider.style.left = `${100*(w1 - this.thickness/2)/prect.width}%`;
           } else if (orientation == 'horizontal') {
             const h1 = e.clientY - rect1.top;
             const h2 = rect2.bottom - e.clientY;
             this.elem1.style.height = `${100*h1/prect.height}%`;
             this.elem2.style.height = `${100*h2/prect.height}%`;
+            this.divider.style.top = `${100*(h1 - this.thickness/2)/prect.height}%`;
           }
         }
       }
-      
       
       const hoverLinker = new HoverLinker();
       const displayObj = new DisplayWindow();
