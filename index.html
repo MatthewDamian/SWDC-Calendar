@@ -19,7 +19,7 @@
       
       :root {
         height: 100%;
-        background-color: #4c4a67;
+        background-color: #1b1b1b;
         --font-size-1: 1cqw;
         --font-size-2: 1.25cqw;
         --font-size-3: 1.5cqw;
@@ -41,7 +41,7 @@
         position: relative;
         width: 30%;
         height: 100%;
-        background-image: linear-gradient(to right, #232037, #1c1b1b);
+        background-image: linear-gradient(to right, #232037, #1b1b1b);
       }
 
       #logo {
@@ -102,37 +102,28 @@
         padding: 0.5em 0.8em;
       }
       
+      #display-window .title,
+      #display-window .subtitle {
+        grid-column: 1 / -1;
+        color: white;
+        text-align: center;
+        text-wrap: balance;
+        font-size: var(--font-size-3);
+      }
+      
+      #display-window .subtitle {
+        color: lightgray;
+        font-size: var(--font-size-1);
+      }
+      
       #display-window.day {
         grid-template-columns: fit-content(40%) 1fr max-content;
         text-wrap: balance;
       }
       
-      #display-window.day .title {
-        grid-column: 1 / -1;
-        color: white;
-        text-align: center;
-        font-size: var(--font-size-3);
-      }
-      
-      #display-window.day .subtitle {
-        grid-column: 1 / -1;
-        color: lightgray;
-        text-align: center;
-        text-wrap: balance;
-        font-size: var(--font-size-1);
-      }
-      
       #display-window.month,
       #display-window.year {
         grid-template-columns: max-content 1fr;
-      }
-      
-      #display-window.month .title,
-      #display-window.year .title {
-        grid-column: 1 / -1;
-        color: white;
-        text-align: center;
-        font-size: var(--font-size-3);
       }
       
       #display-window.year .color-box {
@@ -143,9 +134,6 @@
       
       #divider {
         position: absolute;
-        left: calc(30% - 10px);
-        width: 10px;
-        height: 100%;
         cursor: col-resize;
         z-index: 1;
         touch-action: none;
@@ -295,7 +283,7 @@
         align-content: center;
         border-radius: 6px;
         width: 15%;
-        padding: 3px;
+        padding: 5px;
       }
 
       #day-window .grid .event.isHovering {
@@ -395,7 +383,7 @@
       #year-window {
         display: none;
         height: 100%;
-        border: 4px solid lightgray;
+        background-color: lightgray;
       }
       
       #year-window.selected {
@@ -410,6 +398,11 @@
         grid-template-rows: repeat(3, 1fr);
         padding: 3px;
         gap: 3px;
+      }
+      
+      #year-window .grid .month {
+        border: 1px solid black;
+        box-shadow: 1px 1px 3px black;
       }
 
       #year-window .grid .month .banner {
@@ -522,13 +515,6 @@
         }
         #logo {background-size: 50% 100%;}
         #section-1 {width: 100%; height: 50%;}
-        #divider {
-          height: 10px;
-          width: 100%;
-          top: calc(50% - 10px);
-          left: 0;
-          cursor: row-resize;
-        }
         #section-2 {width: 100%; height: 50%;}
         main {display: block;}
       }
@@ -557,8 +543,6 @@
           </div>
         </div>
       </div>
-      
-      <div id="divider"></div>
       
       <div id="section-2">
         <div id="window-banner">
@@ -1222,6 +1206,80 @@
           this.controller = new AbortController();
         }
       }
+      class Divider {
+        constructor(elem1, elem2) {
+          this.elem1 = elem1;
+          this.elem2 = elem2;
+          this.thickness = 12;
+          this.divider = document.createElement('div');
+          this.divider.id = 'divider';
+          this.elem1.after(this.divider);
+          this.mediaQuery = window.matchMedia('(orientation: portrait)');
+          this.mediaQuery.addEventListener('change', () => this.reset());
+          this.divider.addEventListener('dblclick', () => this.reset());
+          this.divider.addEventListener('pointerdown', e => {
+            const controller = new AbortController();
+            window.addEventListener('pointermove', e => {
+              this.updateAdjacent(e);
+              this.updateDivider();
+            }, {signal: controller.signal});
+            window.addEventListener('pointerup', e => {
+              controller.abort();
+              this.updateDivider();
+            }, {signal: controller.signal});
+          })
+          this.updateDivider();
+        }
+        
+        reset() {
+          this.elem1.style.removeProperty('width');
+          this.elem1.style.removeProperty('height');
+          this.elem2.style.removeProperty('width');
+          this.elem2.style.removeProperty('height');
+          this.updateDivider();
+        }
+        
+        updateDivider() {
+          const orientation = this.mediaQuery.matches ? 'horizontal' : 'vertical';
+          const prect = this.elem1.parentElement.getBoundingClientRect();
+          const rect1 = this.elem1.getBoundingClientRect();
+          const rect2 = this.elem2.getBoundingClientRect();
+          if (orientation == 'vertical') {
+            this.divider.style.width = `${this.thickness}px`;
+            this.divider.style.height = '100%';
+            this.divider.style.cursor = 'ew-resize';
+            this.divider.style.top = '0';
+            const pixels = rect1.right - this.thickness / 2;
+            this.divider.style.left = `${100*(pixels)/prect.width}%`;
+          } else if (orientation == 'horizontal') {
+            this.divider.style.width = '100%';
+            this.divider.style.height = `${this.thickness}px`;
+            this.divider.style.cursor = 'ns-resize';
+            const pixels = rect1.bottom - this.thickness / 2;
+            this.divider.style.top = `${100*(pixels)/prect.height}%`;
+            this.divider.style.left = '0';
+          }
+        }
+        
+        updateAdjacent(e) {
+          const orientation = this.mediaQuery.matches ? 'horizontal' : 'vertical';
+          const prect = this.elem1.parentElement.getBoundingClientRect();
+          const rect1 = this.elem1.getBoundingClientRect();
+          const rect2 = this.elem2.getBoundingClientRect();
+          if (orientation == 'vertical') {
+            const w1 = e.clientX - rect1.left;
+            const w2 = rect2.right - e.clientX;
+            this.elem1.style.width = `${100*w1/prect.width}%`;
+            this.elem2.style.width = `${100*w2/prect.width}%`;
+          } else if (orientation == 'horizontal') {
+            const h1 = e.clientY - rect1.top;
+            const h2 = rect2.bottom - e.clientY;
+            this.elem1.style.height = `${100*h1/prect.height}%`;
+            this.elem2.style.height = `${100*h2/prect.height}%`;
+          }
+        }
+      }
+      
       
       const hoverLinker = new HoverLinker();
       const displayObj = new DisplayWindow();
@@ -1250,53 +1308,13 @@
           selectTab(0);
         }
       })
-      
-      const divider = document.getElementById('divider');
-      const section1 = document.getElementById('section-1');
-      const section2 = document.getElementById('section-2');
-      const main = document.querySelector('main');
-      divider.addEventListener('pointerdown', event => {
-        const controller = new AbortController();
-        const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-        if (isPortrait) {
-          window.addEventListener('pointermove', event => {
-            let ypercent = Math.round(100 * (event.clientY + 5) / window.innerHeight);
-            main.style.cursor = 'row-resize';
-            divider.style.top = `calc(${ypercent}% - 10px)`;
-            section1.style.height = `${ypercent}%`;
-            section2.style.height = `${100 - ypercent}%`;
-          }, {signal: controller.signal});
-        } else {
-          window.addEventListener('pointermove', event => {
-            let xpercent = Math.round(100 * (event.clientX + 5) / window.innerWidth);
-            main.style.cursor = 'col-resize';
-            divider.style.left = `calc(${xpercent}% - 10px)`;
-            section1.style.width = `${xpercent}%`;
-            section2.style.width = `${100 - xpercent}%`;
-          }, {signal: controller.signal});
-        }
-        window.addEventListener('pointerup', event => {
-          main.style.removeProperty("cursor");
-          controller.abort();
-        }, {signal: controller.signal});
-      })
-      
-      const mediaQuery = window.matchMedia('(orientation: portrait)');
-      mediaQuery.addEventListener('change', (event) => {
-        section1.style.removeProperty('width');
-        section1.style.removeProperty('height');
-        section2.style.removeProperty('width');
-        section2.style.removeProperty('height');
-        divider.style.removeProperty('top');
-        divider.style.removeProperty('left');
-      });
-      
       document.getElementById('display').append(displayObj.elem);
       document.getElementById('windows').append(...windows.map(w => w.elem));
       const eventData = parseDataPage(getStored('eventData'));
       const weeklyData = parseWeekPage(getStored('weekData'));
       const categories = parseCategoryPage(getStored('categoryData'));
       let currentTab = Number(getStored('currentTab', 1));
+      const divider = new Divider(...document.querySelector('main').children);
       selectTab(currentTab);
       fetchData(
         'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
