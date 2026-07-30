@@ -16,62 +16,55 @@
         box-sizing: border-box;
         user-select: none;
       }
-      
       :root {
         height: 100%;
         background-color: #1b1b1b;
+        -webkit-tap-highlight-color: transparent;
         --font-size-1: 1cqw;
         --font-size-2: 1.25cqw;
         --font-size-3: 1.5cqw;
         --font-size-4: 2cqw;
         --font-size-5: 3cqw;
       }
-      
       body {
         height: 100%;
       }
-      
       main {
         display: flex;
         width: 100%;
         height: 100%;
       }
-      
       .divider {
         position: absolute;
         z-index: 1;
         touch-action: none;
       }
-      
       #section-1 {
         position: relative;
         width: 30%;
         height: 100%;
         background-image: linear-gradient(to right, #232037, #1b1b1b);
       }
-
       #logo {
         padding: 10px;
         height: 20%;
+        width: 100%;
         background-image: url('https://images.squarespace-cdn.com/content/v1/5fa31a9e206c8a69fd49cfda/1611602029932-VTFLL1ATNQGALUG35LPA/png.png');
-        background-size: 85% 100%;
+        background-size: contain;
         background-origin: content-box;
         background-position: center;
         background-repeat: no-repeat;
       }
-      
       #icons {
         position: absolute;
         right: 0;
-        padding: 10px;
-        text-align: right;
       }
-      
       #icons svg {
+        display: block;
         cursor: pointer;
-        width: 8%;
+        padding: 10px;
+        width: 44px;
       }
-      
       #display {
         position: relative;
         text-align: center;
@@ -82,7 +75,6 @@
         overflow: auto;
         scrollbar-color: white #1d1c1f;
       }
-      
       #display-window {
         display: inline-grid;
         max-height: 100%;
@@ -90,24 +82,19 @@
         font-size: var(--font-size-1);
         padding: 15px 10px;
       }
-      
       #display-window .row {
         display: contents;
         cursor: default;
       }
-      
       #display-window .row.isHovering span {
         text-shadow: 0px 0px 5px currentColor;
       }
-      
       #display-window .row.isHovering .color-box {
         box-shadow: 0px 0px 5px currentColor;
       }
-      
       #display-window span {
         padding: 0.5em 0.8em;
       }
-      
       #display-window .title,
       #display-window .subtitle {
         grid-column: 1 / -1;
@@ -116,34 +103,28 @@
         text-wrap: balance;
         font-size: var(--font-size-3);
       }
-      
       #display-window .subtitle {
         color: lightgray;
         font-size: var(--font-size-1);
       }
-      
       #display-window.day {
         grid-template-columns: fit-content(40%) 1fr max-content;
         text-wrap: balance;
       }
-      
       #display-window.month,
       #display-window.year {
         grid-template-columns: max-content 1fr;
       }
-      
       #display-window.year .color-box {
         aspect-ratio: 1;
         margin: 5px;
         background-color: currentColor;
       }
-      
       #section-2 {
         position: relative;
         width: 70%;
         height: 100%;
       }
-
       #window-banner {
         display: flex;
         position: relative;
@@ -156,31 +137,31 @@
         font-weight: bold;
         font-size: var(--font-size-4);
       }
-      
       #mode-buttons {
-        color: gray;
+        color: black;
         font-size: 0px; /*Required to make browser stop adding space between divs*/
       }
-
       #mode-buttons div {
         font-size: var(--font-size-2);
         font-weight: bold;
-        left: 0px;
         display: inline-block;
-        padding: 5px 10px;
         cursor: pointer;
+        padding: 5px;
+        border: 1px solid gray;
         border-radius: 6px;
+        margin: 2px;
+        transform: translate(-2px, -2px);
+        box-shadow: 1px 1px 2px gray;
+        background-image: linear-gradient(to bottom, white, lightgray);
       }
-
       #mode-buttons div:hover {
-        background-color: lightgray;
+        box-shadow: 1px 1px 3px gray;
       }
-
       #mode-buttons div.selected {
-        background-color: #595e68;
-        color: white;
+        transform: none;
+        box-shadow: inset 1px 1px 2px gray;
+        background-image: linear-gradient(to top, white, lightgray);
       }
-
       #window-banner .header {
         display: flex;
         position: absolute;
@@ -190,16 +171,13 @@
         justify-content: space-between;
         align-items: center;
       }
-      
       #window-banner .header .nav-btn {
         font-size: var(--font-size-5);
         transform: translate(0, -7%);
       }
-
       #window-banner .header .nav-btn:hover {
         cursor: pointer;
       }
-      
       #window-banner .button {
         font-size: var(--font-size-2);
         font-weight: bold;
@@ -209,32 +187,26 @@
         background-image: linear-gradient(to bottom, white, lightgray);
         padding: 4px;
       }
-      
       #window-banner .button:hover {
         cursor: pointer;
         box-shadow: 1px 1px 3px gray;
       }
-      
       #window-banner .button:active {
         box-shadow: inset 1px 1px 3px gray;
         background-image: linear-gradient(to bottom, lightgray, white);
       }
-
       #windows {
         position: absolute;
         width: 100%;
         height: 90%;
       }
-
       #day-window {
         height: 100%;
         display: none;
       }
-      
       #day-window.selected {
         display: block;
       }
-
       #day-window .top {
         height: 6%;
         font-size: var(--font-size-2);
@@ -242,39 +214,37 @@
         align-content: center;
         background-image: linear-gradient(to bottom, lightcyan, lightblue);
       }
-
       #day-window .top .header {
         display: inline-block;
         position: absolute;
         text-align: center;
         width: 15%;
       }
-      
       #day-window .top .first-header {
         display: inline-block;
         text-align: right;
         width: 7%;
       }
-
-      #day-window .grid {
-        display: grid;
-        grid-template-columns: 1fr;
+      #day-window .bottom {
+        position: relative;
         height: 94%;
         font-size: var(--font-size-2);
       }
-
+      #day-window .grid {
+        display: grid;
+        height: 100%;
+        grid-template-columns: 1fr;
+      }
       #day-window .grid .row {
         align-content: center;
       }
-
       #day-window .grid .side-header {
         display: inline-block;
         text-align: right;
         white-space: nowrap;
         width: 7%;
       }
-
-      #day-window .grid .event {
+      #day-window .bottom .event {
         display: inline-block;
         position: absolute;
         text-align: center;
@@ -284,41 +254,35 @@
         width: 15%;
         padding: 5px;
       }
-
-      #day-window .grid .event.isHovering {
+      #day-window .bottom .event.isHovering {
         box-shadow: 1px 1px 3px black;
         border: 1px solid black;
       }
-      
-      #day-window .grid .current-time {
+      #day-window .bottom .current-time {
         position: absolute;
         width: 100%;
         height: 0px;
         border: 1px dashed black;
         text-align: right;
+        pointer-events: none;
       }
-      
-      #day-window .grid .current-time span {
+      #day-window .bottom .current-time span {
         position: absolute;
         transform: translate(-100%, -100%);
         text-wrap: nowrap;
       }
-
       #month-window {
         display: none;
         height: 100%;
       }
-      
       #month-window.selected {
         display: block;
       }
-
       #month-window .day-header {
         display: grid;
         height: 5%;
         grid-template-columns: repeat(7, 1fr);
       }
-
       #month-window .day-header-item {
         align-content: center;
         text-align: center;
@@ -327,14 +291,12 @@
         border: 1px solid lightgray;
         padding: 2px;
       }
-
       #month-window .grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         grid-template-rows: repeat(6, 1fr);
         height: 95%;
       }
-
       #month-window .grid .box {
         position: relative;
         padding: 4px;
@@ -342,23 +304,19 @@
         background-color: white;
         font-size: var(--font-size-1);
       }
-      
       #month-window .grid .box .date {
         position: absolute;
       }
-      
       #month-window .grid .box .name {
         width: 100%;
         height: 100%;
         text-align: center;
         align-content: center;
       }
-
       #month-window .grid .box.inactive {
         color: #888;
         background-color: #ccc;
       }
-
       #month-window .grid .box:hover,
       #month-window .grid .box.isHovering {
         cursor: pointer;
@@ -366,29 +324,23 @@
         border: 1px solid black;
         z-index: 1;
       }
-      
       #month-window .grid .box.selected {
         border: 1px solid black;
       }
-      
       #month-window .grid .box.today {
         border: 2px solid black;
       }
-      
       #month-window .grid .box.today .date {
         font-weight: bold;
       }
-
       #year-window {
         display: none;
         height: 100%;
         background-color: lightgray;
       }
-      
       #year-window.selected {
         display: block;
       }
-
       #year-window .grid {
         display: grid;
         margin-left: auto;
@@ -398,12 +350,10 @@
         padding: 3px;
         gap: 3px;
       }
-      
       #year-window .grid .month {
         border: 1px solid black;
         box-shadow: 1px 1px 3px black;
       }
-
       #year-window .grid .month .banner {
         font-size: var(--font-size-1);
         font-weight: bold;
@@ -412,12 +362,10 @@
         background-image: linear-gradient(to bottom, white, lightgray);
         height: 10%;
       }
-      
       #year-window .grid .month .banner:hover {
         border: 1px solid black;
         cursor: pointer;
       }
-
       #year-window .grid .month .mgrid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
@@ -426,45 +374,37 @@
         text-align: center;
         height: 90%;
       }
-
       #year-window .grid .month .mgrid .day-name {
         background-image: linear-gradient(to bottom, lightcyan, lightblue);
         border: 1px solid lightgray;
         align-content: center;
       }
-
       #year-window .grid .month .mgrid .date {
         position: relative;
         background-color: white;
         border: 1px solid lightgray;
         align-content: center;
       }
-      
       #year-window .grid .month .mgrid .date.isHovering {
         box-shadow: 1px 1px 3px black;
         z-index: 1;
       }
-      
       #year-window .grid .month .mgrid .date:hover,
       #year-window .grid .month .mgrid .date.selected {
         cursor: pointer;
         border: 1px solid black;
       }
-      
       #year-window .grid .month .mgrid .date.selected:hover {
         cursor: pointer;
         border: 2px solid black;
       }
-      
       #year-window .grid .month .mgrid .date.today {
-        border: 3px solid black;
+        border: 2px solid black;
         font-weight: bold;
       }
-      
       #year-window .grid .month .mgrid .date.today:hover {
-        border: 4px solid black;
+        border: 3px solid black;
       }
-      
       #print-container {
         display: none;
         width: 100%;
@@ -472,38 +412,31 @@
         text-wrap: balance;
         margin: 0;
       }
-      
       #print-container .title {
         font-size: 28px;
         font-weight: bold;
         padding: 5px;
       }
-      
       #print-container .subtitle {
         font-size: 20px;
       }
-      
       #print-container .notes {
         font-size: 16px;
         padding: 20px;
       }
-      
       #print-container table {
         display: inline-block;
         text-align: left;
         font-size: 16px;
         border-collapse: collapse;
       }
-      
       #print-container th, #print-container td {
         border: 1px solid black;
         padding: 10px;
       }
-      
       #print-container th {
         text-wrap: nowrap;
       }
-      
       @media (orientation: portrait) {
         :root {
           --font-size-1: 1cqh;
@@ -512,12 +445,10 @@
           --font-size-4: 2cqh;
           --font-size-5: 3cqh;
         }
-        #logo {background-size: 50% 100%;}
+        main {display: block;}
         #section-1 {width: 100%; height: 50%;}
         #section-2 {width: 100%; height: 50%;}
-        main {display: block;}
       }
-      
       @media print {
         main {display: none;}
         #print-container {display: block;}
@@ -540,6 +471,7 @@
               <circle cx="18" cy="13" r="1" fill="currentColor"/>
             </svg>
           </div>
+          <div id="display-window"></div>
         </div>
       </div>
       
@@ -558,6 +490,9 @@
           <div id="today-button" onclick="goToDate(Date.now())" class="button">Today</div>
         </div>
         <div id="windows">
+          <div id="day-window"></div>
+          <div id="month-window"></div>
+          <div id="year-window"></div>
         </div>
       </div>
     </main>
@@ -569,6 +504,11 @@
       
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'aquamarine', 'mediumpurple'];
+      const urls = {
+        events: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
+        weekly: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
+        colors: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
+      }
       
       // Deterministic Functions
       function addElem(elem, tag, ...classes) {
@@ -592,8 +532,8 @@
           n.classList.toggle('selected', i == index);
         }
       }
-      function dateStr(date, options={day:'numeric', month:'numeric', year:'numeric'}) {
-        return date.toLocaleDateString('en-us', options);
+      function dateStr(date) {
+        return [date.getMonth() + 1, date.getDate(), date.getFullYear()].join('/');
       }
       function titleCase(text) {
         return text.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
@@ -720,7 +660,7 @@
         return result;
       }
       
-      // Non Deterministic Functions
+      // Non Deterministic Functions / Macros
       function fetchData(dataURL, weekDataURL, categoryURL) {
         const promises = [
           fetch(dataURL).then(response => response.ok ? response.text() : null),
@@ -780,14 +720,15 @@
         }
         window.print();
       }
-      function getData(date) {
-        const key = dateStr(date);
+      function getData(key) {
+        const date = new Date(key);
         const weekday = dayNames[date.getDay()];
         const weekData = indexDateRangeMap(weeklyData, date, {});
-        const dataTable = eventData[key] ? {...eventData[key]} : {title: 'Schedule', schedule: [], category: '', notes: ''};
-        if (dataTable.schedule.length == 0 && dataTable.category != 'No Class') {
-          dataTable.title = 'Schedule';
-          if (weekday in weekData) dataTable.schedule = weekData[weekday];
+        const dataTable = {title: 'Schedule', schedule: [], category: '', notes: ''};
+        if (key in eventData) Object.assign(dataTable, eventData[key]);
+        if (weekday in weekData && dataTable.category != 'No Class') {
+          dataTable.schedule = weekData[weekday];
+          if (!dataTable.category) dataTable.category = 'Normal Class';
         }
         return dataTable;
       }
@@ -805,23 +746,25 @@
         selectFrom(document.getElementById('mode-buttons').children, index);
         selectFrom(document.getElementById('windows').children, index);
         syncDates();
-        windows[currentTab].onExit();
+        if (windows[currentTab].onExit) windows[currentTab].onExit();
         currentTab = index;
-        windows[currentTab].onEnter();
-        displayObj.render();
+        windows[currentTab].render();
+        displayWindow.render();
+        title.innerText = windows[currentTab].dateStr();
         linkDisplay(currentTab);
         localStorage.setItem('currentTab', index);
       }
       function refresh() {
-        windows[currentTab].onExit();
-        windows[currentTab].onEnter();
-        displayObj.render();
+        if (windows[currentTab].onExit) windows[currentTab].onExit();
+        windows[currentTab].render();
+        displayWindow.render();
+        title.innerText = windows[currentTab].dateStr();
         linkDisplay(currentTab);
       }
       function linkDisplay(index) {
         hoverLinker.abort();
         const w = windows[index];
-        const rows = displayObj.rows;
+        const rows = displayWindow.rows;
         if (index == 0 || index == 1) {
           for (let i = 0; i < rows.length; i++) {
             hoverLinker.link(rows[i], w.events[i]);
@@ -851,9 +794,8 @@
       }
       
       class DisplayWindow {
-        constructor() {
-          this.elem = document.createElement('div');
-          this.elem.id = 'display-window';
+        constructor(elem) {
+          this.elem = elem;
           this.icon = document.getElementById('print-icon');
           this.rows = [];
         }
@@ -868,7 +810,7 @@
             case 0:
               const key = dateStr(date);
               const weekday = dayNames[date.getDay()];
-              const dataTable = getData(date);
+              const dataTable = getData(key);
               addSpan(this.elem, `${dataTable.title}`, 'title');
               addSpan(this.elem, `${weekday} ${key}\n\n`, 'subtitle');
               addSpan(this.elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle')
@@ -921,16 +863,15 @@
         }
       }
       class DayWindow {
-        constructor() {
+        constructor(elem) {
           this.date = new Date();
-          this.elem = document.createElement('div');
-          this.elem.id = 'day-window';
+          this.elem = elem;
           this.top = addDiv(this.elem, 'top');
-          this.grid = addDiv(this.elem, 'grid');
+          this.bottom = addDiv(this.elem, 'bottom');
+          this.grid = addDiv(this.bottom, 'grid');
           addSpan(this.top, 'Time', 'first-header');
           this.startHour = 14;
           this.endHour = 21;
-          this.buildGridRows();
           this.events = []
         }
         
@@ -951,12 +892,9 @@
           }
         }
         
-        onEnter() {
-          const title = document.querySelector('#window-banner .header .title-text');
-          title.innerText = dateStr(this.date, {day:'numeric', month:'long', year:'numeric'});
-          this.render();
-          this.intervalUpdate();
-          this.intervalID = setInterval(() => this.intervalUpdate(), 1000);
+        dateStr() {
+          const options = {day:'numeric', month:'long', year:'numeric'};
+          return this.date.toLocaleDateString('en-us', options);
         }
         
         onExit() {
@@ -973,7 +911,7 @@
             if (offset >= 0 && offset <= rowCount) {
               this.timeDiv.style.display = 'block'
               this.timeDivText.innerText = now.toLocaleTimeString();
-              this.timeDiv.style.bottom = `${94*(1 - offset/rowCount)}%`
+              this.timeDiv.style.bottom = `${100*(1 - offset/rowCount)}%`
             }
           }
         }
@@ -981,18 +919,18 @@
         render() {
           const grid = this.elem.querySelector('.grid');
           const rows = grid.children;
-          const dataTable = getData(this.date);
-          this.top.innerHTML = this.top.children[0].outerHTML;
-          this.grid.innerHTML = '';
+          const dataTable = getData(dateStr(this.date));
+          this.top.replaceChildren(this.top.firstElementChild)
+          this.bottom.replaceChildren(this.bottom.firstElementChild)
           this.events.length = 0;
           [this.startHour, this.endHour] = [14, 21];
-          const locations = [];
           for (const [name, location, start, end] of dataTable.schedule) {
             this.startHour = Math.floor(Math.min(this.startHour, strToHours(start)));
             this.endHour = Math.ceil(Math.max(this.endHour, strToHours(end)));
           }
-          const count = this.endHour - this.startHour + 1;
           this.buildGridRows();
+          const locations = [];
+          const count = this.endHour - this.startHour + 1;
           for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
             if (index == 0) {
@@ -1001,27 +939,28 @@
               const header = addSpan(this.top, location, 'header');
               header.style.left = `${15*index-6}%`;
             }
-            const block = addDiv(rows[0], 'event');
+            const block = addDiv(this.bottom, 'event');
             this.events.push(block);
             [start, end] = [start, end].map(strToHours);
             const offset = start - this.startHour;
             const duration = end - start;
-            block.style.top = `${6+94*offset/count}%`;
+            block.style.top = `${100*offset/count}%`;
             block.style.left = `${15*index-6}%`
-            block.style.height = `${94*duration/count}%`;
+            block.style.height = `${100*duration/count}%`;
             block.style.backgroundColor = palette[i % palette.length];
             block.innerText = name;
           }
-          this.timeDiv = addDiv(rows[0], 'current-time');
+          this.timeDiv = addDiv(this.bottom, 'current-time');
           this.timeDivText = addSpan(this.timeDiv, '');
+          this.intervalUpdate();
+          this.intervalID = setInterval(() => this.intervalUpdate(), 1000);
         }
       }
       class MonthWindow {
-        constructor() {
+        constructor(elem) {
           this.date = new Date();
           this.selected = new Date();
-          this.elem = document.createElement('div');
-          this.elem.id = 'month-window';
+          this.elem = elem;
           this.events = [];
           const dayHeader = addDiv(this.elem, 'day-header');
           const grid = addDiv(this.elem, 'grid');
@@ -1035,13 +974,10 @@
           }
         }
         
-        onEnter() {
-          const title = document.querySelector('#window-banner .header .title-text');
-          title.innerText = dateStr(this.date, {month:'long', year:'numeric'});
-          this.render();
+        dateStr() {
+          const options = {month:'long', year:'numeric'};
+          return this.date.toLocaleDateString('en-us', options);
         }
-        
-        onExit() {}
         
         render() {
           const grid = this.elem.querySelector('.grid');
@@ -1059,13 +995,13 @@
             box.classList.toggle('inactive', !isActive);
             dateText.innerText = day.getDate();
             const key = dateStr(day);
+            const data = getData(key);
             box.classList.toggle('today', isActive && key==today);
             box.classList.toggle('selected', isActive && key==selected);
-            if (key in eventData && isActive) {
-              this.events.push(box);
-              const {title, category} = eventData[key];
-              nameText.innerText = title;
-              box.style.backgroundColor = categories[category];
+            if (data.category && isActive) {
+              if (data.category != 'Normal Class') this.events.push(box);
+              nameText.innerText = data.title;
+              box.style.backgroundColor = categories[data.category];
             } else {
               nameText.innerText = '';
               box.style.backgroundColor = '';
@@ -1075,16 +1011,15 @@
         }
       }
       class YearWindow {
-        constructor(monthOffset = 0) {
+        constructor(elem, monthOffset = 0) {
           this.monthOffset = monthOffset;
           this.date = new Date();
           this.selected = new Date();
           this.groups = {};
-          this.elem = document.createElement('div');
-          this.elem.id = 'year-window';
-          const grid = addDiv(this.elem, 'grid');
+          this.elem = elem;
+          this.grid = addDiv(this.elem, 'grid');
           for (let i = 0; i < 12; i++) {
-            const month = addDiv(grid, 'month');
+            const month = addDiv(this.grid, 'month');
             const banner = addDiv(month, 'banner');
             const mgrid = addDiv(month, 'mgrid');
             for (let j = 0; j < 7; j++) addSpan(mgrid, dayNames[j][0], 'day-name');
@@ -1092,19 +1027,16 @@
           }
         }
         
-        onEnter() {
+        dateStr() {
           const title = document.querySelector('#window-banner .header .title-text');
           if (this.monthOffset == 0) {
-            title.innerText = dateStr(this.date, {year: 'numeric'});
+            return this.date.toLocaleDateString('en-us', {year: 'numeric'})
           } else {
             let year = this.date.getFullYear();
             if (this.date.getMonth() < this.monthOffset) year--;
-            title.innerText = `${year} - ${year+1}`;
+            return `${year} - ${year+1}`;
           }
-          this.render();
         }
-        
-        onExit() {}
         
         getFirstDay() {
           let year = this.date.getFullYear();
@@ -1113,36 +1045,29 @@
         }
         
         render() {
-          const grid = this.elem.querySelector('.grid');
           for (const key in this.groups) delete this.groups[key];
           let year = this.date.getFullYear();
           if (this.date.getMonth() < this.monthOffset) year--;
+          const today = dateStr(new Date());
+          const selected = dateStr(this.selected);
+          const monthStart = this.getFirstDay();
           for (let i = 0; i < 12; i++) {
-            const month = new Date(year, i + this.monthOffset, 1);
-            const monthBox = grid.children[i];
+            const monthBox = this.grid.children[i];
             const banner = monthBox.querySelector('.banner');
+            banner.innerText = monthStart.toLocaleString('en-US', {month:'long', year:'numeric'});
             const monthGrid = monthBox.querySelector('.mgrid');
-            const firstDay = startOfMonth(month);
-            const lastDay = endOfMonth(month);
-            const today = dateStr(new Date());
-            const selected = dateStr(this.selected);
-            banner.innerText = month.toLocaleString('en-US', {month:'long', year:'numeric'});
-            for (let j = 0; j < 7; j++) {
-              monthGrid.children[j].innerText = dayNames[j][0];
-            }
-            let day = startOfWeek(firstDay);
+            const monthEnd = endOfMonth(monthStart);
+            const day = startOfWeek(monthStart);
             for (let j = 0; j < 42; j++) {
               const box = monthGrid.children[7 + j];
-              const withinMonth = firstDay <= day && day <= lastDay;
-              if (withinMonth) {
+              if (monthStart <= day && day <= monthEnd) {
                 box.innerText = day.getDate();
                 const key = dateStr(day);
-                if (key in eventData) {
-                  const {title, category} = eventData[key];
-                  if (category in this.groups)
-                    this.groups[category].push(box);
-                  else
-                    this.groups[category] = [box];
+                const data = getData(key);
+                const {title, category} = data;
+                if (category) {
+                  if (category in this.groups) this.groups[category].push(box);
+                  else this.groups[category] = [box];
                   box.style.backgroundColor = categories[category];
                 } else {
                   box.style.backgroundColor = '';
@@ -1157,6 +1082,7 @@
               }
               addTime(day, 'day', 1);
             }
+            addTime(monthStart, 'month', 1);
           }
         }
       }
@@ -1229,18 +1155,18 @@
           this.elem1.style.removeProperty('height');
           this.elem2.style.removeProperty('width');
           this.elem2.style.removeProperty('height');
-          const orientation = this.mediaQuery.matches ? 'horizontal' : 'vertical';
           const prect = this.elem1.parentElement.getBoundingClientRect();
           const rect1 = this.elem1.getBoundingClientRect();
           const rect2 = this.elem2.getBoundingClientRect();
-          if (orientation == 'vertical') {
+          this.orientation = (rect1.right == rect2.left) ? 'vertical' : 'horizontal';
+          if (this.orientation == 'vertical') {
             this.divider.style.width = `${this.thickness}px`;
             this.divider.style.cursor = 'ew-resize';
             this.divider.style.height = '100%';
             this.divider.style.top = '0';
             const pixels = rect1.right - this.thickness / 2;
             this.divider.style.left = `${100*(pixels)/prect.width}%`;
-          } else if (orientation == 'horizontal') {
+          } else if (this.orientation == 'horizontal') {
             this.divider.style.width = '100%';
             this.divider.style.height = `${this.thickness}px`;
             this.divider.style.cursor = 'ns-resize';
@@ -1251,17 +1177,16 @@
         }
         
         onDrag(e) {
-          const orientation = this.mediaQuery.matches ? 'horizontal' : 'vertical';
           const prect = this.elem1.parentElement.getBoundingClientRect();
           const rect1 = this.elem1.getBoundingClientRect();
           const rect2 = this.elem2.getBoundingClientRect();
-          if (orientation == 'vertical') {
+          if (this.orientation == 'vertical') {
             const w1 = e.clientX - rect1.left;
             const w2 = rect2.right - e.clientX;
             this.elem1.style.width = `${100*w1/prect.width}%`;
             this.elem2.style.width = `${100*w2/prect.width}%`;
             this.divider.style.left = `${100*(w1 - this.thickness/2)/prect.width}%`;
-          } else if (orientation == 'horizontal') {
+          } else if (this.orientation == 'horizontal') {
             const h1 = e.clientY - rect1.top;
             const h2 = rect2.bottom - e.clientY;
             this.elem1.style.height = `${100*h1/prect.height}%`;
@@ -1271,9 +1196,22 @@
         }
       }
       
+      const displayWindow = new DisplayWindow(document.getElementById('display-window'));
+      const title = document.querySelector('#window-banner .title-text');
+      const windows = [
+        new DayWindow(document.getElementById('day-window')),
+        new MonthWindow(document.getElementById('month-window')),
+        new YearWindow(document.getElementById('year-window'), 6),
+      ];
+      const divider = new Divider(
+        document.getElementById('section-1'),
+        document.getElementById('section-2'),
+      );
       const hoverLinker = new HoverLinker();
-      const displayObj = new DisplayWindow();
-      const windows = [new DayWindow(), new MonthWindow(), new YearWindow(6)];
+      const eventData = parseDataPage(getStored('eventData'));
+      const weeklyData = parseWeekPage(getStored('weekData'));
+      const categories = parseCategoryPage(getStored('categoryData'));
+      fetchData(urls.events, urls.weekly, urls.colors);
       windows[2].elem.addEventListener('click', event => {
         const elem = event.target;
         const day = windows[2].getFirstDay();
@@ -1298,20 +1236,9 @@
           selectTab(0);
         }
       })
-      document.getElementById('display').append(displayObj.elem);
-      document.getElementById('windows').append(...windows.map(w => w.elem));
-      const eventData = parseDataPage(getStored('eventData'));
-      const weeklyData = parseWeekPage(getStored('weekData'));
-      const categories = parseCategoryPage(getStored('categoryData'));
+      
       let currentTab = Number(getStored('currentTab', 1));
-      const divider = new Divider(...document.querySelector('main').children);
       selectTab(currentTab);
-      fetchData(
-        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
-        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
-        'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
-      );
-    
     </script>
   
   </body>
