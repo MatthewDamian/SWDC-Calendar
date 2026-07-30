@@ -62,8 +62,8 @@
       #icons svg {
         display: block;
         cursor: pointer;
-        padding: 10px;
-        width: 44px;
+        margin: 10px;
+        width: 24px;
       }
       #display {
         position: relative;
@@ -137,30 +137,31 @@
         font-weight: bold;
         font-size: var(--font-size-4);
       }
-      #mode-buttons {
+      #window-banner .button {
         color: black;
-        font-size: 0px; /*Required to make browser stop adding space between divs*/
-      }
-      #mode-buttons div {
+        cursor: pointer;
         font-size: var(--font-size-2);
         font-weight: bold;
-        display: inline-block;
-        cursor: pointer;
-        padding: 5px;
         border: 1px solid gray;
         border-radius: 6px;
-        margin: 2px;
-        transform: translate(-2px, -2px);
         box-shadow: 1px 1px 2px gray;
+        transform: translate(-2px, -2px);
         background-image: linear-gradient(to bottom, white, lightgray);
+        padding: 5px;
       }
-      #mode-buttons div:hover {
-        box-shadow: 1px 1px 3px gray;
+      #window-banner .button:hover {
+        box-shadow: 1px 1px 4px gray;
       }
-      #mode-buttons div.selected {
+      #window-banner .button:active,
+      #window-banner .button.selected {
         transform: none;
         box-shadow: inset 1px 1px 2px gray;
-        background-image: linear-gradient(to top, white, lightgray);
+        background-image: linear-gradient(to bottom, lightgray, white);
+      }
+      #mode-buttons {
+        display: inline-grid;
+        grid-template-columns: repeat(3, max-content);
+        gap: 4px;
       }
       #window-banner .header {
         display: flex;
@@ -177,23 +178,7 @@
       }
       #window-banner .header .nav-btn:hover {
         cursor: pointer;
-      }
-      #window-banner .button {
-        font-size: var(--font-size-2);
-        font-weight: bold;
-        border: 1px solid gray;
-        border-radius: 6px;
-        box-shadow: 1px 1px 1px gray;
-        background-image: linear-gradient(to bottom, white, lightgray);
-        padding: 4px;
-      }
-      #window-banner .button:hover {
-        cursor: pointer;
-        box-shadow: 1px 1px 3px gray;
-      }
-      #window-banner .button:active {
-        box-shadow: inset 1px 1px 3px gray;
-        background-image: linear-gradient(to bottom, lightgray, white);
+        text-shadow: 0 0 2px gray;
       }
       #windows {
         position: absolute;
@@ -478,9 +463,9 @@
       <div id="section-2">
         <div id="window-banner">
           <div id="mode-buttons">
-            <div onclick="selectTab(0)">Day</div>
-            <div onclick="selectTab(1)">Month</div>
-            <div onclick="selectTab(2)">Year</div>
+            <div class="button" onclick="selectTab(0)">Day</div>
+            <div class="button" onclick="selectTab(1)">Month</div>
+            <div class="button" onclick="selectTab(2)">Year</div>
           </div>
           <div class="header">
             <div onclick="navigate(-1)" class="nav-btn">‹</div>
@@ -752,6 +737,7 @@
         displayWindow.render();
         title.innerText = windows[currentTab].dateStr();
         linkDisplay(currentTab);
+        printIcon.style.display = (currentTab == 0) ? 'block' : 'none';
         localStorage.setItem('currentTab', index);
       }
       function refresh() {
@@ -796,7 +782,6 @@
       class DisplayWindow {
         constructor(elem) {
           this.elem = elem;
-          this.icon = document.getElementById('print-icon');
           this.rows = [];
         }
         
@@ -805,7 +790,6 @@
           this.rows.length = 0;
           this.elem.innerHTML = '';
           this.elem.className = ['day', 'month', 'year'][currentTab];
-          this.icon.style.display = (currentTab == 0) ? 'inline-block' : 'none';
           switch (currentTab) {
             case 0:
               const key = dateStr(date);
@@ -1197,6 +1181,7 @@
       }
       
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
+      const printIcon = document.getElementById('print-icon');
       const title = document.querySelector('#window-banner .title-text');
       const windows = [
         new DayWindow(document.getElementById('day-window')),
