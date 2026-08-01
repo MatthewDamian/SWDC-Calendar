@@ -60,7 +60,6 @@
         right: 0;
       }
       #icons svg {
-        display: block;
         cursor: pointer;
         margin: 10px;
         width: 24px;
@@ -137,6 +136,11 @@
         font-weight: bold;
         font-size: var(--font-size-4);
       }
+      #window-banner .radio-buttons {
+        display: inline-grid;
+        grid-template-columns: repeat(3, max-content);
+        gap: 4px;
+      }
       #window-banner .button {
         color: black;
         cursor: pointer;
@@ -144,24 +148,19 @@
         font-weight: bold;
         border: 1px solid gray;
         border-radius: 6px;
-        box-shadow: 1px 1px 2px gray;
+        box-shadow: 2px 2px 1px gray;
         transform: translate(-2px, -2px);
         background-image: linear-gradient(to bottom, white, lightgray);
         padding: 5px;
       }
       #window-banner .button:hover {
-        box-shadow: 1px 1px 4px gray;
+        box-shadow: 2px 2px 3px gray;
       }
       #window-banner .button:active,
       #window-banner .button.selected {
         transform: none;
         box-shadow: inset 1px 1px 2px gray;
         background-image: linear-gradient(to bottom, lightgray, white);
-      }
-      #mode-buttons {
-        display: inline-grid;
-        grid-template-columns: repeat(3, max-content);
-        gap: 4px;
       }
       #window-banner .header {
         display: flex;
@@ -242,6 +241,7 @@
       #day-window .bottom .event.isHovering {
         box-shadow: 1px 1px 3px black;
         border: 1px solid black;
+        z-index: 1;
       }
       #day-window .bottom .current-time {
         position: absolute;
@@ -371,7 +371,7 @@
         align-content: center;
       }
       #year-window .grid .month .mgrid .date.isHovering {
-        box-shadow: 1px 1px 3px black;
+        box-shadow: 1px 1px 2px black;
         z-index: 1;
       }
       #year-window .grid .month .mgrid .date:hover,
@@ -462,17 +462,17 @@
       
       <div id="section-2">
         <div id="window-banner">
-          <div id="mode-buttons">
-            <div class="button" onclick="selectTab(0)">Day</div>
-            <div class="button" onclick="selectTab(1)">Month</div>
-            <div class="button" onclick="selectTab(2)">Year</div>
+          <div class="radio-buttons">
+            <div class="button">Day</div>
+            <div class="button">Month</div>
+            <div class="button">Year</div>
           </div>
           <div class="header">
             <div onclick="navigate(-1)" class="nav-btn">‹</div>
             <div class="title-text"></div>
             <div onclick="navigate(1)" class="nav-btn">›</div>
           </div>
-          <div id="today-button" onclick="goToDate(Date.now())" class="button">Today</div>
+          <div onclick="goToDate(Date.now())" class="button">Today</div>
         </div>
         <div id="windows">
           <div id="day-window"></div>
@@ -495,37 +495,21 @@
         colors: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
       }
       
-      // Deterministic Functions
-      function addElem(elem, tag, ...classes) {
-        const newElem = document.createElement(tag);
-        newElem.classList.add(...classes);
-        elem.appendChild(newElem);
-        return newElem;
+      // write:none
+      
+      function clamp(num, min, max) {
+        return Math.min(Math.max(num, min), max);
       }
-      function addDiv(elem, ...classes) {
-        return addElem(elem, 'div', ...classes);
-      }
-      function addSpan(elem, text, ...classes) {
-        const newElem = document.createElement('span');
-        newElem.classList.add(...classes);
-        elem.appendChild(newElem);
-        newElem.innerText = text;
-        return newElem;
-      }
-      function selectFrom(nodes, index) {
-        for (const [i, n] of [...nodes].entries()) {
-          n.classList.toggle('selected', i == index);
-        }
+      function getRelativeCoords(target) {
+        const rect = target.getBoundingClientRect();
+        const prect = target.parent.getBoundingClientRect();
+        return {x: rect.x - prect.x, y: rect.y - prect.y};
       }
       function dateStr(date) {
         return [date.getMonth() + 1, date.getDate(), date.getFullYear()].join('/');
       }
       function titleCase(text) {
         return text.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-      }
-      function objSet(obj, newObj) {
-        for (const key in obj) delete obj[key];
-        Object.assign(obj, newObj);
       }
       function startOfMonth(day) {
         return new Date(day.getFullYear(), day.getMonth(), 1)
@@ -535,25 +519,6 @@
       }
       function startOfWeek(day) {
         return new Date(day.getFullYear(), day.getMonth(), day.getDate() - day.getDay())
-      }
-      function addTime(date, mode, amount) {
-        let month;
-        switch (mode.toLowerCase()) {
-          case 'year':
-            month = date.getMonth();
-            date.setFullYear(date.getFullYear() + amount);
-            if (date.getMonth() != month) date.setMonth(date.getMonth(), 0);
-            break;
-          case 'month':
-            month = date.getMonth() + amount;
-            date.setMonth(month);
-            if (month < 0) month += 12;
-            if (date.getMonth() % 12 != month % 12) date.setMonth(date.getMonth(), 0);
-            break;
-          case 'day':
-            date.setDate(date.getDate() + amount);
-            break;
-        }
       }
       function strToHours(timeStr) {
         const [time, modifier] = timeStr.split(' ');
@@ -644,8 +609,73 @@
         }
         return result;
       }
+      function getStored(key, value='') {
+        let result = localStorage.getItem(key);
+        if (result === null) result = value;
+        return result;
+      }
+      function getData(key) {
+        const date = new Date(key);
+        const weekday = dayNames[date.getDay()];
+        const weekData = indexDateRangeMap(weeklyData, date, {});
+        const dataTable = {title: 'Schedule', schedule: [], category: '', notes: ''};
+        if (key in eventData) Object.assign(dataTable, eventData[key]);
+        if (weekday in weekData && dataTable.category != 'No Class') {
+          dataTable.schedule = weekData[weekday];
+          if (!dataTable.category) dataTable.category = 'Normal Class';
+        }
+        return dataTable;
+      }
       
-      // Non Deterministic Functions / Macros
+      // write:inner
+      
+      function addTime(date, mode, amount) {
+        let month;
+        switch (mode.toLowerCase()) {
+          case 'year':
+            month = date.getMonth();
+            date.setFullYear(date.getFullYear() + amount);
+            if (date.getMonth() != month) date.setMonth(date.getMonth(), 0);
+            break;
+          case 'month':
+            month = date.getMonth() + amount;
+            date.setMonth(month);
+            if (month < 0) month += 12;
+            if (date.getMonth() % 12 != month % 12) date.setMonth(date.getMonth(), 0);
+            break;
+          case 'day':
+            date.setDate(date.getDate() + amount);
+            break;
+        }
+      }
+      function addElem(elem, tag, ...classes) {
+        const newElem = document.createElement(tag);
+        newElem.classList.add(...classes);
+        elem.appendChild(newElem);
+        return newElem;
+      }
+      function addDiv(elem, ...classes) {
+        return addElem(elem, 'div', ...classes);
+      }
+      function addSpan(elem, text, ...classes) {
+        const newElem = document.createElement('span');
+        newElem.classList.add(...classes);
+        elem.appendChild(newElem);
+        newElem.innerText = text;
+        return newElem;
+      }
+      function selectFrom(nodes, index) {
+        for (const [i, n] of [...nodes].entries()) {
+          n.classList.toggle('selected', i == index);
+        }
+      }
+      function objSet(obj, newObj) {
+        for (const key in obj) delete obj[key];
+        Object.assign(obj, newObj);
+      }
+      
+      // write:outer
+      
       function fetchData(dataURL, weekDataURL, categoryURL) {
         const promises = [
           fetch(dataURL).then(response => response.ok ? response.text() : null),
@@ -662,11 +692,6 @@
           localStorage.setItem('weekData', data[1]);
           localStorage.setItem('categoryData', data[2]);
         });
-      }
-      function getStored(key, value='') {
-        let result = localStorage.getItem(key);
-        if (result === null) result = value;
-        return result;
       }
       function printSchedule() {
         const container = document.getElementById('print-container');
@@ -705,18 +730,6 @@
         }
         window.print();
       }
-      function getData(key) {
-        const date = new Date(key);
-        const weekday = dayNames[date.getDay()];
-        const weekData = indexDateRangeMap(weeklyData, date, {});
-        const dataTable = {title: 'Schedule', schedule: [], category: '', notes: ''};
-        if (key in eventData) Object.assign(dataTable, eventData[key]);
-        if (weekday in weekData && dataTable.category != 'No Class') {
-          dataTable.schedule = weekData[weekday];
-          if (!dataTable.category) dataTable.category = 'Normal Class';
-        }
-        return dataTable;
-      }
       function syncDates() {
         const time0 = windows[0].date.getTime();
         const time = windows[currentTab].date.getTime();
@@ -728,34 +741,26 @@
         };
       }
       function selectTab(index) {
-        selectFrom(document.getElementById('mode-buttons').children, index);
-        selectFrom(document.getElementById('windows').children, index);
+        selectFrom(document.querySelector('#window-banner .radio-buttons').children, index);
+        selectFrom(document.querySelector('#windows').children, index);
         syncDates();
-        if (windows[currentTab].onExit) windows[currentTab].onExit();
         currentTab = index;
-        windows[currentTab].render();
-        displayWindow.render();
-        title.innerText = windows[currentTab].dateStr();
-        linkDisplay(currentTab);
+        refresh();
         printIcon.style.display = (currentTab == 0) ? 'block' : 'none';
         localStorage.setItem('currentTab', index);
       }
       function refresh() {
-        if (windows[currentTab].onExit) windows[currentTab].onExit();
-        windows[currentTab].render();
+        const w = windows[currentTab];
+        w.render();
         displayWindow.render();
-        title.innerText = windows[currentTab].dateStr();
-        linkDisplay(currentTab);
-      }
-      function linkDisplay(index) {
+        title.innerText = w.dateStr();
         hoverLinker.abort();
-        const w = windows[index];
         const rows = displayWindow.rows;
-        if (index == 0 || index == 1) {
+        if (currentTab == 0 || currentTab == 1) {
           for (let i = 0; i < rows.length; i++) {
             hoverLinker.link(rows[i], w.events[i]);
           }
-        } else if (index == 2) {
+        } else if (currentTab == 2) {
           for (let i = 0; i < rows.length; i++) {
             const category = rows[i].querySelector('span').innerText;
             if (category in w.groups) {
@@ -856,7 +861,40 @@
           addSpan(this.top, 'Time', 'first-header');
           this.startHour = 14;
           this.endHour = 21;
-          this.events = []
+          this.events = [];
+          this.timers = {}
+        }
+        
+        dateStr() {
+          const options = {day:'numeric', month:'long', year:'numeric'};
+          return this.date.toLocaleDateString('en-us', options);
+        }
+        
+        addTimer() {
+          this.timeDiv = addDiv(this.bottom, 'current-time');
+          this.timeDivText = addSpan(this.timeDiv, '');
+          this.updateTimeDiv();
+          if (this.timers.interval) clearInterval(this.timers.interval);
+          if (this.timers.timeout) clearTimeout(this.timers.timeout);
+          this.timers.timeout = setTimeout(() => {
+            this.updateTimeDiv();
+            this.timers.interval = setInterval(() => this.updateTimeDiv(), 1000);
+          }, 1000 - new Date().getMilliseconds())
+        }
+        
+        updateTimeDiv() {
+          const now = new Date();
+          this.timeDiv.style.display = 'none';
+          if (dateStr(this.date) == dateStr(now)) {
+            const time = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
+            const offset = time - this.startHour;
+            const rowCount = this.endHour - this.startHour + 1;
+            if (offset >= 0 && offset <= rowCount) {
+              this.timeDiv.style.display = 'block'
+              this.timeDivText.innerText = now.toLocaleTimeString();
+              this.timeDiv.style.bottom = `${100*(1 - offset/rowCount)}%`
+            }
+          }
         }
         
         buildGridRows() {
@@ -873,30 +911,6 @@
             const color = ((i-this.startHour) % 2 == 0) ? 'lightgray' : 'white';
             row.style.backgroundColor = color;
             time.setHours(time.getHours() + 1);
-          }
-        }
-        
-        dateStr() {
-          const options = {day:'numeric', month:'long', year:'numeric'};
-          return this.date.toLocaleDateString('en-us', options);
-        }
-        
-        onExit() {
-          clearInterval(this.intervalID);
-        }
-        
-        intervalUpdate() {
-          const now = new Date();
-          this.timeDiv.style.display = 'none';
-          if (dateStr(this.date) == dateStr(now)) {
-            const time = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
-            const offset = time - this.startHour;
-            const rowCount = this.endHour - this.startHour + 1;
-            if (offset >= 0 && offset <= rowCount) {
-              this.timeDiv.style.display = 'block'
-              this.timeDivText.innerText = now.toLocaleTimeString();
-              this.timeDiv.style.bottom = `${100*(1 - offset/rowCount)}%`
-            }
           }
         }
         
@@ -934,10 +948,7 @@
             block.style.backgroundColor = palette[i % palette.length];
             block.innerText = name;
           }
-          this.timeDiv = addDiv(this.bottom, 'current-time');
-          this.timeDivText = addSpan(this.timeDiv, '');
-          this.intervalUpdate();
-          this.intervalID = setInterval(() => this.intervalUpdate(), 1000);
+          this.addTimer();
         }
       }
       class MonthWindow {
@@ -1131,7 +1142,29 @@
             window.addEventListener('pointermove', e => this.onDrag(e), {signal: controller.signal});
             window.addEventListener('pointerup', e => controller.abort(), {signal: controller.signal});
           })
-          this.reset();
+          this.updateBoxes();
+        }
+        
+        updateBoxes() {
+          this.prect = this.elem1.parentElement.getBoundingClientRect();
+          this.rect1 = this.elem1.getBoundingClientRect();
+          this.rect2 = this.elem2.getBoundingClientRect();
+          this.orientation = (this.rect1.right == this.rect2.left) ? 'vertical' : 'horizontal';
+          if (this.orientation == 'vertical') {
+            this.divider.style.width = `${this.thickness}px`;
+            this.divider.style.cursor = 'ew-resize';
+            this.divider.style.height = '100%';
+            this.divider.style.top = '0';
+            const pixels = this.rect1.right - this.thickness / 2
+            this.divider.style.left = `${100*pixels/this.prect.width}%`;
+          } else {
+            this.divider.style.width = '100%';
+            this.divider.style.height = `${this.thickness}px`;
+            this.divider.style.cursor = 'ns-resize';
+            this.divider.style.left = '0';
+            const pixels = this.rect1.bottom - this.thickness / 2;
+            this.divider.style.top = `${100*pixels/this.prect.height}%`;
+          }
         }
         
         reset() {
@@ -1139,50 +1172,30 @@
           this.elem1.style.removeProperty('height');
           this.elem2.style.removeProperty('width');
           this.elem2.style.removeProperty('height');
-          const prect = this.elem1.parentElement.getBoundingClientRect();
-          const rect1 = this.elem1.getBoundingClientRect();
-          const rect2 = this.elem2.getBoundingClientRect();
-          this.orientation = (rect1.right == rect2.left) ? 'vertical' : 'horizontal';
-          if (this.orientation == 'vertical') {
-            this.divider.style.width = `${this.thickness}px`;
-            this.divider.style.cursor = 'ew-resize';
-            this.divider.style.height = '100%';
-            this.divider.style.top = '0';
-            const pixels = rect1.right - this.thickness / 2;
-            this.divider.style.left = `${100*(pixels)/prect.width}%`;
-          } else if (this.orientation == 'horizontal') {
-            this.divider.style.width = '100%';
-            this.divider.style.height = `${this.thickness}px`;
-            this.divider.style.cursor = 'ns-resize';
-            const pixels = rect1.bottom - this.thickness / 2;
-            this.divider.style.top = `${100*(pixels)/prect.height}%`;
-            this.divider.style.left = '0';
-          }
+          this.updateBoxes();
         }
         
         onDrag(e) {
-          const prect = this.elem1.parentElement.getBoundingClientRect();
-          const rect1 = this.elem1.getBoundingClientRect();
-          const rect2 = this.elem2.getBoundingClientRect();
           if (this.orientation == 'vertical') {
-            const w1 = e.clientX - rect1.left;
-            const w2 = rect2.right - e.clientX;
-            this.elem1.style.width = `${100*w1/prect.width}%`;
-            this.elem2.style.width = `${100*w2/prect.width}%`;
-            this.divider.style.left = `${100*(w1 - this.thickness/2)/prect.width}%`;
+            const w1 = e.clientX - this.rect1.left;
+            const w2 = this.rect2.right - e.clientX;
+            this.elem1.style.width = `${clamp(100*w1/this.prect.width, 0, 100)}%`;
+            this.elem2.style.width = `${clamp(100*w2/this.prect.width, 0, 100)}%`;
           } else if (this.orientation == 'horizontal') {
-            const h1 = e.clientY - rect1.top;
-            const h2 = rect2.bottom - e.clientY;
-            this.elem1.style.height = `${100*h1/prect.height}%`;
-            this.elem2.style.height = `${100*h2/prect.height}%`;
-            this.divider.style.top = `${100*(h1 - this.thickness/2)/prect.height}%`;
+            const h1 = e.clientY - this.rect1.top;
+            const h2 = this.rect2.bottom - e.clientY;
+            this.elem1.style.height = `${clamp(100*h1/this.prect.height, 0, 100)}%`;
+            this.elem2.style.height = `${clamp(100*h2/this.prect.height, 0, 100)}%`;
           }
+          this.updateBoxes();
         }
       }
       
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
       const printIcon = document.getElementById('print-icon');
+      const modeButtons = document.querySelector('#window-banner .radio-buttons');
       const title = document.querySelector('#window-banner .title-text');
+      const todayButton = document.querySelector('#window-banner .button');
       const windows = [
         new DayWindow(document.getElementById('day-window')),
         new MonthWindow(document.getElementById('month-window')),
@@ -1197,6 +1210,10 @@
       const weeklyData = parseWeekPage(getStored('weekData'));
       const categories = parseCategoryPage(getStored('categoryData'));
       fetchData(urls.events, urls.weekly, urls.colors);
+      
+      for (const [i, m] of [...modeButtons.children].entries()) {
+        m.addEventListener('pointerdown', () => selectTab(i));
+      }
       windows[2].elem.addEventListener('click', event => {
         const elem = event.target;
         const day = windows[2].getFirstDay();
@@ -1222,7 +1239,7 @@
         }
       })
       
-      let currentTab = Number(getStored('currentTab', 1));
+      let currentTab = Number(getStored('currentTab', 2));
       selectTab(currentTab);
     </script>
   
