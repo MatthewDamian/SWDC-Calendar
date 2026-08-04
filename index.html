@@ -41,7 +41,7 @@
       }
       #section-1 {
         position: relative;
-        width: 30%;
+        width: 31%;
         height: 100%;
         background-image: linear-gradient(to right, #232037, #1b1b1b);
       }
@@ -121,7 +121,7 @@
       }
       #section-2 {
         position: relative;
-        width: 70%;
+        width: 69%;
         height: 100%;
       }
       #window-banner {
@@ -250,6 +250,7 @@
         border: 1px dashed black;
         text-align: right;
         pointer-events: none;
+        z-index: 2;
       }
       #day-window .bottom .current-time span {
         position: absolute;
@@ -576,7 +577,7 @@
             let [title, category, notes] = contents.slice(1);
             title = titleCase(title);
             category = titleCase(category);
-            result[date] = {title:title, category:category, notes:notes, schedule:[]};
+            result[date] = {title:title, categories:[category], notes:notes, schedule:[]};
           } else {
             const entry = contents.slice(1);
             result[date].schedule.push(entry);
@@ -618,13 +619,55 @@
         const date = new Date(key);
         const weekday = dayNames[date.getDay()];
         const weekData = indexDateRangeMap(weeklyData, date, {});
-        const dataTable = {title: 'Schedule', schedule: [], category: '', notes: ''};
+        const dataTable = {title: '', schedule: [], categories: [], notes: ''};
         if (key in eventData) Object.assign(dataTable, eventData[key]);
-        if (weekday in weekData && dataTable.category != 'No Class') {
-          dataTable.schedule = weekData[weekday];
-          if (!dataTable.category) dataTable.category = 'Normal Class';
+        if (weekday in weekData) {
+          if (!dataTable.title) dataTable.title = 'Classes';
+          dataTable.schedule = [...dataTable.schedule, ...weekData[weekday]];
+          dataTable.categories = [...dataTable.categories, 'Classes'];
         }
         return dataTable;
+      }
+      function getDataRange(start, end) {
+        const data = {};
+        let day = new Date(start);
+        while (day < end) {
+          const key = dateStr(day);
+          if (key in data) {
+            data[key] = combineEntries(data[key], eventData[key])
+          } else {
+            data[key] = eventData[key];
+          }
+          addTime(day, 'day', 1);
+        }
+        for (const entry of weeklyData) {
+          if (entry.startDate < start || entry.endDate > end) continue;
+          let day = new Date(entry.startDate);
+          if (day < start) day = new Date(start);
+          while (day < entry.endDate) {
+            const weekday = dayNames[day.getDay()];
+            if (weekday in entry) {
+              const key = dateStr(day);
+              if (key in data) {
+                data[key].schedule = [...data[key].schedule, ...entry[weekday]];
+              } else {
+                data[key] = entry[weekday];
+              }
+              if (!('Classes' in data[key].categories)) {
+                data[key].categories = [...data[key].categories, 'Classes'];
+              }
+            }
+          }
+        }
+        return data;
+      }
+      function combineEntries(e1, e2) {
+        return {
+          title: [e1.title, e2.title].join('\n'),
+          schedule: [...e1.schedule, ...e2.schedule],
+          categories: [...e1.categories, ...e2.categories],
+          notes: [e1.notes, e2.notes].join('\n'),
+        }
       }
       
       // write:inner
@@ -686,7 +729,7 @@
           if (!data.every(Boolean)) return;
           objSet(eventData, parseDataPage(data[0]));
           objSet(weeklyData, parseWeekPage(data[1]));
-          objSet(categories, parseCategoryPage(data[2]));
+          objSet(categoryData, parseCategoryPage(data[2]));
           refresh();
           localStorage.setItem('eventData', data[0]);
           localStorage.setItem('weekData', data[1]);
@@ -825,11 +868,11 @@
                 if (key in eventData) {
                   const row = addDiv(this.elem, 'row');
                   this.rows.push(row);
-                  const {title, category} = eventData[key];
+                  const {title, categories} = eventData[key];
                   const k = addSpan(row, key);
                   const e = addSpan(row, title);
-                  k.style.color = categories[category];
-                  e.style.color = categories[category];
+                  k.style.color = categoryData[categories];
+                  e.style.color = categoryData[categories];
                   k.style.textAlign = 'right';
                 };
                 addTime(day, 'day', 1);
@@ -838,7 +881,7 @@
               break;
             case 2:
               addSpan(this.elem, 'Legend\n\n', 'title');
-              for (const [name, color] of Object.entries(categories)) {
+              for (const [name, color] of Object.entries(categoryData)) {
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
                 const c = addDiv(row, 'color-box');
@@ -993,10 +1036,10 @@
             const data = getData(key);
             box.classList.toggle('today', isActive && key==today);
             box.classList.toggle('selected', isActive && key==selected);
-            if (data.category && isActive) {
-              if (data.category != 'Normal Class') this.events.push(box);
+            if (data.categories.length > 0 && isActive) {
+              if (!('Classes' in data.categories)) this.events.push(box);
               nameText.innerText = data.title;
-              box.style.backgroundColor = categories[data.category];
+              box.style.backgroundColor = categoryData[data.categories[0]];
             } else {
               nameText.innerText = '';
               box.style.backgroundColor = '';
@@ -1059,11 +1102,12 @@
                 box.innerText = day.getDate();
                 const key = dateStr(day);
                 const data = getData(key);
-                const {title, category} = data;
-                if (category) {
-                  if (category in this.groups) this.groups[category].push(box);
-                  else this.groups[category] = [box];
-                  box.style.backgroundColor = categories[category];
+                if (data.categories.length > 0) {
+                  if (data.categories[0] in this.groups)
+                    this.groups[data.categories[0]].push(box);
+                  else
+                    this.groups[data.categories[0]] = [box];
+                  box.style.backgroundColor = categoryData[data.categories[0]];
                 } else {
                   box.style.backgroundColor = '';
                 }
@@ -1208,7 +1252,7 @@
       const hoverLinker = new HoverLinker();
       const eventData = parseDataPage(getStored('eventData'));
       const weeklyData = parseWeekPage(getStored('weekData'));
-      const categories = parseCategoryPage(getStored('categoryData'));
+      const categoryData = parseCategoryPage(getStored('categoryData'));
       fetchData(urls.events, urls.weekly, urls.colors);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
@@ -1241,6 +1285,7 @@
       
       let currentTab = Number(getStored('currentTab', 2));
       selectTab(currentTab);
+    
     </script>
   
   </body>
