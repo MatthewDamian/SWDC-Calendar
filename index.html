@@ -41,7 +41,7 @@
       }
       #section-1 {
         position: relative;
-        width: 31%;
+        width: 32%;
         height: 100%;
         background-image: linear-gradient(to right, #232037, #1b1b1b);
       }
@@ -121,7 +121,7 @@
       }
       #section-2 {
         position: relative;
-        width: 69%;
+        width: 68%;
         height: 100%;
       }
       #window-banner {
@@ -522,7 +522,7 @@
         return result;
       }
       function titleCase(text) {
-        return text.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+        return text.trim().toLowerCase().replace(/\b(?<!')\w/g, char => char.toUpperCase());
       }
       function startOfMonth(day) {
         return new Date(day.getFullYear(), day.getMonth(), 1)
@@ -687,11 +687,18 @@
           categories: categories,
           notes: notes,
         }
+        const filter = array => {
+          if (array.length <= 1) {
+            return array.filter(item => item !== null);
+          } else {
+            return array.filter(item => item !== null && item != 'Classes')
+          }
+        }
         if (key in data) {
           const entry2 = data[key];
-          entry.title = entry2.title ? [entry2.title, entry.title].join('\n') : entry.title;
+          entry.title = filter([entry2.title, entry.title]).join('\n');
           entry.schedule = [...entry2.schedule, ...entry.schedule];
-          entry.categories = [...entry2.categories, ...entry.categories];
+          entry.categories = filter([...entry2.categories, ...entry.categories]);
           entry.notes = entry2.notes ? [entry2.notes, entry.notes].join('\n') : entry.notes;
         }
         data[key] = entry;
