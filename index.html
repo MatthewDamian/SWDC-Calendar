@@ -569,6 +569,7 @@
       function parseCategoryPage(data) {
         const result = {};
         for (const row of data.split(/\r?\n/)) {
+          if (row.trim().startsWith('#')) continue;
           const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
@@ -581,6 +582,7 @@
         let date;
         const result = {};
         for (const row of data.split(/\r?\n/)) {
+          if (row.trim().startsWith('#')) continue;
           const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
@@ -603,6 +605,7 @@
         const result = []
         let day;
         for (const row of data.split(/\r?\n/)) {
+          if (row.trim().startsWith('#')) continue;
           const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
