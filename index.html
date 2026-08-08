@@ -509,6 +509,18 @@
       function dateStr(date) {
         return [date.getMonth() + 1, date.getDate(), date.getFullYear()].join('/');
       }
+      function dateArray(dateRangeStr, step=1) {
+        let [s, e] = dateRangeStr.split('-');
+        if (!e) return [s];
+        const result = [];
+        s = new Date(s);
+        e = new Date(e);
+        while (s <= e) {
+          result.push(dateStr(s));
+          addTime(s, 'day', step);
+        }
+        return result;
+      }
       function titleCase(text) {
         return text.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
       }
@@ -577,7 +589,9 @@
             let [title, category, notes] = contents.slice(1);
             title = titleCase(title);
             category = titleCase(category);
-            result[date] = {title:title, categories:[category], notes:notes, schedule:[]};
+            for (const d of dateArray(date)) {
+              addEntry(result, d, title, [], [category], notes);
+            }
           } else {
             const entry = contents.slice(1);
             result[date].schedule.push(entry);
@@ -616,58 +630,8 @@
         return result;
       }
       function getData(key) {
-        const date = new Date(key);
-        const weekday = dayNames[date.getDay()];
-        const weekData = indexDateRangeMap(weeklyData, date, {});
-        const dataTable = {title: '', schedule: [], categories: [], notes: ''};
-        if (key in eventData) Object.assign(dataTable, eventData[key]);
-        if (weekday in weekData) {
-          if (!dataTable.title) dataTable.title = 'Classes';
-          dataTable.schedule = [...dataTable.schedule, ...weekData[weekday]];
-          dataTable.categories = [...dataTable.categories, 'Classes'];
-        }
-        return dataTable;
-      }
-      function getDataRange(start, end) {
-        const data = {};
-        let day = new Date(start);
-        while (day < end) {
-          const key = dateStr(day);
-          if (key in data) {
-            data[key] = combineEntries(data[key], eventData[key])
-          } else {
-            data[key] = eventData[key];
-          }
-          addTime(day, 'day', 1);
-        }
-        for (const entry of weeklyData) {
-          if (entry.startDate < start || entry.endDate > end) continue;
-          let day = new Date(entry.startDate);
-          if (day < start) day = new Date(start);
-          while (day < entry.endDate) {
-            const weekday = dayNames[day.getDay()];
-            if (weekday in entry) {
-              const key = dateStr(day);
-              if (key in data) {
-                data[key].schedule = [...data[key].schedule, ...entry[weekday]];
-              } else {
-                data[key] = entry[weekday];
-              }
-              if (!('Classes' in data[key].categories)) {
-                data[key].categories = [...data[key].categories, 'Classes'];
-              }
-            }
-          }
-        }
-        return data;
-      }
-      function combineEntries(e1, e2) {
-        return {
-          title: [e1.title, e2.title].join('\n'),
-          schedule: [...e1.schedule, ...e2.schedule],
-          categories: [...e1.categories, ...e2.categories],
-          notes: [e1.notes, e2.notes].join('\n'),
-        }
+        if (key in eventData) return eventData[key];
+        return {title: '', schedule: [], categories: [], notes: ''};
       }
       
       // write:inner
@@ -716,6 +680,41 @@
         for (const key in obj) delete obj[key];
         Object.assign(obj, newObj);
       }
+      function addEntry(data, key, title, schedule, categories, notes) {
+        const entry = {
+          title: title,
+          schedule: schedule,
+          categories: categories,
+          notes: notes,
+        }
+        if (key in data) {
+          const entry2 = data[key];
+          entry.title = entry2.title ? [entry2.title, entry.title].join('\n') : entry.title;
+          entry.schedule = [...entry2.schedule, ...entry.schedule];
+          entry.categories = [...entry2.categories, ...entry.categories];
+          entry.notes = entry2.notes ? [entry2.notes, entry.notes].join('\n') : entry.notes;
+        }
+        data[key] = entry;
+      }
+      function addWeeklyData(data, weeklyData) {
+        for (const entry of weeklyData) {
+          const s = new Date(entry.startDate);
+          while (s <= entry.endDate) {
+            dayName = dayNames[s.getDay()];
+            if (dayName in entry) {
+              addEntry(data, dateStr(s), 'Classes', entry[dayName], ['Classes'], '');
+            }
+            addTime(s, 'day', 1);
+          }
+        }
+      }
+      function addToArrayMap(data, key, value) {
+        if (key in data) {
+          data[key].push(value)
+        } else {
+          data[key] = [value];
+        }
+      }
       
       // write:outer
       
@@ -728,7 +727,7 @@
         Promise.all(promises).then(data => {
           if (!data.every(Boolean)) return;
           objSet(eventData, parseDataPage(data[0]));
-          objSet(weeklyData, parseWeekPage(data[1]));
+          addWeeklyData(eventData, parseWeekPage(data[1]));
           objSet(categoryData, parseCategoryPage(data[2]));
           refresh();
           localStorage.setItem('eventData', data[0]);
@@ -748,12 +747,7 @@
         const w = windows[0];
         const key = dateStr(w.date);
         const weekday = dayNames[w.date.getDay()];
-        const weekData = indexDateRangeMap(weeklyData, w.date, {});
-        let dataTable = eventData[key] ? {...eventData[key]} : {title: 'Schedule', schedule: [], category: '', notes: ''};
-        if (dataTable.schedule.length == 0 && dataTable.category != 'No Class') {
-          dataTable.title = 'Schedule';
-          if (weekday in weekData) dataTable.schedule = weekData[weekday];
-        }
+        let dataTable = getData(key);
         title.innerText = dataTable.title;
         subtitle.innerText = `${weekday} ${key}`;
         notes.innerText = `${dataTable.notes}`;
@@ -796,14 +790,14 @@
         const w = windows[currentTab];
         w.render();
         displayWindow.render();
-        title.innerText = w.dateStr();
+        // Link hover events
         hoverLinker.abort();
         const rows = displayWindow.rows;
-        if (currentTab == 0 || currentTab == 1) {
+        if (currentTab === 0 || currentTab === 1) {
           for (let i = 0; i < rows.length; i++) {
             hoverLinker.link(rows[i], w.events[i]);
           }
-        } else if (currentTab == 2) {
+        } else if (currentTab === 2) {
           for (let i = 0; i < rows.length; i++) {
             const category = rows[i].querySelector('span').innerText;
             if (category in w.groups) {
@@ -811,6 +805,19 @@
             } else {
               hoverLinker.linkFirst(rows[i]);
             }
+          }
+        }
+        // Link date banner
+        if (currentTab === 0) {
+          title.innerText = w.date.toLocaleDateString('en-us', {day:'numeric', month:'long', year:'numeric'})
+        } else if (currentTab === 1) {
+          title.innerText = w.date.toLocaleDateString('en-us', {month:'long', year:'numeric'});
+        } else if (currentTab === 2) {
+          if (w.monthOffset === 0) {
+            title.innerText = w.date.toLocaleDateString('en-us', {year: 'numeric'});
+          } else {
+            let year = w.getFirstDay().getFullYear();
+            title.innerText = `${year} - ${year+1}`;
           }
         }
       }
@@ -865,17 +872,18 @@
               let day = firstDay;
               while (day <= lastDay) {
                 const key = dateStr(day);
+                addTime(day, 'day', 1);
                 if (key in eventData) {
+                  const {title, categories} = eventData[key];
+                  if (categories.includes('Classes')) continue;
                   const row = addDiv(this.elem, 'row');
                   this.rows.push(row);
-                  const {title, categories} = eventData[key];
                   const k = addSpan(row, key);
                   const e = addSpan(row, title);
                   k.style.color = categoryData[categories];
                   e.style.color = categoryData[categories];
                   k.style.textAlign = 'right';
                 };
-                addTime(day, 'day', 1);
               }
               addSpan(this.elem, '', 'title');
               break;
@@ -908,11 +916,6 @@
           this.timers = {}
         }
         
-        dateStr() {
-          const options = {day:'numeric', month:'long', year:'numeric'};
-          return this.date.toLocaleDateString('en-us', options);
-        }
-        
         addTimer() {
           this.timeDiv = addDiv(this.bottom, 'current-time');
           this.timeDivText = addSpan(this.timeDiv, '');
@@ -927,51 +930,50 @@
         
         updateTimeDiv() {
           const now = new Date();
-          this.timeDiv.style.display = 'none';
+          let display = 'none'
           if (dateStr(this.date) == dateStr(now)) {
             const time = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
             const offset = time - this.startHour;
             const rowCount = this.endHour - this.startHour + 1;
             if (offset >= 0 && offset <= rowCount) {
-              this.timeDiv.style.display = 'block'
+              display = 'block';
               this.timeDivText.innerText = now.toLocaleTimeString();
               this.timeDiv.style.bottom = `${100*(1 - offset/rowCount)}%`
             }
           }
+          this.timeDiv.style.display = display;
         }
         
-        buildGridRows() {
+        buildGridRows(startHour, endHour) {
           this.grid.innerHTML = '';
           let time = new Date();
-          time.setHours(this.startHour, 0, 0, 0);
-          for (let i=this.startHour; i<=this.endHour; i++) {
+          time.setHours(startHour, 0, 0, 0);
+          for (let i=startHour; i<=endHour; i++) {
             const row = addDiv(this.grid, 'row');
             const headerText = time.toLocaleTimeString('en-US', {
               hour: 'numeric',
               hour12: true,
             }).toLowerCase();
             const s = addSpan(row, headerText, 'side-header');
-            const color = ((i-this.startHour) % 2 == 0) ? 'lightgray' : 'white';
+            const color = ((i-startHour) % 2 == 0) ? 'lightgray' : 'white';
             row.style.backgroundColor = color;
             time.setHours(time.getHours() + 1);
           }
         }
         
         render() {
-          const grid = this.elem.querySelector('.grid');
-          const rows = grid.children;
           const dataTable = getData(dateStr(this.date));
           this.top.replaceChildren(this.top.firstElementChild)
           this.bottom.replaceChildren(this.bottom.firstElementChild)
           this.events.length = 0;
-          [this.startHour, this.endHour] = [14, 21];
+          let [startHour, endHour] = [14, 21];
           for (const [name, location, start, end] of dataTable.schedule) {
-            this.startHour = Math.floor(Math.min(this.startHour, strToHours(start)));
-            this.endHour = Math.ceil(Math.max(this.endHour, strToHours(end)));
+            startHour = Math.floor(Math.min(startHour, strToHours(start)));
+            endHour = Math.ceil(Math.max(endHour, strToHours(end)));
           }
-          this.buildGridRows();
+          this.buildGridRows(startHour, endHour);
           const locations = [];
-          const count = this.endHour - this.startHour + 1;
+          const count = endHour - startHour + 1;
           for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
             if (index == 0) {
@@ -983,7 +985,7 @@
             const block = addDiv(this.bottom, 'event');
             this.events.push(block);
             [start, end] = [start, end].map(strToHours);
-            const offset = start - this.startHour;
+            const offset = start - startHour;
             const duration = end - start;
             block.style.top = `${100*offset/count}%`;
             block.style.left = `${15*index-6}%`
@@ -1012,11 +1014,6 @@
           }
         }
         
-        dateStr() {
-          const options = {month:'long', year:'numeric'};
-          return this.date.toLocaleDateString('en-us', options);
-        }
-        
         render() {
           const grid = this.elem.querySelector('.grid');
           const firstDayOfMonth = startOfMonth(this.date);
@@ -1037,7 +1034,7 @@
             box.classList.toggle('today', isActive && key==today);
             box.classList.toggle('selected', isActive && key==selected);
             if (data.categories.length > 0 && isActive) {
-              if (!('Classes' in data.categories)) this.events.push(box);
+              if (!data.categories.includes('Classes')) this.events.push(box);
               nameText.innerText = data.title;
               box.style.backgroundColor = categoryData[data.categories[0]];
             } else {
@@ -1062,17 +1059,6 @@
             const mgrid = addDiv(month, 'mgrid');
             for (let j = 0; j < 7; j++) addSpan(mgrid, dayNames[j][0], 'day-name');
             for (let j = 0; j < 42; j++) addDiv(mgrid, 'date');
-          }
-        }
-        
-        dateStr() {
-          const title = document.querySelector('#window-banner .header .title-text');
-          if (this.monthOffset == 0) {
-            return this.date.toLocaleDateString('en-us', {year: 'numeric'})
-          } else {
-            let year = this.date.getFullYear();
-            if (this.date.getMonth() < this.monthOffset) year--;
-            return `${year} - ${year+1}`;
           }
         }
         
@@ -1102,11 +1088,10 @@
                 box.innerText = day.getDate();
                 const key = dateStr(day);
                 const data = getData(key);
+                for (const c of data.categories) {
+                  addToArrayMap(this.groups, c, box);
+                }
                 if (data.categories.length > 0) {
-                  if (data.categories[0] in this.groups)
-                    this.groups[data.categories[0]].push(box);
-                  else
-                    this.groups[data.categories[0]] = [box];
                   box.style.backgroundColor = categoryData[data.categories[0]];
                 } else {
                   box.style.backgroundColor = '';
@@ -1251,7 +1236,7 @@
       );
       const hoverLinker = new HoverLinker();
       const eventData = parseDataPage(getStored('eventData'));
-      const weeklyData = parseWeekPage(getStored('weekData'));
+      addWeeklyData(eventData, parseWeekPage(getStored('weekData')));
       const categoryData = parseCategoryPage(getStored('categoryData'));
       fetchData(urls.events, urls.weekly, urls.colors);
       
