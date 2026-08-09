@@ -154,7 +154,7 @@
         padding: 5px;
       }
       #window-banner .button:hover {
-        box-shadow: 2px 2px 3px gray;
+        box-shadow: 2px 2px 1px black;
       }
       #window-banner .button:active,
       #window-banner .button.selected {
@@ -234,9 +234,12 @@
         text-align: center;
         text-wrap: balance;
         align-content: center;
+        overflow: scroll;
+        scrollbar-width: none;
+        border: 1px solid #FFFFFF00;
         border-radius: 6px;
         width: 15%;
-        padding: 5px;
+        padding: 2px 6px;
       }
       #day-window .bottom .event.isHovering {
         box-shadow: 1px 1px 3px black;
@@ -684,9 +687,12 @@
         Object.assign(obj, newObj);
       }
       function addEntry(data, key, title, schedule, categories, notes) {
+        const sorted = [...schedule];
+        sorted.sort((a,b) => a[1] - b[1]); // sort by location name
+        sorted.sort((a,b) => strToHours(a[2]) - strToHours(b[2])); // sort by start time
         const entry = {
           title: title,
-          schedule: schedule,
+          schedule: sorted,
           categories: categories,
           notes: notes,
         }
@@ -862,15 +868,15 @@
               const dataTable = getData(key);
               addSpan(this.elem, `${dataTable.title}`, 'title');
               addSpan(this.elem, `${weekday} ${key}\n\n`, 'subtitle');
-              addSpan(this.elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle')
-              for (let [index, params] of dataTable.schedule.entries()) {
+              addSpan(this.elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle');
+              for (let [i, params] of dataTable.schedule.entries()) {
                 const [description, location, startTime, endTime, instructors] = params;
                 const timeRange = startTime + ' - ' + endTime;
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
                 for (const item of [description, location, timeRange]) {
                   const s = addSpan(row, item);
-                  s.style.color = palette[index % palette.length];
+                  s.style.color = palette[i % palette.length];
                 }
               }
               addSpan(this.elem, '', 'title');
