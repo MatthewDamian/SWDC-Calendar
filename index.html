@@ -166,7 +166,7 @@
         display: flex;
         position: absolute;
         left: 50%;
-        width: 30%;
+        width: 33%;
         transform: translate(-50%, 0);
         justify-content: space-between;
         align-items: center;
@@ -341,7 +341,11 @@
       }
       #year-window .grid .month {
         border: 1px solid black;
-        box-shadow: 1px 1px 3px black;
+        box-shadow: 1px 1px 2px black;
+      }
+      #year-window .grid .month:hover {
+        box-shadow: 1px 1px 5px black;
+        cursor: pointer;
       }
       #year-window .grid .month .banner {
         font-size: var(--font-size-1);
@@ -350,10 +354,6 @@
         align-content: center;
         background-image: linear-gradient(to bottom, white, lightgray);
         height: 10%;
-      }
-      #year-window .grid .month .banner:hover {
-        border: 1px solid black;
-        cursor: pointer;
       }
       #year-window .grid .month .mgrid {
         display: grid;
@@ -491,15 +491,7 @@
     
     <script>
       
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'aquamarine', 'mediumpurple'];
-      const urls = {
-        events: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
-        weekly: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
-        colors: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
-      }
-      
-      // write:none
+      // Pure/Inspector Functions (write:none)
       
       function clamp(num, min, max) {
         return Math.min(Math.max(num, min), max);
@@ -640,7 +632,7 @@
         return {title: '', schedule: [], categories: [], notes: ''};
       }
       
-      // write:inner
+      // Mutators (write:inner)
       
       function addTime(date, mode, amount) {
         let month;
@@ -717,8 +709,9 @@
           const s = new Date(entry.startDate);
           while (s <= entry.endDate) {
             dayName = dayNames[s.getDay()];
-            if (dayName in entry) {
-              addEntry(data, dateStr(s), 'Classes', entry[dayName], ['Classes'], '');
+            const key = dateStr(s);
+            if (dayName in entry && !getData(key).categories.includes('No Class')) {
+              addEntry(data, key, 'Classes', entry[dayName], ['Classes'], '');
             }
             addTime(s, 'day', 1);
           }
@@ -732,7 +725,7 @@
         }
       }
       
-      // write:outer
+      // Macros (write:outer)
       
       function fetchData(dataURL, weekDataURL, categoryURL) {
         const promises = [
@@ -792,11 +785,11 @@
         for (const w of windows.slice(1)) {
           w.selected.setTime(time0);
         };
+        sessionStorage.setItem('currentDate', windows[0].date);
       }
       function selectTab(index) {
         selectFrom(document.querySelector('#window-banner .radio-buttons').children, index);
         selectFrom(document.querySelector('#windows').children, index);
-        syncDates();
         currentTab = index;
         refresh();
         printIcon.style.display = (currentTab == 0) ? 'block' : 'none';
@@ -816,11 +809,7 @@
         } else if (currentTab === 2) {
           for (let i = 0; i < rows.length; i++) {
             const category = rows[i].querySelector('span').innerText;
-            if (category in w.groups) {
-              hoverLinker.linkFirst(rows[i], ...w.groups[category]);
-            } else {
-              hoverLinker.linkFirst(rows[i]);
-            }
+            hoverLinker.linkFirst(rows[i], w.groups[category]);
           }
         }
         // Link date banner
@@ -840,6 +829,7 @@
       function navigate(amount) {
         const w = windows[currentTab];
         addTime(w.date, ['day', 'month', 'year'][currentTab], amount);
+        syncDates();
         refresh();
       }
       function goToDate(date) {
@@ -849,6 +839,8 @@
         syncDates();
         refresh();
       }
+      
+      // Mutator Classes (write:inner)
       
       class DisplayWindow {
         constructor(elem) {
@@ -1126,7 +1118,7 @@
           }
         }
       }
-      class HoverLinker {
+      class HoverLinker { // Adds isHovering class to linked objects
         constructor() {
           this.controller = new AbortController();
           this.links = []
@@ -1141,12 +1133,13 @@
           };
         }
         
-        linkFirst(...elems) {
-          this.links.push(elems);
-          const index = this.links.length-1;
-          elems[0].addEventListener('mouseenter', () => this.setAll(index, true), {signal: this.controller.signal});
-          elems[0].addEventListener('mouseleave', () => this.setAll(index, false), {signal: this.controller.signal});
-          for (const elem of elems.slice(1)) {
+        linkFirst(first, rest) {
+          if (!rest) rest = [];
+          this.links.push([first, ...rest]);
+          const index = this.links.length - 1;
+          first.addEventListener('mouseenter', () => this.setAll(index, true), {signal: this.controller.signal});
+          first.addEventListener('mouseleave', () => this.setAll(index, false), {signal: this.controller.signal});
+          for (const elem of rest) {
             elem.addEventListener('mouseenter', () => this.setFirst(index, true), {signal: this.controller.signal});
             elem.addEventListener('mouseleave', () => this.setFirst(index, false), {signal: this.controller.signal});
           }
@@ -1171,7 +1164,7 @@
           this.controller = new AbortController();
         }
       }
-      class Divider {
+      class Divider { // Line between two elements to click and drag
         constructor(elem1, elem2) {
           this.elem1 = elem1;
           this.elem2 = elem2;
@@ -1236,6 +1229,16 @@
         }
       }
       
+      // Main Script
+      
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'aquamarine', 'mediumpurple'];
+      const urls = {
+        events: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
+        weekly: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
+        colors: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
+      }
+      
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
       const printIcon = document.getElementById('print-icon');
       const modeButtons = document.querySelector('#window-banner .radio-buttons');
@@ -1251,13 +1254,19 @@
         document.getElementById('section-2'),
       );
       const hoverLinker = new HoverLinker();
+      const categoryData = parseCategoryPage(getStored('categoryData'));
       const eventData = parseDataPage(getStored('eventData'));
       addWeeklyData(eventData, parseWeekPage(getStored('weekData')));
-      const categoryData = parseCategoryPage(getStored('categoryData'));
+      
+      let currentTab = Number(getStored('currentTab', 2));
+      const sessionDate = sessionStorage.getItem('currentDate');
+      windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
+      syncDates();
+      selectTab(currentTab);
       fetchData(urls.events, urls.weekly, urls.colors);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
-        m.addEventListener('pointerdown', () => selectTab(i));
+        m.addEventListener('pointerdown', e => selectTab(getElemIndex(e.target)));
       }
       windows[2].elem.addEventListener('click', event => {
         const elem = event.target;
@@ -1267,10 +1276,12 @@
           addTime(day, 'day', -day.getDay());
           addTime(day, 'day', getElemIndex(elem, 1) - 7);
           windows[0].date.setTime(day.getTime());
+          syncDates();
           selectTab(0);
-        } else if (elem.classList.contains('banner')) {
+        } else if (elem.classList.contains('banner') || elem.classList.contains('day-name')) {
           addTime(day, 'month', getElemIndex(elem, 2))
           windows[1].date.setTime(day.getTime());
+          syncDates();
           selectTab(1);
         }
       });
@@ -1280,12 +1291,10 @@
         if (elem.parentElement.classList.contains('box')) {
           addTime(date, 'day', getElemIndex(elem, 2));
           windows[0].date.setTime(date.getTime());
+          syncDates();
           selectTab(0);
         }
       })
-      
-      let currentTab = Number(getStored('currentTab', 2));
-      selectTab(currentTab);
     
     </script>
   
