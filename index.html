@@ -55,15 +55,6 @@
         background-position: center;
         background-repeat: no-repeat;
       }
-      #icons {
-        position: absolute;
-        right: 0;
-      }
-      #icons svg {
-        cursor: pointer;
-        margin: 10px;
-        width: 24px;
-      }
       #display {
         position: relative;
         text-align: center;
@@ -73,6 +64,15 @@
         border-radius: 6px;
         overflow: auto;
         scrollbar-color: white #1d1c1f;
+      }
+      #display-icons {
+        position: absolute;
+        right: 0;
+      }
+      #display-icons svg {
+        cursor: pointer;
+        margin: 10px;
+        width: 24px;
       }
       #display-window {
         display: inline-grid;
@@ -453,7 +453,7 @@
           <div id="logo"></div>
         </a>
         <div id="display">
-          <div id="icons">
+          <div id="display-icons">
             <svg id="print-icon" onclick="printSchedule()" xmlns="http://w3.org" viewBox="0 0 24 24" fill="lightgray" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 10h16a2 2 0 012 2v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a2 2 0 012-2z"/>
               <path d="M18 10V4a1 1 0 00-1-1H7a1 1 0 00-1 1v6M6 16h12v6H6z"/>
@@ -530,6 +530,7 @@
       }
       function strToHours(timeStr) {
         const [time, modifier] = timeStr.split(' ');
+        if (!time || !modifier) return null;
         let [hours, minutes] = time.split(':').map(Number);
         if (hours == 12) hours = 0;
         if (modifier.toLowerCase() == 'pm') hours += 12;
@@ -591,6 +592,7 @@
             }
           } else {
             const entry = contents.slice(1);
+            while (entry.length < 5) entry.push('');
             result[date].schedule.push(entry);
           }
         }
@@ -620,11 +622,6 @@
             lastEntry[day].push(contents.slice(1,6));
           };
         }
-        return result;
-      }
-      function getStored(key, value='') {
-        let result = localStorage.getItem(key);
-        if (result === null) result = value;
         return result;
       }
       function getData(key) {
@@ -888,8 +885,8 @@
                   this.rows.push(row);
                   const k = addSpan(row, key);
                   const e = addSpan(row, title);
-                  k.style.color = categoryData[categories];
-                  e.style.color = categoryData[categories];
+                  k.style.color = categoryData[categories[0]];
+                  e.style.color = categoryData[categories[0]];
                   k.style.textAlign = 'right';
                 };
               }
@@ -976,6 +973,7 @@
           this.events.length = 0;
           let [startHour, endHour] = [14, 21];
           for (const [name, location, start, end] of dataTable.schedule) {
+            if (!start || !end) continue;
             startHour = Math.floor(Math.min(startHour, strToHours(start)));
             endHour = Math.ceil(Math.max(endHour, strToHours(end)));
           }
@@ -992,6 +990,7 @@
             }
             const block = addDiv(this.bottom, 'event');
             this.events.push(block);
+            if (!start || !end) continue;
             [start, end] = [start, end].map(strToHours);
             const offset = start - startHour;
             const duration = end - start;
@@ -1254,11 +1253,11 @@
         document.getElementById('section-2'),
       );
       const hoverLinker = new HoverLinker();
-      const categoryData = parseCategoryPage(getStored('categoryData'));
-      const eventData = parseDataPage(getStored('eventData'));
-      addWeeklyData(eventData, parseWeekPage(getStored('weekData')));
+      const categoryData = parseCategoryPage(localStorage.getItem('categoryData') || '');
+      const eventData = parseDataPage(localStorage.getItem('eventData') || '');
+      addWeeklyData(eventData, parseWeekPage(localStorage.getItem('weekData') || ''));
       
-      let currentTab = Number(getStored('currentTab', 2));
+      let currentTab = Number(localStorage.getItem('currentTab') || 2);
       const sessionDate = sessionStorage.getItem('currentDate');
       windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
       syncDates();
