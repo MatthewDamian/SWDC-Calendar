@@ -41,7 +41,7 @@
       }
       #section-1 {
         position: relative;
-        width: 32%;
+        width: 41%;
         height: 100%;
         background-image: linear-gradient(to right, #232037, #1b1b1b);
       }
@@ -107,7 +107,7 @@
         font-size: var(--font-size-1);
       }
       #display-window.day {
-        grid-template-columns: fit-content(40%) 1fr max-content;
+        grid-template-columns: fit-content(40%) max-content max-content 1fr;
         text-wrap: balance;
       }
       #display-window.month,
@@ -121,7 +121,7 @@
       }
       #section-2 {
         position: relative;
-        width: 68%;
+        width: 59%;
         height: 100%;
       }
       #window-banner {
@@ -501,7 +501,13 @@
         const prect = target.parent.getBoundingClientRect();
         return {x: rect.x - prect.x, y: rect.y - prect.y};
       }
-      function dateStr(date) {
+      function isValidNumber(str) {
+        return str.trim() !== "" && !isNaN(Number(str));
+      }
+      function isValidDate(dateStr) {
+        return !isNaN(new Date(dateStr).getTime());
+      }
+      function toDateStr(date) {
         return [date.getMonth() + 1, date.getDate(), date.getFullYear()].join('/');
       }
       function dateArray(dateRangeStr, step=1) {
@@ -511,7 +517,7 @@
         s = new Date(s);
         e = new Date(e);
         while (s <= e) {
-          result.push(dateStr(s));
+          result.push(toDateStr(s));
           addTime(s, 'day', step);
         }
         return result;
@@ -582,7 +588,7 @@
           const contents = csvLineToArray(row);
           const filtered = contents.filter(s => s != '')
           if (filtered.length == 0) continue;
-          if (contents[0] != '') {
+          if (contents[0] !== '') {
             date = contents[0];
             let [title, category, notes] = contents.slice(1);
             title = titleCase(title);
@@ -706,7 +712,7 @@
           const s = new Date(entry.startDate);
           while (s <= entry.endDate) {
             dayName = dayNames[s.getDay()];
-            const key = dateStr(s);
+            const key = toDateStr(s);
             if (dayName in entry && !getData(key).categories.includes('No Class')) {
               addEntry(data, key, 'Classes', entry[dayName], ['Classes'], '');
             }
@@ -751,7 +757,7 @@
         const thead = addElem(table, 'thead');
         const tbody = addElem(table, 'tbody');
         const w = windows[0];
-        const key = dateStr(w.date);
+        const key = toDateStr(w.date);
         const weekday = dayNames[w.date.getDay()];
         let dataTable = getData(key);
         title.innerText = dataTable.title;
@@ -852,7 +858,7 @@
           this.elem.className = ['day', 'month', 'year'][currentTab];
           switch (currentTab) {
             case 0:
-              const key = dateStr(date);
+              const key = toDateStr(date);
               const weekday = dayNames[date.getDay()];
               const dataTable = getData(key);
               addSpan(this.elem, `${dataTable.title}`, 'title');
@@ -863,7 +869,7 @@
                 const timeRange = startTime + ' - ' + endTime;
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
-                for (const item of [description, location, timeRange]) {
+                for (const item of [description, location, timeRange, instructors]) {
                   const s = addSpan(row, item);
                   s.style.color = palette[i % palette.length];
                 }
@@ -876,7 +882,7 @@
               const lastDay = endOfMonth(date);
               let day = firstDay;
               while (day <= lastDay) {
-                const key = dateStr(day);
+                const key = toDateStr(day);
                 addTime(day, 'day', 1);
                 if (key in eventData) {
                   const {title, categories} = eventData[key];
@@ -936,7 +942,7 @@
         updateTimeDiv() {
           const now = new Date();
           let display = 'none'
-          if (dateStr(this.date) == dateStr(now)) {
+          if (toDateStr(this.date) == toDateStr(now)) {
             const time = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
             const offset = time - this.startHour;
             const rowCount = this.endHour - this.startHour + 1;
@@ -967,7 +973,7 @@
         }
         
         render() {
-          const dataTable = getData(dateStr(this.date));
+          const dataTable = getData(toDateStr(this.date));
           this.top.replaceChildren(this.top.firstElementChild)
           this.bottom.replaceChildren(this.bottom.firstElementChild)
           this.events.length = 0;
@@ -1025,8 +1031,8 @@
           const grid = this.elem.querySelector('.grid');
           const firstDayOfMonth = startOfMonth(this.date);
           const lastDayOfMonth = endOfMonth(this.date);
-          const today = dateStr(new Date());
-          const selected = dateStr(this.selected);
+          const today = toDateStr(new Date());
+          const selected = toDateStr(this.selected);
           this.events.length = 0;
           let day = startOfWeek(firstDayOfMonth);
           for (let i = 0; i < 42; i++) {
@@ -1036,7 +1042,7 @@
             const isActive = day >= firstDayOfMonth && day <= lastDayOfMonth;
             box.classList.toggle('inactive', !isActive);
             dateText.innerText = day.getDate();
-            const key = dateStr(day);
+            const key = toDateStr(day);
             const data = getData(key);
             box.classList.toggle('today', isActive && key==today);
             box.classList.toggle('selected', isActive && key==selected);
@@ -1079,8 +1085,8 @@
           for (const key in this.groups) delete this.groups[key];
           let year = this.date.getFullYear();
           if (this.date.getMonth() < this.monthOffset) year--;
-          const today = dateStr(new Date());
-          const selected = dateStr(this.selected);
+          const today = toDateStr(new Date());
+          const selected = toDateStr(this.selected);
           const monthStart = this.getFirstDay();
           for (let i = 0; i < 12; i++) {
             const monthBox = this.grid.children[i];
@@ -1093,7 +1099,7 @@
               const box = monthGrid.children[7 + j];
               if (monthStart <= day && day <= monthEnd) {
                 box.innerText = day.getDate();
-                const key = dateStr(day);
+                const key = toDateStr(day);
                 const data = getData(key);
                 for (const c of data.categories) {
                   addToArrayMap(this.groups, c, box);
@@ -1260,8 +1266,8 @@
       let currentTab = Number(localStorage.getItem('currentTab') || 2);
       const sessionDate = sessionStorage.getItem('currentDate');
       windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
-      syncDates();
       selectTab(currentTab);
+      syncDates();
       fetchData(urls.events, urls.weekly, urls.colors);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
@@ -1275,13 +1281,13 @@
           addTime(day, 'day', -day.getDay());
           addTime(day, 'day', getElemIndex(elem, 1) - 7);
           windows[0].date.setTime(day.getTime());
-          syncDates();
           selectTab(0);
+          syncDates();
         } else if (elem.classList.contains('banner') || elem.classList.contains('day-name')) {
           addTime(day, 'month', getElemIndex(elem, 2))
           windows[1].date.setTime(day.getTime());
-          syncDates();
           selectTab(1);
+          syncDates();
         }
       });
       windows[1].elem.addEventListener('click', event => {
