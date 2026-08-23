@@ -39,6 +39,22 @@
         z-index: 1;
         touch-action: none;
       }
+      .alert-message {
+        z-index: 1;
+        color: white;
+        background-color: #1b1b1b;
+        position: fixed;
+        top: 100%;
+        left: 50%;
+        padding: 4px 10px;
+        border-radius: 4px;
+        animation: slideIn 0.3s ease forwards;
+        pointer-events: none;
+      }
+      @keyframes slideIn {
+        from {transform: translate(-50%)}
+        to {transform: translate(-50%, -200%)}
+      }
       #section-1 {
         position: relative;
         width: 41%;
@@ -66,12 +82,13 @@
         scrollbar-color: white #1d1c1f;
       }
       #display-icons {
+        display: flex;
         position: absolute;
         right: 0;
       }
       #display-icons svg {
         cursor: pointer;
-        margin: 10px;
+        margin: 6px;
         width: 24px;
       }
       #display-window {
@@ -246,7 +263,7 @@
         border: 1px solid black;
         z-index: 1;
       }
-      #day-window .bottom .current-time {
+      #day-window .bottom .time-indicator {
         position: absolute;
         width: 100%;
         height: 0px;
@@ -255,7 +272,7 @@
         pointer-events: none;
         z-index: 2;
       }
-      #day-window .bottom .current-time span {
+      #day-window .bottom .time-indicator span {
         position: absolute;
         transform: translate(-100%, -100%);
         text-wrap: nowrap;
@@ -458,6 +475,10 @@
               <path d="M4 10h16a2 2 0 012 2v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a2 2 0 012-2z"/>
               <path d="M18 10V4a1 1 0 00-1-1H7a1 1 0 00-1 1v6M6 16h12v6H6z"/>
               <circle cx="18" cy="13" r="1" fill="currentColor"/>
+            </svg>
+            <svg id="copy-icon" onclick="copySchedule()" xmlns="http://w3.org" viewBox="0 0 24 24" fill="none">
+              <rect x="9" y="3" width="12" height="13" rx="2" fill="gray" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="3" y="8" width="12" height="13" rx="2" fill="lightgray" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
           <div id="display-window"></div>
@@ -779,6 +800,17 @@
         }
         window.print();
       }
+      function copySchedule() {
+        const key = toDateStr(windows[0].date);
+        const schedule = getData(key).schedule.map(row => row.join('\t'));
+        navigator.clipboard.writeText(schedule.join('\n')).then(() => alert('Copied to Clipboard', 2000));
+      }
+      function alert(message, duration) {
+        const main = document.querySelector('main');
+        const messageBox = addDiv(main, 'alert-message');
+        messageBox.innerText = message;
+        setTimeout(() => messageBox.remove(), duration);
+      }
       function syncDates() {
         const time0 = windows[0].date.getTime();
         const time = windows[currentTab].date.getTime();
@@ -795,7 +827,7 @@
         selectFrom(document.querySelector('#windows').children, index);
         currentTab = index;
         refresh();
-        printIcon.style.display = (currentTab == 0) ? 'block' : 'none';
+        displayIcons.style.display = (currentTab == 0) ? 'block' : 'none';
         localStorage.setItem('currentTab', index);
       }
       function refresh() {
@@ -928,7 +960,7 @@
         }
         
         addTimer() {
-          this.timeDiv = addDiv(this.bottom, 'current-time');
+          this.timeDiv = addDiv(this.bottom, 'time-indicator');
           this.timeDivText = addSpan(this.timeDiv, '');
           this.updateTimeDiv();
           if (this.timers.interval) clearInterval(this.timers.interval);
@@ -1245,7 +1277,7 @@
       }
       
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
-      const printIcon = document.getElementById('print-icon');
+      const displayIcons = document.getElementById('display-icons');
       const modeButtons = document.querySelector('#window-banner .radio-buttons');
       const title = document.querySelector('#window-banner .title-text');
       const todayButton = document.querySelector('#window-banner .button');
@@ -1300,7 +1332,6 @@
           selectTab(0);
         }
       })
-    
     </script>
   
   </body>
