@@ -47,7 +47,7 @@
         top: 100%;
         left: 50%;
         padding: 4px 10px;
-        border-radius: 4px;
+        border-radius: 6px;
         animation: slideIn 0.3s ease forwards;
         pointer-events: none;
       }
@@ -611,11 +611,11 @@
           if (filtered.length == 0) continue;
           if (contents[0] !== '') {
             date = contents[0];
-            let [title, category, notes] = contents.slice(1);
+            let [title, categories, notes] = contents.slice(1);
             title = titleCase(title);
-            category = titleCase(category);
+            categories = titleCase(categories).split(',').map(s => s.trim());
             for (const d of dateArray(date)) {
-              addEntry(result, d, title, [], [category], notes);
+              addEntry(result, d, title, [], categories, notes);
             }
           } else {
             const entry = contents.slice(1);
@@ -803,7 +803,12 @@
       function copySchedule() {
         const key = toDateStr(windows[0].date);
         const schedule = getData(key).schedule.map(row => row.join('\t'));
-        navigator.clipboard.writeText(schedule.join('\n')).then(() => alert('Copied to Clipboard', 2000));
+        try {
+          navigator.clipboard.writeText(schedule.join('\n'))
+            .then(() => alert('Copied to Clipboard', 2000));
+        } catch {
+          alert('Error copying to Clipboard', 2000);
+        }
       }
       function alert(message, duration) {
         const main = document.querySelector('main');
@@ -1269,7 +1274,7 @@
       // Main Script
       
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'aquamarine', 'mediumpurple'];
+      const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'mediumpurple', 'lightseagreen', 'violet', 'sandybrown'];
       const urls = {
         events: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
         weekly: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
