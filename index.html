@@ -1332,8 +1332,8 @@
       let currentTab = Number(localStorage.getItem('currentTab') || 2);
       const sessionDate = sessionStorage.getItem('currentDate');
       windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
-      selectTab(currentTab);
       syncDates();
+      selectTab(currentTab);
       fetchData(urls.events, urls.weekly, urls.colors);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
