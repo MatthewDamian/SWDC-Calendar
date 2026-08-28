@@ -112,20 +112,24 @@
       #display-window .row.isHovering .color-box {
         box-shadow: 0px 0px 5px currentColor;
       }
-      #display-window span {
-        padding: 0.5em 0.8em;
-      }
       #display-window .title,
       #display-window .subtitle {
         grid-column: 1 / -1;
-        color: white;
         text-align: center;
         text-wrap: balance;
+      }
+      #display-window .title {
+        padding: 0.5em 0.8em 0em 0.8em;
+        color: white;
         font-size: var(--font-size-3);
       }
       #display-window .subtitle {
+        padding: 1em 0.8em;
         color: lightgray;
         font-size: var(--font-size-1);
+      }
+      #display-window span {
+        padding: 0.5em 0.8em;
       }
       #display-window.day {
         grid-template-columns: fit-content(40%) max-content max-content 1fr;
@@ -589,8 +593,8 @@
         const match = parseTime(timeString);
         if (!match) return null;
         let {hours, minutes, seconds, meridian} = match;
-        if (hours == 12) hours = 0;
-        if (meridian == 'pm') hours += 12;
+        if (hours === 12) hours = 0;
+        if (meridian === 'pm') hours += 12;
         return hours + minutes/60 + seconds/3600;
       }
       function getElemIndex(target, depth=1) {
@@ -663,12 +667,12 @@
         let day;
         for (const [first, ...rest] of csvLines(data)) {
           const identifier = titleCase(first);
-          if (identifier == 'Duration') {
+          if (identifier === 'Duration') {
             const [startDate, endDate] = rest;
             result.push({startDate: new Date(startDate), endDate: new Date(endDate)})
             continue;
           }
-          if (result.length == 0) continue;
+          if (result.length === 0) continue;
           const lastEntry = result.at(-1);
           if (dayNames.includes(identifier)) {
             day = identifier;
@@ -724,7 +728,7 @@
       }
       function selectFrom(nodes, index) {
         for (const [i, n] of [...nodes].entries()) {
-          n.classList.toggle('selected', i == index);
+          n.classList.toggle('selected', i === index);
         }
       }
       function objSet(obj, newObj) {
@@ -780,11 +784,15 @@
       
       // Macros (write:outer)
       
-      function fetchData(dataURL, weekDataURL, categoryURL) {
+      function fetchData(sheetsURL, gidMap) {
+        const urls = {};
+        for (const [name, gid] of Object.entries(gidMap)) {
+          urls[name] = `${sheetsURL}/export?format=csv&gid=${gid}`
+        }
         const promises = [
-          fetch(dataURL).then(response => response.ok ? response.text() : null),
-          fetch(weekDataURL).then(response => response.ok ? response.text() : null),
-          fetch(categoryURL).then(response => response.ok ? response.text() : null),
+          fetch(urls.events).then(response => response.ok ? response.text() : null),
+          fetch(urls.weekly).then(response => response.ok ? response.text() : null),
+          fetch(urls.colors).then(response => response.ok ? response.text() : null),
         ]
         Promise.all(promises).then(data => {
           if (!data.every(Boolean)) return;
@@ -861,7 +869,7 @@
         selectFrom(document.querySelector('#windows').children, index);
         currentTab = index;
         refresh();
-        displayIcons.style.display = (currentTab == 0) ? 'block' : 'none';
+        displayIcons.style.display = (currentTab === 0) ? 'block' : 'none';
         localStorage.setItem('currentTab', index);
       }
       function refresh() {
@@ -928,18 +936,18 @@
               const weekday = dayNames[date.getDay()];
               const dataTable = getData(key);
               addSpan(this.elem, `${dataTable.title}`, 'title');
-              addSpan(this.elem, `${weekday} ${key}\n\n`, 'subtitle');
-              addSpan(this.elem, `${dataTable.notes ? dataTable.notes + '\n\n' : ''}`, 'subtitle');
+              addSpan(this.elem, `${weekday} ${key}`, 'subtitle');
+              if (dataTable.notes) {
+                addSpan(this.elem, dataTable.notes, 'subtitle');
+              }
               for (let [i, params] of dataTable.schedule.entries()) {
                 const [description, location, startTime, endTime, instructors] = params;
                 const timeRange = startTime + ' - ' + endTime;
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
                 if (location === '') {
-                  const s = addSpan(row, description + '\n\n');
+                  const s = addSpan(row, description, 'subtitle');
                   s.style.color = palette[i % palette.length];
-                  s.style.gridColumn = '1 / -1';
-                  s.style.textAlign = 'center';
                 } else {
                   for (const item of [description, location, timeRange, instructors]) {
                     const s = addSpan(row, item);
@@ -1015,7 +1023,7 @@
         updateTimeDiv() {
           const now = new Date();
           let display = 'none'
-          if (toDateStr(this.date) == toDateStr(now)) {
+          if (toDateStr(this.date) === toDateStr(now)) {
             const time = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
             const offset = time - this.startHour;
             const rowCount = this.endHour - this.startHour + 1;
@@ -1039,7 +1047,7 @@
               hour12: true,
             }).toLowerCase();
             const s = addSpan(row, headerText, 'side-header');
-            const color = ((i-startHour) % 2 == 0) ? 'lightgray' : 'white';
+            const color = ((i-startHour) % 2 === 0) ? 'lightgray' : 'white';
             row.style.backgroundColor = color;
             time.setHours(time.getHours() + 1);
           }
@@ -1061,7 +1069,7 @@
           const count = endHour - startHour + 1;
           for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
-            if (index == 0 && location) {
+            if (index === 0 && location) {
               index = locations.length + 1;
               locations.push(location);
               const header = addSpan(this.top, location, 'header');
@@ -1268,8 +1276,8 @@
           this.prect = this.elem1.parentElement.getBoundingClientRect();
           this.rect1 = this.elem1.getBoundingClientRect();
           this.rect2 = this.elem2.getBoundingClientRect();
-          this.orientation = (this.rect1.right == this.rect2.left) ? 'vertical' : 'horizontal';
-          if (this.orientation == 'vertical') {
+          this.orientation = (this.rect1.right === this.rect2.left) ? 'vertical' : 'horizontal';
+          if (this.orientation === 'vertical') {
             this.divider.style.width = `${this.thickness}px`;
             this.divider.style.cursor = 'ew-resize';
             this.divider.style.height = '100%';
@@ -1295,12 +1303,12 @@
         }
         
         onDrag(e) {
-          if (this.orientation == 'vertical') {
+          if (this.orientation === 'vertical') {
             const w1 = e.clientX - this.rect1.left;
             const w2 = this.rect2.right - e.clientX;
             this.elem1.style.width = `${clamp(100*w1/this.prect.width, 0, 100)}%`;
             this.elem2.style.width = `${clamp(100*w2/this.prect.width, 0, 100)}%`;
-          } else if (this.orientation == 'horizontal') {
+          } else if (this.orientation === 'horizontal') {
             const h1 = e.clientY - this.rect1.top;
             const h2 = this.rect2.bottom - e.clientY;
             this.elem1.style.height = `${clamp(100*h1/this.prect.height, 0, 100)}%`;
@@ -1314,11 +1322,9 @@
       
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'mediumpurple', 'lightseagreen', 'violet', 'sandybrown'];
-      const urls = {
-        events: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=0',
-        weekly: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1592630584',
-        colors: 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s/export?format=csv&gid=1588629629',
-      }
+      const mainURL = 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
+      const copyURL = 'https://docs.google.com/spreadsheets/d/19uhGgs5xKik_mL88TwFOr6L9ymopRCFCzgQ8Rk4OLPg';
+      const gidMap = {events: 0, weekly: 1592630584, colors: 1588629629}
       
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
       const displayIcons = document.getElementById('display-icons');
@@ -1344,7 +1350,7 @@
       windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
       syncDates();
       selectTab(currentTab);
-      fetchData(urls.events, urls.weekly, urls.colors);
+      fetchData(mainURL, gidMap);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
         m.addEventListener('pointerdown', e => selectTab(getElemIndex(e.target)));
