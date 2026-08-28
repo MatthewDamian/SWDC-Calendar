@@ -267,7 +267,7 @@
         border: 1px solid #FFFFFF00;
         border-radius: 6px;
         width: 15%;
-        padding: 2px 6px;
+        padding: 0px 6px;
       }
       #day-window .bottom .event.isHovering {
         box-shadow: 1px 1px 3px black;
@@ -935,9 +935,16 @@
                 const timeRange = startTime + ' - ' + endTime;
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
-                for (const item of [description, location, timeRange, instructors]) {
-                  const s = addSpan(row, item);
+                if (location === '') {
+                  const s = addSpan(row, description + '\n\n');
                   s.style.color = palette[i % palette.length];
+                  s.style.gridColumn = '1 / -1';
+                  s.style.textAlign = 'center';
+                } else {
+                  for (const item of [description, location, timeRange, instructors]) {
+                    const s = addSpan(row, item);
+                    s.style.color = palette[i % palette.length];
+                  }
                 }
               }
               addSpan(this.elem, '', 'title');
@@ -1054,7 +1061,7 @@
           const count = endHour - startHour + 1;
           for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
-            if (index == 0) {
+            if (index == 0 && location) {
               index = locations.length + 1;
               locations.push(location);
               const header = addSpan(this.top, location, 'header');
@@ -1062,7 +1069,10 @@
             }
             const block = addDiv(this.bottom, 'event');
             this.events.push(block);
-            if (!start || !end) continue;
+            if (!location || !start || !end) {
+              block.style.display = 'none';
+              continue;
+            };
             [start, end] = [start, end].map(strToHours);
             const offset = start - startHour;
             const duration = end - start;
