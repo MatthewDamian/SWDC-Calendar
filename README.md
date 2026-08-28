@@ -8,7 +8,7 @@ An interactive website for viewing calendar data for Southwest Washington Dance 
 ![Day Tab](screenshots/dayTab.png) 
 
 ## Spreadsheet Interface
-Modifications to the spreadsheet will appear on the website after a refresh.  There are three tabs on the spreadsheet that may be edited:
+Modifications to the spreadsheet will appear on the website after a refresh.  There are three tabs on the spreadsheet that may be edited.
 
 ### EventData
 Day-level entries contain a Date, Title, Categories, and Notes
@@ -16,19 +16,19 @@ Day-level entries contain a Date, Title, Categories, and Notes
   - date ranges may be input as two dates separated by a dash
 - Title may be any text
 - Categories may be comma separated values from the "Categories" tab
-  - only the first category determines the color
-  - all listed categories are applied to the event
+  - multiple categories may be applied to the event, but only the first category determines the color
 - Notes may be any text (or blank)
 
 Event level entries contain a Description, Location, Start time, End time, and Instructors
 - These entries are applied to whichever day-level entry preceded it.  A day may contain multiple events.
 - These entries must leave column A blank, and start on column B.
-- Description, location, and instructors may be any text
-- Time fields must be in the 12-hour time format (e.g. 4:15 PM)
+- Description, Location, and Instructors may be any text
+- Time fields must be in a 12-hour time format (e.g. 4:15 PM or 12:30:59 AM)
+- If Location is omitted, the entry becomes a subtitle, spanning all columns
 
 ### WeeklyData
 Contains schedules that repeat on a weekly basis. After specifying a time range, you can specify the schedule for each weekday within that time frame.
-- Time ranges contain 3 cells: "Duration", start date, end date
+- Time ranges contain 3 cells: "Duration", Start date, End date
   - "Duration" is the literal word
   - start date and end date are each in the format mm/dd/yyyy
 - Event entries are the same as for EventData, however the first entry in a group of entries must include a **day of the week** in column A, such as "Monday".  This specifies which weekday the group applies to.
@@ -41,5 +41,5 @@ Each entry consists of a Category and a Color.
 
 ### Notes / Restrictions
 - Any line beginning with a # will be ignored.  This may be used to add comments.
-- No entries may include double quotes ", because I have not yet implemented a proper parser.
+- No entries may include double quotes " since this breaks the parser currently.
 - A change-log is saved automatically, so changes can be reverted if necessary.
