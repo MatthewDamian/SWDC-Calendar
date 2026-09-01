@@ -13,7 +13,7 @@ Modifications to the spreadsheet will appear on the website after a refresh.  Th
 ### EventData
 Day-level entries contain a Date, Title, Categories, and Notes
 - Dates must be in the format mm/dd/yyyy
-  - date ranges may be input as two dates separated by a dash
+  - you may alternatively input a range of dates: two dates separated by a dash
 - Title may be any text
 - Categories may be comma separated values from the "Categories" tab
   - multiple categories may be applied to the event, but only the first category determines the color
@@ -24,7 +24,8 @@ Event level entries contain a Description, Location, Start time, End time, and I
 - These entries must leave column A blank, and start on column B.
 - Description, Location, and Instructors may be any text
 - Time fields must be in a 12-hour time format (e.g. 4:15 PM or 12:30:59 AM)
-- If Location is omitted, the entry becomes a subtitle, spanning all columns
+- If all fields but Description are omitted, the entry becomes a subtitle
+- If Location is omitted, the entry is applied to all locations
 
 ### WeeklyData
 Contains schedules that repeat on a weekly basis. After specifying a time range, you can specify the schedule for each weekday within that time frame.
@@ -41,5 +42,6 @@ Each entry consists of a Category and a Color.
 
 ### Notes / Restrictions
 - Any line beginning with a # will be ignored.  This may be used to add comments.
-- No entries may include double quotes " or newlines \n since this breaks the parser currently.
+- Any empty lines will be ignored.
+- No cells may include double quotes or newlines since this breaks the parser currently.
 - A change-log is saved automatically, so changes can be reverted if necessary.
