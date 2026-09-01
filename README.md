@@ -41,5 +41,5 @@ Each entry consists of a Category and a Color.
 
 ### Notes / Restrictions
 - Any line beginning with a # will be ignored.  This may be used to add comments.
-- No entries may include double quotes " since this breaks the parser currently.
+- No entries may include double quotes " or newlines \n since this breaks the parser currently.
 - A change-log is saved automatically, so changes can be reverted if necessary.
