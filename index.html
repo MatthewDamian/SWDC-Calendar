@@ -129,7 +129,7 @@
         font-size: var(--font-size-3);
       }
       #display-window .subtitle {
-        padding-bottom: 1.5em;
+        padding-top: 1.5em;
         color: lightgray;
         font-size: var(--font-size-1);
       }
@@ -448,12 +448,13 @@
       }
       #print-container .subtitle {
         font-size: 20px;
-        padding-bottom: 1.5em;
+        padding-top: 1.5em;
       }
       #print-container table {
         display: inline-block;
         text-align: left;
         font-size: 16px;
+        padding-top: 1.5em;
         border-collapse: collapse;
       }
       #print-container th, #print-container td {
@@ -527,7 +528,8 @@
           <div id="display-window"></div>
         </div>
         <div id="attribution">
-          &#169; 2026 Matthew Damian.  Calendar website design and code.  SWDC&trade;.  
+          &#169; 2026 Matthew Damian. Calendar website design and code.
+          &nbsp; &bull; &nbsp; SWDC&trade; &nbsp; &bull; &nbsp;
           <a id="sheets-link" aria-label="View Google Sheet" href="https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s">View Google Sheet</a>
         </div>
       </div>
@@ -652,7 +654,7 @@
               const line = match.value[0].trim();
               if (line.startsWith('#')) continue;
               const contents = csvLineToArray(line);
-              if (contents.some(s => s !== '')) {
+              if (contents.some(Boolean)) {
                 return {value: contents, done: false};
               };
             }
@@ -809,10 +811,19 @@
       
       // Macros (write:outer)
       
-      function fetchData(sheetsURL, gidMap) {
+      function loadCachedData(sheetID) {
+        const load = (s, d) => localStorage.getItem(sheetID + s) || d;
+        objSet(categoryData, parseCategoryPage(load('categoryData', '')));
+        objSet(eventData, parseDataPage(load('eventData', '')));
+        addWeeklyData(eventData, parseWeekPage(load('weekData', '')));
+        currentTab = Number(localStorage.getItem('currentTab') || currentTab);
+        const sessionDate = sessionStorage.getItem('currentDate');
+        windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
+      }
+      function fetchData(sheetID, gidMap) {
         const urls = {};
         for (const [name, gid] of Object.entries(gidMap)) {
-          urls[name] = `${sheetsURL}/export?format=csv&gid=${gid}`
+          urls[name] = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`
         }
         const promises = [
           fetch(urls.events).then(response => response.ok ? response.text() : null),
@@ -828,9 +839,11 @@
           addWeeklyData(eventData, parseWeekPage(data[1]));
           objSet(categoryData, parseCategoryPage(data[2]));
           refresh();
-          localStorage.setItem('eventData', data[0]);
-          localStorage.setItem('weekData', data[1]);
-          localStorage.setItem('categoryData', data[2]);
+          localStorage.clear();
+          localStorage.setItem('currentTab', currentTab);
+          localStorage.setItem(sheetID + 'eventData', data[0]);
+          localStorage.setItem(sheetID + 'weekData', data[1]);
+          localStorage.setItem(sheetID + 'categoryData', data[2]);
         });
       }
       function printSchedule() {
@@ -841,7 +854,7 @@
         let tbody;
         
         isSubtitle = row => {
-          return !row.slice(1).some(i => i)
+          return !row.slice(1).some(Boolean);
         }
         addTitle = (text, clss) => {
           const title = addDiv(container, clss);
@@ -861,19 +874,17 @@
         const weekday = dayNames[w.date.getDay()];
         let dataTable = getData(key);
         addTitle(dataTable.title, 'title');
-        addTitle(`${weekday} ${key}`, 'subtitle')
+        const dateTitle = addTitle(`${weekday} ${key}`, 'subtitle');
+        dateTitle.style.paddingTop = '0';
         if (dataTable.notes) addTitle(dataTable.notes, 'subtitle');
         
         let i = 0;
         const limit = dataTable.schedule.length;
-        let prevTitle = true;
         while (i < limit) {
           while (i < limit) {
             const row = dataTable.schedule[i];
             if (!isSubtitle(row)) break;
             const title = addTitle(row[0], 'subtitle');
-            if (!prevTitle) title.style.paddingTop = '1.5em';
-            prevTitle = true;
             i++;
           }
           if (i >= limit) break;
@@ -883,7 +894,6 @@
             const row = dataTable.schedule[i];
             if (isSubtitle(row)) break;
             addRow(row);
-            prevTitle = false;
             i++;
           }
         }
@@ -988,28 +998,28 @@
               const weekday = dayNames[date.getDay()];
               const dataTable = getData(key);
               addSpan(this.elem, `${dataTable.title}`, 'title');
-              addSpan(this.elem, `${weekday} ${key}`, 'subtitle');
+              let span = addSpan(this.elem, `${weekday} ${key}`, 'subtitle');
+              span.style.paddingTop = '0';
               if (dataTable.notes) {
-                addSpan(this.elem, dataTable.notes, 'subtitle');
+                span = addSpan(this.elem, dataTable.notes, 'subtitle');
               }
-              let prevTitle = true;
               for (let [i, params] of dataTable.schedule.entries()) {
                 const [description, location, startTime, endTime, instructors] = params;
                 const timeRange = startTime + ' - ' + endTime;
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
-                const isSubtitle = !params.slice(1).some(p => p);
+                const isSubtitle = !params.slice(1).some(Boolean);
                 if (isSubtitle) {
-                  const s = addSpan(row, description, 'subtitle');
-                  s.style.color = palette[i % palette.length];
-                  if (!prevTitle) s.style.paddingTop = '1.5em';
+                  span = addSpan(row, description, 'subtitle');
+                  span.style.color = palette[i % palette.length];
                 } else {
+                  const paddingTop = span.classList.contains('subtitle') ? '1.5em' : '';
                   for (const item of [description, location, timeRange, instructors]) {
-                    const s = addSpan(row, item);
-                    s.style.color = location? palette[i % palette.length] : 'white';
+                    span = addSpan(row, item);
+                    span.style.color = location? palette[i % palette.length] : 'white';
+                    if (paddingTop) span.style.paddingTop = paddingTop;
                   }
                 }
-                prevTitle = isSubtitle;
               }
               addSpan(this.elem, '', 'title');
               break;
@@ -1383,12 +1393,14 @@
       
       // Main Script
       
+      let currentTab = 2;
+      const categoryData = {};
+      const eventData = {};
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'mediumpurple', 'lightseagreen', 'violet', 'sandybrown'];
-      const mainURL = 'https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
-      const copyURL = 'https://docs.google.com/spreadsheets/d/19uhGgs5xKik_mL88TwFOr6L9ymopRCFCzgQ8Rk4OLPg';
+      const params = new URLSearchParams(window.location.search);
+      const sheetID = params.get('sheetid') || '1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
       const gidMap = {events: 0, weekly: 1592630584, colors: 1588629629}
-      
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
       const displayIcons = document.querySelector('#display .icons');
       const modeButtons = document.querySelector('#window-banner .radio-buttons');
@@ -1404,16 +1416,11 @@
         document.getElementById('section-2'),
       );
       const hoverLinker = new HoverLinker();
-      const categoryData = parseCategoryPage(localStorage.getItem('categoryData') || '');
-      const eventData = parseDataPage(localStorage.getItem('eventData') || '');
-      addWeeklyData(eventData, parseWeekPage(localStorage.getItem('weekData') || ''));
       
-      let currentTab = Number(localStorage.getItem('currentTab') || 2);
-      const sessionDate = sessionStorage.getItem('currentDate');
-      windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
+      loadCachedData(sheetID);
       syncDates();
       selectTab(currentTab);
-      fetchData(mainURL, gidMap);
+      fetchData(sheetID, gidMap);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
         m.addEventListener('pointerdown', e => selectTab(getElemIndex(e.target)));
