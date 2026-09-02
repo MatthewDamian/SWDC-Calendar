@@ -1413,7 +1413,7 @@
       windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
       syncDates();
       selectTab(currentTab);
-      fetchData(copyURL, gidMap);
+      fetchData(mainURL, gidMap);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
         m.addEventListener('pointerdown', e => selectTab(getElemIndex(e.target)));
