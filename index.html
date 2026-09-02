@@ -124,12 +124,12 @@
         text-wrap: balance;
       }
       #display-window .title {
-        padding: 0.5em 0.8em 0em 0.8em;
+        padding: 0.5em 0.8em;
         color: white;
         font-size: var(--font-size-3);
       }
       #display-window .subtitle {
-        padding: 1em 0.8em;
+        padding-bottom: 1.5em;
         color: lightgray;
         font-size: var(--font-size-1);
       }
@@ -448,11 +448,7 @@
       }
       #print-container .subtitle {
         font-size: 20px;
-        padding: 0 0 1.5em 0;
-      }
-      #print-container .notes {
-        font-size: 16px;
-        padding: 0 0 1.5em 0;
+        padding-bottom: 1.5em;
       }
       #print-container table {
         display: inline-block;
@@ -835,46 +831,57 @@
         });
       }
       function printSchedule() {
+        
         const container = document.getElementById('print-container');
         container.innerHTML = '';
-        const title = addDiv(container, 'title');
-        const subtitle = addDiv(container, 'subtitle');
-        const table = addElem(container, 'table');
-        const thead = addElem(table, 'thead');
-        const tbody = addElem(table, 'tbody');
+        let table;
+        let tbody;
+        
+        isSubtitle = row => {
+          return !row.slice(1).some(i => i)
+        }
+        addTitle = (text, clss) => {
+          const title = addDiv(container, clss);
+          title.innerText = text;
+          return title;
+        }
+        addRow = row => {
+          const tr = addElem(tbody, 'tr');
+          for (let j = 0; j < row.length; j++) {
+            const td = addElem(tr, 'td');
+            td.innerText = (row[j] === undefined) ? '' : row[j];;
+          }
+        }
+        
         const w = windows[0];
         const key = toDateStr(w.date);
         const weekday = dayNames[w.date.getDay()];
         let dataTable = getData(key);
-        title.innerText = dataTable.title;
-        subtitle.innerText = `${weekday} ${key}`;
-        if (dataTable.notes) {
-          const notes = document.createElement('div');
-          notes.classList.add('notes');
-          notes.innerText = `${dataTable.notes}`;
-          table.before(notes);
-        }
-        const header = addElem(thead, 'tr');
-        for (const text of ['Description', 'Location', 'Start Time', 'End Time', 'Instructors']) {
-          const elem = addElem(header, 'th');
-          elem.innerText = text;
-        }
+        addTitle(dataTable.title, 'title');
+        addTitle(`${weekday} ${key}`, 'subtitle')
+        if (dataTable.notes) addTitle(dataTable.notes, 'subtitle');
+        
         let i = 0;
-        for (const items of dataTable.schedule) {
-          if (items.slice(1).some(i => i)) break;
-          const newSubtitle = document.createElement('div');
-          newSubtitle.classList.add('notes');
-          newSubtitle.innerText = items[0];
-          table.before(newSubtitle);
-          i++;
-        }
-        for (const items of dataTable.schedule.slice(i)) {
-          const row = addElem(tbody, 'tr');
-          for (let j = 0; j < 5; j++) {
-            let item = items[j];
-            if (item === undefined) item = '';
-            const elem = addElem(row, 'td');
-            elem.innerText = item;
+        const limit = dataTable.schedule.length;
+        let prevTitle = true;
+        while (i < limit) {
+          while (i < limit) {
+            const row = dataTable.schedule[i];
+            if (!isSubtitle(row)) break;
+            const title = addTitle(row[0], 'subtitle');
+            if (!prevTitle) title.style.paddingTop = '1.5em';
+            prevTitle = true;
+            i++;
+          }
+          if (i >= limit) break;
+          table = addElem(container, 'table');
+          tbody = addElem(table, 'tbody');
+          while (i < limit) {
+            const row = dataTable.schedule[i];
+            if (isSubtitle(row)) break;
+            addRow(row);
+            prevTitle = false;
+            i++;
           }
         }
         window.print();
@@ -982,20 +989,24 @@
               if (dataTable.notes) {
                 addSpan(this.elem, dataTable.notes, 'subtitle');
               }
+              let prevTitle = true;
               for (let [i, params] of dataTable.schedule.entries()) {
                 const [description, location, startTime, endTime, instructors] = params;
                 const timeRange = startTime + ' - ' + endTime;
                 const row = addDiv(this.elem, 'row');
                 this.rows.push(row);
-                if (!params.slice(1).some(p => p)) {
+                const isSubtitle = !params.slice(1).some(p => p);
+                if (isSubtitle) {
                   const s = addSpan(row, description, 'subtitle');
                   s.style.color = palette[i % palette.length];
+                  if (!prevTitle) s.style.paddingTop = '1.5em';
                 } else {
                   for (const item of [description, location, timeRange, instructors]) {
                     const s = addSpan(row, item);
                     s.style.color = location? palette[i % palette.length] : 'white';
                   }
                 }
+                prevTitle = isSubtitle;
               }
               addSpan(this.elem, '', 'title');
               break;
