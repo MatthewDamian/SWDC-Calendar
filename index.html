@@ -808,47 +808,8 @@
           data[key] = [value];
         }
       }
-      
-      // Macros (write:outer)
-      
-      function loadCachedData(sheetID) {
-        const load = (s, d) => localStorage.getItem(sheetID + s) || d;
-        objSet(categoryData, parseCategoryPage(load('categoryData', '')));
-        objSet(eventData, parseDataPage(load('eventData', '')));
-        addWeeklyData(eventData, parseWeekPage(load('weekData', '')));
-        currentTab = Number(localStorage.getItem('currentTab') || currentTab);
-        const sessionDate = sessionStorage.getItem('currentDate');
-        windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
-      }
-      function fetchData(sheetID, gidMap) {
-        const urls = {};
-        for (const [name, gid] of Object.entries(gidMap)) {
-          urls[name] = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`
-        }
-        const promises = [
-          fetch(urls.events).then(response => response.ok ? response.text() : null),
-          fetch(urls.weekly).then(response => response.ok ? response.text() : null),
-          fetch(urls.colors).then(response => response.ok ? response.text() : null),
-        ]
-        Promise.all(promises).then(data => {
-          if (!data.every(Boolean)) {
-            alert("Error fetching spreadsheet data", 2000);
-            return
-          };
-          objSet(eventData, parseDataPage(data[0]));
-          addWeeklyData(eventData, parseWeekPage(data[1]));
-          objSet(categoryData, parseCategoryPage(data[2]));
-          refresh();
-          localStorage.clear();
-          localStorage.setItem('currentTab', currentTab);
-          localStorage.setItem(sheetID + 'eventData', data[0]);
-          localStorage.setItem(sheetID + 'weekData', data[1]);
-          localStorage.setItem(sheetID + 'categoryData', data[2]);
-        });
-      }
-      function printSchedule() {
+      function buildPrintPage(container) {
         
-        const container = document.getElementById('print-container');
         container.innerHTML = '';
         let table;
         let tbody;
@@ -897,6 +858,64 @@
             i++;
           }
         }
+      }
+      
+      // Macros (write:outer)
+      
+      function loadCachedData(sheetID) {
+        const load = (s, d) => localStorage.getItem(sheetID + s) || d;
+        objSet(categoryData, parseCategoryPage(load('categoryData', '')));
+        objSet(eventData, parseDataPage(load('eventData', '')));
+        addWeeklyData(eventData, parseWeekPage(load('weekData', '')));
+        currentTab = Number(localStorage.getItem('currentTab') || currentTab);
+        const sessionDate = sessionStorage.getItem('currentDate');
+        windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
+      }
+      function fetchData(sheetID, gidMap) {
+        const urls = {};
+        for (const [name, gid] of Object.entries(gidMap)) {
+          urls[name] = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`
+        }
+        const promises = [
+          fetch(urls.events).then(response => response.ok ? response.text() : null),
+          fetch(urls.weekly).then(response => response.ok ? response.text() : null),
+          fetch(urls.colors).then(response => response.ok ? response.text() : null),
+        ]
+        Promise.all(promises).then(data => {
+          if (!data.every(Boolean)) {
+            alert("Error fetching spreadsheet data", 2000);
+            return
+          };
+          objSet(eventData, parseDataPage(data[0]));
+          addWeeklyData(eventData, parseWeekPage(data[1]));
+          objSet(categoryData, parseCategoryPage(data[2]));
+          refresh();
+          localStorage.clear();
+          localStorage.setItem('currentTab', currentTab);
+          localStorage.setItem(sheetID + 'eventData', data[0]);
+          localStorage.setItem(sheetID + 'weekData', data[1]);
+          localStorage.setItem(sheetID + 'categoryData', data[2]);
+        });
+      }
+      function togglePrintView() {
+        const container = document.getElementById('print-container');
+        const main = document.querySelector('main');
+        const root = document.documentElement;
+        const display = window.getComputedStyle(container).display;
+        if (display === 'none') {
+          buildPrintPage(container);
+          container.style.display = 'block';
+          main.style.display = 'none';
+          root.style.backgroundColor = 'white';
+        } else {
+          container.style.removeProperty('display');
+          main.style.removeProperty('display');
+          root.style.removeProperty('background-color');
+        }
+      }
+      function printSchedule() {
+        const container = document.getElementById('print-container');
+        buildPrintPage(container);
         window.print();
       }
       function copySchedule() {
@@ -1127,15 +1146,11 @@
           this.bottom.replaceChildren(this.bottom.firstElementChild)
           this.events.length = 0;
           let [startHour, endHour] = [14, 21];
+          const locations = [];
           for (const [name, location, start, end] of dataTable.schedule) {
             if (!start || !end) continue;
             startHour = Math.floor(Math.min(startHour, strToHours(start)));
             endHour = Math.ceil(Math.max(endHour, strToHours(end)));
-          }
-          this.buildGridRows(startHour, endHour);
-          const locations = [];
-          const count = endHour - startHour + 1;
-          for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
             if (index === 0 && location) {
               index = locations.length + 1;
@@ -1143,6 +1158,11 @@
               const header = addSpan(this.top, location, 'header');
               header.style.left = `${15*index-6}%`;
             }
+          }
+          this.buildGridRows(startHour, endHour);
+          const count = endHour - startHour + 1;
+          for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
+            let index = locations.indexOf(location) + 1;
             const block = addDiv(this.bottom, 'event');
             this.events.push(block);
             if (!start || !end) {
@@ -1158,7 +1178,7 @@
             block.style.backgroundColor = palette[i % palette.length];
             block.innerText = name;
             if (!location) {
-              block.style.left = `${15-6}%`;
+              block.style.left = `${15-6}%`
               block.style.width = `${15*locations.length}%`;
               block.style.backgroundColor = 'transparent';
             }
