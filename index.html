@@ -461,7 +461,9 @@
         border: 1px solid black;
         padding: 8px;
       }
-      #print-container td:nth-child(2), td:nth-child(3), td:nth-child(4) {
+      #print-container td:nth-child(2),
+      #print-container td:nth-child(3),
+      #print-container td:nth-child(4) {
         white-space: nowrap;
       }
       #print-container th {
@@ -882,10 +884,7 @@
           fetch(urls.colors).then(response => response.ok ? response.text() : null),
         ]
         Promise.all(promises).then(data => {
-          if (!data.every(Boolean)) {
-            alert("Error fetching spreadsheet data", 2000);
-            return
-          };
+          if (!data.every(Boolean)) throw new Error();
           objSet(eventData, parseDataPage(data[0]));
           addWeeklyData(eventData, parseWeekPage(data[1]));
           objSet(categoryData, parseCategoryPage(data[2]));
@@ -895,7 +894,9 @@
           localStorage.setItem(sheetID + 'eventData', data[0]);
           localStorage.setItem(sheetID + 'weekData', data[1]);
           localStorage.setItem(sheetID + 'categoryData', data[2]);
-        });
+        }).catch(error => 
+          alert('Error fetching spreadsheet data', 2000)
+        );
       }
       function togglePrintView() {
         const container = document.getElementById('print-container');
@@ -1145,7 +1146,7 @@
           this.top.replaceChildren(this.top.firstElementChild)
           this.bottom.replaceChildren(this.bottom.firstElementChild)
           this.events.length = 0;
-          let [startHour, endHour] = [14, 21];
+          let [startHour, endHour] = [14, 0];
           const locations = [];
           for (const [name, location, start, end] of dataTable.schedule) {
             if (!start || !end) continue;
@@ -1159,6 +1160,7 @@
               header.style.left = `${15*index-6}%`;
             }
           }
+          endHour = Math.max(endHour, startHour + 7);
           this.buildGridRows(startHour, endHour);
           const count = endHour - startHour + 1;
           for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
