@@ -532,7 +532,7 @@
         <div id="attribution">
           &#169; 2026 Matthew Damian. Calendar website design and code.
           &nbsp; &bull; &nbsp; SWDC&trade; &nbsp; &bull; &nbsp;
-          <a id="sheets-link" aria-label="View Google Sheet" href="https://docs.google.com/spreadsheets/d/1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s">View Google Sheet</a>
+          <a id="sheets-link" aria-label="View Google Sheet">View Google Sheet</a>
         </div>
       </div>
       
@@ -635,38 +635,35 @@
         }
         return [...parent.children].indexOf(child);
       }
-      function csvLineToArray(s) {
-        let array = [];
-        for (const match of s.matchAll(/(".*?"),?|([^"]+)/g)) {
-          if (match[1] === undefined) {
-            array.push(...match[2].replace(/,$/g, '').split(','));
-          } else {
-            array.push(match[1].replace(/^"|"$/g, ''));
-          }
-        }
-        return array;
-      }
-      function csvLines(text) {
-        return {
-          matches: text.matchAll(/^.*\r?$/gm),
-          next() {
-            while (true) {
-              const match = this.matches.next();
-              if (match.done === true) return match;
-              const line = match.value[0].trim();
-              if (line.startsWith('#')) continue;
-              const contents = csvLineToArray(line);
-              if (contents.some(Boolean)) {
-                return {value: contents, done: false};
-              };
+      function* csvLines(csvData) {
+        const lineRegex = /(?:[^"\r\n]|"(?:""|[^"])*")+/g;
+        const columnRegex = /("(?:[^"]|"")*"|[^,]*)(?:,|$)/g;
+        for (const lineMatch of csvData.matchAll(lineRegex)) {
+          const csvLine = lineMatch[0];
+          const columns = [];
+          for (const colMatch of csvLine.matchAll(columnRegex)) {
+            let cell = colMatch[1];
+            if (cell.startsWith('"') && cell.endsWith('"')) {
+              cell = cell.slice(1, -1).replace(/""/g, '"');
             }
-          },
-          [Symbol.iterator]() {return this},
+            columns.push(cell);
+          }
+          if (!csvLine.endsWith(',')) columns.pop();
+          yield columns;
+        }
+      }
+      function* dataLines(csvData) {
+        for (let line of csvLines(csvData)) {
+          if (line.length === 0) continue;
+          line = line.map(s => s.trim());
+          if (line[0].startsWith('#')) continue;
+          if (!line.some(Boolean)) continue;
+          yield line;
         }
       }
       function parseCategoryPage(data) {
         const result = {};
-        for (const [name, color] of csvLines(data)) {
+        for (const [name, color] of dataLines(data)) {
           result[titleCase(name)] = color;
         }
         return result
@@ -674,7 +671,7 @@
       function parseDataPage(data) {
         let date;
         const result = {};
-        for (const [first, ...rest] of csvLines(data)) {
+        for (const [first, ...rest] of dataLines(data)) {
           if (first !== '') {
             date = first;
             let [title, categories, notes] = rest;
@@ -694,7 +691,7 @@
       function parseWeekPage(data) {
         const result = []
         let day;
-        for (const [first, ...rest] of csvLines(data)) {
+        for (const [first, ...rest] of dataLines(data)) {
           const identifier = titleCase(first);
           if (identifier === 'Duration') {
             const [startDate, endDate] = rest;
@@ -884,7 +881,7 @@
           fetch(urls.colors).then(response => response.ok ? response.text() : null),
         ]
         Promise.all(promises).then(data => {
-          if (!data.every(Boolean)) throw new Error();
+          if (data.some(d => d === null)) throw new Error();
           objSet(eventData, parseDataPage(data[0]));
           addWeeklyData(eventData, parseWeekPage(data[1]));
           objSet(categoryData, parseCategoryPage(data[2]));
@@ -894,9 +891,9 @@
           localStorage.setItem(sheetID + 'eventData', data[0]);
           localStorage.setItem(sheetID + 'weekData', data[1]);
           localStorage.setItem(sheetID + 'categoryData', data[2]);
-        }).catch(error => 
-          alert('Error fetching spreadsheet data', 2000)
-        );
+        }).catch(error => {
+          alert('Error fetching spreadsheet data', 2000);
+        });
       }
       function togglePrintView() {
         const container = document.getElementById('print-container');
@@ -1423,6 +1420,8 @@
       const params = new URLSearchParams(window.location.search);
       const sheetID = params.get('sheetid') || '1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
       const gidMap = {events: 0, weekly: 1592630584, colors: 1588629629}
+      const sheetsLink = document.getElementById('sheets-link');
+      sheetsLink.href = `https://docs.google.com/spreadsheets/d/${sheetID}`
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
       const displayIcons = document.querySelector('#display .icons');
       const modeButtons = document.querySelector('#window-banner .radio-buttons');
