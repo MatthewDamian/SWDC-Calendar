@@ -66,6 +66,7 @@
         border-radius: 6px;
         animation: slideIn 0.3s ease forwards;
         pointer-events: none;
+        text-wrap: nowrap;
       }
       @keyframes slideIn {
         from {transform: translate(-50%)}
@@ -682,9 +683,11 @@
               addEntry(result, d, title, [], categories, notes);
             }
           } else {
-            const entry = rest;
-            while (entry.length < 5) entry.push('');
-            result[date].schedule.push(entry);
+            for (const d of dateArray(date)) {
+              const entry = rest;
+              while (entry.length < 5) entry.push('');
+              result[d].schedule.push(entry);
+            }
           }
         }
         return result;
@@ -894,6 +897,7 @@
           localStorage.setItem(sheetID + 'categoryData', data[2]);
         }).catch(error => {
           alert('Error fetching spreadsheet data', 2000);
+          console.log(error);
         });
       }
       function togglePrintView() {
