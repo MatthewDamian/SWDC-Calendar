@@ -55,7 +55,7 @@
         touch-action: none;
       }
       .alert-message {
-        z-index: 1;
+        z-index: 2;
         color: white;
         border: 1px solid gray;
         background-color: var(--bg-color-2);
@@ -811,7 +811,7 @@
           data[key] = [value];
         }
       }
-      function buildPrintPage(container) {
+      function buildPrintPage(container, date) {
         
         container.innerHTML = '';
         let table;
@@ -829,13 +829,12 @@
           const tr = addElem(tbody, 'tr');
           for (let j = 0; j < row.length; j++) {
             const td = addElem(tr, 'td');
-            td.innerText = (row[j] === undefined) ? '' : row[j];;
+            td.innerText = (row[j] === undefined) ? '' : row[j];
           }
         }
         
-        const w = windows[0];
-        const key = toDateStr(w.date);
-        const weekday = dayNames[w.date.getDay()];
+        const key = toDateStr(date);
+        const weekday = dayNames[date.getDay()];
         let dataTable = getData(key);
         addTitle(dataTable.title, 'title');
         const dateTitle = addTitle(`${weekday} ${key}`, 'subtitle');
@@ -843,22 +842,20 @@
         if (dataTable.notes) addTitle(dataTable.notes, 'subtitle');
         
         let i = 0;
-        const limit = dataTable.schedule.length;
-        while (i < limit) {
-          while (i < limit) {
+        outer: while (true) {
+          while (true) {
             const row = dataTable.schedule[i];
             if (!isSubtitle(row)) break;
             const title = addTitle(row[0], 'subtitle');
-            i++;
+            if (++i >= dataTable.schedule.length) break outer;
           }
-          if (i >= limit) break;
           table = addElem(container, 'table');
           tbody = addElem(table, 'tbody');
-          while (i < limit) {
+          while (true) {
             const row = dataTable.schedule[i];
             if (isSubtitle(row)) break;
             addRow(row);
-            i++;
+            if (++i >= dataTable.schedule.length) break outer;
           }
         }
       }
@@ -866,10 +863,10 @@
       // Macros (write:outer)
       
       function loadCachedData(sheetID) {
-        const load = (s, d) => localStorage.getItem(sheetID + s) || d;
-        objSet(categoryData, parseCategoryPage(load('categoryData', '')));
-        objSet(eventData, parseDataPage(load('eventData', '')));
-        addWeeklyData(eventData, parseWeekPage(load('weekData', '')));
+        const load = s => localStorage.getItem(sheetID + s);
+        objSet(categoryData, parseCategoryPage(load('categoryData') || ''));
+        objSet(eventData, parseDataPage(load('eventData') || ''));
+        addWeeklyData(eventData, parseWeekPage(load('weekData') || ''));
         currentTab = Number(localStorage.getItem('currentTab') || currentTab);
         const sessionDate = sessionStorage.getItem('currentDate');
         windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
@@ -906,7 +903,7 @@
         const root = document.documentElement;
         const display = window.getComputedStyle(container).display;
         if (display === 'none') {
-          buildPrintPage(container);
+          buildPrintPage(container, windows[0].date);
           container.style.display = 'block';
           main.style.display = 'none';
           root.style.backgroundColor = 'white';
@@ -918,7 +915,7 @@
       }
       function printSchedule() {
         const container = document.getElementById('print-container');
-        buildPrintPage(container);
+        buildPrintPage(container, windows[0].date);
         window.print();
       }
       function copySchedule() {
@@ -926,7 +923,8 @@
         const schedule = getData(key).schedule.map(row => row.join('\t'));
         try {
           navigator.clipboard.writeText(schedule.join('\n'))
-            .then(() => alert('Copied to Clipboard', 2000));
+            .then(() => alert('Copied to Clipboard', 2000))
+            .catch(() => alert('Error copying to Clipboard', 2000));
         } catch {
           alert('Error copying to Clipboard', 2000);
         }
@@ -1060,8 +1058,8 @@
                   this.rows.push(row);
                   const k = addSpan(row, key);
                   const e = addSpan(row, title);
-                  k.style.color = categoryData[categories[0]];
-                  e.style.color = categoryData[categories[0]];
+                  k.style.color = categoryData[categories[0]] || 'white';
+                  e.style.color = categoryData[categories[0]] || 'white';
                   k.style.textAlign = 'right';
                 };
               }
@@ -1454,19 +1452,22 @@
       windows[2].elem.addEventListener('click', event => {
         const elem = event.target;
         const day = windows[2].getFirstDay();
+        let tab;
         if (elem.classList.contains('date')) {
           addTime(day, 'month', getElemIndex(elem, 3));
           addTime(day, 'day', -day.getDay());
           addTime(day, 'day', getElemIndex(elem, 1) - 7);
-          windows[0].date.setTime(day.getTime());
-          selectTab(0);
-          syncDates();
-        } else if (elem.classList.contains('banner') || elem.classList.contains('day-name')) {
-          addTime(day, 'month', getElemIndex(elem, 2))
-          windows[1].date.setTime(day.getTime());
-          selectTab(1);
-          syncDates();
-        }
+          tab = 0;
+        } else if (elem.classList.contains('banner')) {
+          addTime(day, 'month', getElemIndex(elem, 2));
+          tab = 1;
+        } else if (elem.classList.contains('day-name')) {
+          addTime(day, 'month', getElemIndex(elem, 3));
+          tab = 1;
+        } else return;
+        windows[tab].date.setTime(day.getTime());
+        selectTab(tab);
+        syncDates();
       });
       windows[1].elem.addEventListener('click', event => {
         const elem = event.target;
