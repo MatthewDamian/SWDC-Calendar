@@ -49,4 +49,4 @@ Each entry consists of a **Category** and a **Color**.
 - Any row beginning with a # will be ignored.  This may be used to add comments.
 - A change-log is saved automatically, so changes can be reverted if necessary.
 - You can make a copy of the spreadsheet and share it (General Access: Anyone with the link).  Then you can view its data in the calendar website by adding `?sheetid=[copy sheet id here]` to the end of the URL
-- Here's a [practice site](https://matthewdamian.github.io/SWDC-Calendar/?sheetid=1-JLYplX86sMxselAWD1ZigjAyiOCi9W1TXt3K5qD7XE) with a [practice sheet](https://docs.google.com/spreadsheets/d/1-JLYplX86sMxselAWD1ZigjAyiOCi9W1TXt3K5qD7XE)
+- Here's a [practice site](https://matthewdamian.github.io/SWDC-Calendar/?sheetid=19uhGgs5xKik_mL88TwFOr6L9ymopRCFCzgQ8Rk4OLPg) with a [practice sheet](https://docs.google.com/spreadsheets/d/19uhGgs5xKik_mL88TwFOr6L9ymopRCFCzgQ8Rk4OLPg)
