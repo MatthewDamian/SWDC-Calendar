@@ -102,26 +102,28 @@
         scrollbar-color: white var(--bg-color-2);
       }
       #display-window {
-        display: inline-grid;
-        max-height: 100%;
-        text-align: left;
-        justify-content: center;
-        font-size: var(--font-size-1);
         padding: 15px 10px;
+        justify-content: center;
       }
-      #display-window .row {
+      #display-window .grid {
+        display: inline-grid;
+        text-align: left;
+        font-size: var(--font-size-1);
+        padding-top: 1.5em;
+      }
+      #display-window .grid .row {
         display: contents;
         cursor: default;
       }
-      #display-window .row.isHovering span {
+      #display-window .grid .row.isHovering span {
         text-shadow: 0px 0px 5px currentColor;
       }
-      #display-window .row.isHovering .color-box {
+      #display-window .grid .row.isHovering .color-box {
         box-shadow: 0px 0px 5px currentColor;
       }
       #display-window .title,
       #display-window .subtitle {
-        grid-column: 1 / -1;
+        display: block;
         text-align: center;
         text-wrap: balance;
       }
@@ -131,22 +133,22 @@
         font-size: var(--font-size-3);
       }
       #display-window .subtitle {
-        padding-top: 1.5em;
+        padding: 1.5em 1.5em 0 1.5em;
         color: lightgray;
         font-size: var(--font-size-1);
       }
-      #display-window span {
+      #display-window .grid span {
         padding: 0.5em 0.8em;
       }
-      #display-window.day {
+      #display-window.day .grid {
         grid-template-columns: fit-content(40%) max-content max-content 1fr;
         text-wrap: balance;
       }
-      #display-window.month,
-      #display-window.year {
+      #display-window.month .grid,
+      #display-window.year .grid {
         grid-template-columns: max-content 1fr;
       }
-      #display-window.year .color-box {
+      #display-window.year .grid .color-box {
         aspect-ratio: 1;
         margin: 5px;
         background-color: currentColor;
@@ -570,19 +572,6 @@
       function clamp(num, min, max) {
         return Math.min(Math.max(num, min), max);
       }
-      function bisect(array, value) {
-        let s = 0;
-        let e = array.length;
-        while (s < e) {
-          const i = (s + e) >> 1;
-          if (value <= array[i]) e = i;
-          else s = i + 1;
-        }
-        return s;
-      }
-      function isValidNumber(str) {
-        return str.trim() !== "" && !isNaN(Number(str));
-      }
       function isValidDate(dateStr) {
         return !isNaN(new Date(dateStr).getTime());
       }
@@ -596,25 +585,8 @@
         if (!end) end = start;
         return [new Date(start), new Date(end)];
       }
-      function isSameDay(date1, date2) {
-        return date1.getFullYear() === date2.getFullYear()
-          && date1.getMonth() === date2.getMonth()
-          && date1.getDate() === date2.getDate();
-      };
       function toDateStr(date) {
         return [date.getMonth() + 1, date.getDate(), date.getFullYear()].join('/');
-      }
-      function dateArray(dateRangeStr, step=1) {
-        let [s, e] = dateRangeStr.split('-');
-        if (!e) return [s];
-        const result = [];
-        s = new Date(s);
-        e = new Date(e);
-        while (s <= e) {
-          result.push(toDateStr(s));
-          addTime(s, 'day', step);
-        }
-        return result;
       }
       function titleCase(text) {
         return text.trim().toLowerCase().replace(/\b(?<!')\w/g, char => char.toUpperCase());
@@ -761,45 +733,6 @@
         for (const key in obj) delete obj[key];
         Object.assign(obj, newObj);
       }
-      function addEntry(data, key, title, schedule, categories, notes) {
-        const sorted = [...schedule];
-        sorted.sort((a,b) => a[1] - b[1]); // sort by location name
-        sorted.sort((a,b) => strToHours(a[2]) - strToHours(b[2])); // sort by start time
-        const entry = {
-          title: title,
-          schedule: sorted,
-          categories: categories,
-          notes: notes,
-        }
-        const filter = array => {
-          if (array.length <= 1) {
-            return array.filter(item => item !== null);
-          } else {
-            return array.filter(item => item !== null && item != 'Classes')
-          }
-        }
-        if (key in data) {
-          const entry2 = data[key];
-          entry.title = filter([entry2.title, entry.title]).join('\n');
-          entry.schedule = [...entry2.schedule, ...entry.schedule];
-          entry.categories = filter([...entry2.categories, ...entry.categories]);
-          entry.notes = entry2.notes ? [entry2.notes, entry.notes].join('\n') : entry.notes;
-        }
-        data[key] = entry;
-      }
-      function addWeeklyData(data, weeklyData) {
-        for (const entry of weeklyData) {
-          const s = new Date(entry.startDate);
-          while (s <= entry.endDate) {
-            dayName = dayNames[s.getDay()];
-            const key = toDateStr(s);
-            if (dayName in entry && !getData(key).categories.includes('No Class')) {
-              addEntry(data, key, 'Classes', entry[dayName], ['Classes'], '');
-            }
-            addTime(s, 'day', 1);
-          }
-        }
-      }
       function addToArrayMap(data, key, value) {
         if (key in data) {
           data[key].push(value)
@@ -807,55 +740,54 @@
           data[key] = [value];
         }
       }
+      function addTable(container, textArray) {
+        const table = addElem(container, 'table');
+        const tbody = addElem(table, 'tbody');
+        for (const row of textArray) {
+          const tr = addElem(tbody, 'tr');
+          for (const item of row) {
+            const td = addElem(tr, 'td');
+            td.innerText = item;
+          }
+        }
+      }
       function buildPrintPage(container, date) {
         
         container.innerHTML = '';
-        let table;
-        let tbody;
-        
-        isSubtitle = row => {
-          return !row.slice(1).some(Boolean);
-        }
+
         addTitle = (text, clss) => {
           const title = addDiv(container, clss);
           title.innerText = text;
           return title;
         }
-        addRow = row => {
-          const tr = addElem(tbody, 'tr');
-          for (let j = 0; j < row.length; j++) {
-            const td = addElem(tr, 'td');
-            td.innerText = (row[j] === undefined) ? '' : row[j];
+        
+        addBuffer = (buffer) => {
+          while (buffer.every(row => row.at(-1) === '')) {
+            buffer.forEach(row => row.pop());
           }
+          addTable(container, buffer);
+          buffer.length = 0;
         }
         
         const key = toDateStr(date);
         const weekday = dayNames[date.getDay()];
-        let dataTable = getData(key);
-        addTitle(dataTable.title, 'title');
-        const dateTitle = addTitle(`${weekday} ${key}`, 'subtitle');
-        dateTitle.style.paddingTop = '0';
-        if (dataTable.notes) addTitle(dataTable.notes, 'subtitle');
+        const dayInfo = getData(key);
+        addTitle(dayInfo.title, 'title');
+        const dayTitle = addTitle(`${weekday} ${key}`, 'subtitle');
+        dayTitle.style.paddingTop = '0';
+        if (dayInfo.notes) addTitle(dayInfo.notes, 'subtitle');
         
-        let i = 0;
-        if (dataTable.schedule.length === 0) return;
-        outer: while (true) {
-          while (true) {
-            const row = dataTable.schedule[i];
-            if (!isSubtitle(row)) break;
-            const title = addTitle(row[0], 'subtitle');
-            if (++i >= dataTable.schedule.length) break outer;
-          }
-          table = addElem(container, 'table');
-          tbody = addElem(table, 'tbody');
-          while (true) {
-            const row = dataTable.schedule[i];
-            if (isSubtitle(row)) break;
-            if (row.at(-1) === '') row.pop();
-            addRow(row);
-            if (++i >= dataTable.schedule.length) break outer;
+        const buffer = [];
+        for (const [i, row] of dayInfo.schedule.entries()) {
+          const isSubtitle = !row.slice(1).some(Boolean);
+          if (isSubtitle) {
+            if (buffer.length > 0) addBuffer(buffer);
+            addTitle(row[0], 'subtitle');
+          } else {
+            buffer.push(row.map(r => (r === undefined) ? '' : r));
           }
         }
+        if (buffer.length > 0) addBuffer(buffer);
       }
       
       // Macros (write:outer)
@@ -865,8 +797,12 @@
         objSet(categoryData, parseCategoryPage(load('categoryData') || ''));
         eventData.set(parseDataPage(load('eventData') || ''));
         currentTab = Number(localStorage.getItem('currentTab') || currentTab);
-        const sessionDate = sessionStorage.getItem('currentDate');
-        windows[0].date = sessionDate ? new Date(sessionDate) : new Date();
+        let sessionDate = sessionStorage.getItem('currentDate');
+        sessionDate = sessionDate ? new Date(sessionDate) : new Date();
+        for (const w of windows) {
+          w.date.setTime(sessionDate);
+        }
+        selectTab(currentTab);
       }
       function fetchData(sheetID, gids) {
         const urls = [];
@@ -884,8 +820,8 @@
           localStorage.setItem(sheetID + 'eventData', data[0]);
           localStorage.setItem(sheetID + 'categoryData', data[1]);
         }).catch(error => {
-          alert('Error fetching spreadsheet data', 2000);
           console.log(error);
+          alert('Error fetching spreadsheet data', 2000);
         });
       }
       function togglePrintView() {
@@ -916,7 +852,8 @@
           navigator.clipboard.writeText(schedule.join('\n'))
             .then(() => alert('Copied to Clipboard', 2000))
             .catch(() => alert('Error copying to Clipboard', 2000));
-        } catch {
+        } catch (error) {
+          console.log(error);
           alert('Error copying to Clipboard', 2000);
         }
       }
@@ -1114,72 +1051,75 @@
           this.rows.length = 0;
           this.elem.innerHTML = '';
           this.elem.className = ['day', 'month', 'year'][currentTab];
-          switch (currentTab) {
-            case 0:
-              const key = toDateStr(date);
-              const weekday = dayNames[date.getDay()];
-              const dataTable = getData(key);
-              addSpan(this.elem, `${dataTable.title}`, 'title');
-              let span = addSpan(this.elem, `${weekday} ${key}`, 'subtitle');
-              span.style.paddingTop = '0';
-              if (dataTable.notes) {
-                span = addSpan(this.elem, dataTable.notes, 'subtitle');
-              }
-              for (let [i, params] of dataTable.schedule.entries()) {
-                const [description, location, startTime, endTime, instructors] = params;
-                const timeRange = startTime + ' - ' + endTime;
-                const row = addDiv(this.elem, 'row');
-                this.rows.push(row);
-                const isSubtitle = !params.slice(1).some(Boolean);
-                if (isSubtitle) {
-                  span = addSpan(row, description, 'subtitle');
-                  span.style.color = palette[i % palette.length];
-                } else {
-                  const paddingTop = span.classList.contains('subtitle') ? '1.5em' : '';
-                  for (const item of [description, location, timeRange, instructors]) {
-                    span = addSpan(row, item);
-                    span.style.color = location? palette[i % palette.length] : 'white';
-                    if (paddingTop) span.style.paddingTop = paddingTop;
-                  }
-                }
-              }
-              addSpan(this.elem, '', 'title');
-              break;
-            case 1:
-              addSpan(this.elem, 'Events\n\n', 'title');
-              const firstDay = startOfMonth(date);
-              const lastDay = endOfMonth(date);
-              let day = firstDay;
-              while (day <= lastDay) {
-                const key = toDateStr(day);
-                const dayInfo = eventData.get(key);
-                addTime(day, 'day', 1);
-                if (dayInfo) {
-                  const {title, categories} = dayInfo;
-                  if (categories.includes('Classes')) continue;
-                  const row = addDiv(this.elem, 'row');
-                  this.rows.push(row);
-                  const k = addSpan(row, key);
-                  const e = addSpan(row, title);
-                  k.style.color = categoryData[categories.at(-1)] || 'white';
-                  e.style.color = categoryData[categories.at(-1)] || 'white';
-                  k.style.textAlign = 'right';
+          if (currentTab === 0) {
+            const key = toDateStr(date);
+            const weekday = dayNames[date.getDay()];
+            const dayInfo = getData(key);
+            let grid = null;
+            addSpan(this.elem, `${dayInfo.title}`, 'title');
+            let span = addSpan(this.elem, `${weekday} ${key}`, 'subtitle');
+            span.style.paddingTop = '0';
+            if (dayInfo.notes) {
+              span = addSpan(this.elem, dayInfo.notes, 'subtitle');
+            }
+            for (const [i, params] of dayInfo.schedule.entries()) {
+              const [description, location, startTime, endTime, instructors] = params;
+              const timeRange = startTime + ' - ' + endTime;
+              const isSubtitle = !params.slice(1).some(Boolean);
+              if (isSubtitle) {
+                grid = null;
+                span = addSpan(this.elem, description, 'subtitle');
+                span.style.color = palette[i % palette.length];
+                this.rows.push(span);
+              } else {
+                let paddingTop = '';
+                if (!grid) {
+                  grid = addDiv(this.elem, 'grid');
+                  paddingTop = '1.5 em';
                 };
-              }
-              addSpan(this.elem, '', 'title');
-              break;
-            case 2:
-              addSpan(this.elem, 'Legend\n\n', 'title');
-              for (const [name, color] of Object.entries(categoryData)) {
-                const row = addDiv(this.elem, 'row');
+                const row = addDiv(grid, 'row');
+                for (const item of [description, location, timeRange, instructors]) {
+                  span = addSpan(row, item);
+                  span.style.color = location? palette[i % palette.length] : 'white';
+                  if (paddingTop) span.style.paddingTop = paddingTop;
+                }
                 this.rows.push(row);
-                const c = addDiv(row, 'color-box');
-                const n = addSpan(row, name);
-                c.style.color = color;
-                n.style.color = color;
               }
-              addSpan(this.elem, '', 'title');
-              break;
+            }
+          }
+          else if (currentTab === 1) {
+            addSpan(this.elem, 'Events', 'title');
+            const grid = addDiv(this.elem, 'grid');
+            const firstDay = startOfMonth(date);
+            const lastDay = endOfMonth(date);
+            let day = firstDay;
+            while (day <= lastDay) {
+              const key = toDateStr(day);
+              const dayInfo = eventData.get(key);
+              addTime(day, 'day', 1);
+              if (dayInfo) {
+                const {title, categories} = dayInfo;
+                if (categories.filter(c => c !== 'Classes').length === 0) continue;
+                const row = addDiv(grid, 'row');
+                this.rows.push(row);
+                const k = addSpan(row, key);
+                const e = addSpan(row, title);
+                k.style.color = categoryData[categories.at(-1)] || 'white';
+                e.style.color = categoryData[categories.at(-1)] || 'white';
+                k.style.textAlign = 'right';
+              };
+            }
+          } else if (currentTab === 2) {
+            addSpan(this.elem, 'Legend', 'title');
+            const grid = addDiv(this.elem, 'grid');
+            for (const [name, color] of Object.entries(categoryData)) {
+              const row = addDiv(grid, 'row');
+              this.rows.push(row);
+              const c = addDiv(row, 'color-box');
+              const n = addSpan(row, name);
+              c.style.color = color;
+              n.style.color = color;
+            }
           }
         }
       }
@@ -1246,13 +1186,13 @@
         }
         
         render() {
-          const dataTable = getData(toDateStr(this.date));
+          const dayInfo = getData(toDateStr(this.date));
           this.top.replaceChildren(this.top.firstElementChild)
           this.bottom.replaceChildren(this.bottom.firstElementChild)
           this.events.length = 0;
           let [startHour, endHour] = [14, 0];
           const locations = [];
-          for (const [name, location, start, end] of dataTable.schedule) {
+          for (const [name, location, start, end] of dayInfo.schedule) {
             if (!start || !end) continue;
             startHour = Math.floor(Math.min(startHour, strToHours(start)));
             endHour = Math.ceil(Math.max(endHour, strToHours(end)));
@@ -1267,7 +1207,7 @@
           endHour = Math.max(endHour, startHour + 7);
           this.buildGridRows(startHour, endHour);
           const count = endHour - startHour + 1;
-          for (let [i, [name, location, start, end]] of dataTable.schedule.entries()) {
+          for (let [i, [name, location, start, end]] of dayInfo.schedule.entries()) {
             let index = locations.indexOf(location) + 1;
             const block = addDiv(this.bottom, 'event');
             this.events.push(block);
@@ -1331,7 +1271,8 @@
             box.classList.toggle('today', isActive && key==today);
             box.classList.toggle('selected', isActive && key==selected);
             if (data.categories.length > 0 && isActive) {
-              if (!data.categories.includes('Classes')) this.events.push(box);
+              if (data.categories.filter(c => c !== 'Classes').length > 0)
+                this.events.push(box);
               nameText.innerText = data.title;
               box.style.backgroundColor = categoryData[data.categories.at(-1)];
             } else {
@@ -1550,8 +1491,6 @@
       const hoverLinker = new HoverLinker();
       
       loadCachedData(sheetID);
-      syncDates();
-      selectTab(currentTab);
       fetchData(sheetID, gids);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
