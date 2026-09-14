@@ -43,11 +43,12 @@
         display: flex;
         position: absolute;
         right: 0;
-      }
-      .icons svg {
-        cursor: pointer;
-        margin: 6px;
-        width: 24px;
+      
+        & svg {
+          cursor: pointer;
+          margin: 6px;
+          width: 24px;
+        }
       }
       .divider {
         position: absolute;
@@ -99,59 +100,58 @@
         border: 1px solid gray;
         border-radius: 6px;
         overflow: auto;
-        scrollbar-color: white var(--bg-color-2);
+        scrollbar-color: white transparent;
       }
       #display-window {
         padding: 15px 10px;
         justify-content: center;
-      }
-      #display-window .grid {
-        display: inline-grid;
-        text-align: left;
-        font-size: var(--font-size-1);
-        padding-top: 1.5em;
-      }
-      #display-window .grid .row {
-        display: contents;
-        cursor: default;
-      }
-      #display-window .grid .row.isHovering span {
-        text-shadow: 0px 0px 5px currentColor;
-      }
-      #display-window .grid .row.isHovering .color-box {
-        box-shadow: 0px 0px 5px currentColor;
-      }
-      #display-window .title,
-      #display-window .subtitle {
-        display: block;
-        text-align: center;
-        text-wrap: balance;
-      }
-      #display-window .title {
-        padding: 0.5em 0.8em;
-        color: white;
-        font-size: var(--font-size-3);
-      }
-      #display-window .subtitle {
-        padding: 1.5em 1.5em 0 1.5em;
-        color: lightgray;
-        font-size: var(--font-size-1);
-      }
-      #display-window .grid span {
-        padding: 0.5em 0.8em;
-      }
-      #display-window.day .grid {
-        grid-template-columns: fit-content(40%) max-content max-content 1fr;
-        text-wrap: balance;
-      }
-      #display-window.month .grid,
-      #display-window.year .grid {
-        grid-template-columns: max-content 1fr;
-      }
-      #display-window.year .grid .color-box {
-        aspect-ratio: 1;
-        margin: 5px;
-        background-color: currentColor;
+      
+        & .grid {
+          display: inline-grid;
+          text-align: left;
+          font-size: var(--font-size-1);
+          padding-top: 1.5em;
+        }
+        & .grid .row {
+          display: contents;
+          cursor: default;
+        }
+        & .grid .row.isHovering span {
+          text-shadow: 0px 0px 5px currentColor;
+        }
+        & .grid .row.isHovering .color-box {
+          box-shadow: 0px 0px 5px currentColor;
+        }
+        & .title,
+        & .subtitle {
+          display: block;
+          text-align: center;
+          text-wrap: balance;
+          color: white;
+        }
+        & .title {
+          padding: 0.5em 0.8em;
+          font-size: var(--font-size-3);
+        }
+        & .subtitle {
+          padding: 1.5em 1.5em 0 1.5em;
+          font-size: var(--font-size-1);
+        }
+        & .grid span {
+          padding: 0.5em 0.8em;
+        }
+        &.day .grid {
+          grid-template-columns: fit-content(40%) max-content max-content 1fr;
+        }
+        &.month .grid,
+        &.year .grid {
+          grid-template-columns: max-content 1fr;
+        }
+        &.year .grid .color-box {
+          aspect-ratio: 1;
+          margin: 5px;
+          background-color: currentColor;
+        }
       }
       #attribution {
         color: lightgray;
@@ -161,7 +161,7 @@
         font-size: var(--font-size-0);
       }
       #sheets-link {
-        color: #76ff9a
+        color: #76ff9a;
       }
       #section-2 {
         position: relative;
@@ -175,53 +175,54 @@
         justify-content: space-between;
         align-items: center;
         height: 10%;
-        padding: 0 10px;
+        padding: 10px;
         text-align: center;
         font-weight: bold;
         font-size: var(--font-size-4);
-      }
-      #window-banner .radio-buttons {
-        display: inline-grid;
-        grid-template-columns: repeat(3, max-content);
-        gap: 4px;
-      }
-      #window-banner .button {
-        color: black;
-        cursor: pointer;
-        font-size: var(--font-size-2);
-        font-weight: bold;
-        border: 1px solid gray;
-        border-radius: 6px;
-        box-shadow: 2px 2px 1px gray;
-        transform: translate(-2px, -2px);
-        background-image: linear-gradient(to bottom, white, lightgray);
-        padding: 5px;
-      }
-      #window-banner .button:hover {
-        box-shadow: 2px 2px 3px dimgray;
-      }
-      #window-banner .button:active,
-      #window-banner .button.selected {
-        transform: none;
-        box-shadow: inset 1px 1px 1px gray;
-        background-image: linear-gradient(to bottom, lightgray, white);
-      }
-      #window-banner .header {
-        display: flex;
-        position: absolute;
-        left: 50%;
-        width: 33%;
-        transform: translate(-50%, 0);
-        justify-content: space-between;
-        align-items: center;
-      }
-      #window-banner .header .nav-btn {
-        font-size: var(--font-size-5);
-        transform: translate(0, -7%);
-      }
-      #window-banner .header .nav-btn:hover {
-        cursor: pointer;
-        text-shadow: 0 0 5px dimgray;
+      
+        & .radio-buttons {
+          display: grid;
+          grid-template-columns: repeat(3, max-content);
+          gap: 4px;
+        }
+        & .button {
+          color: black;
+          cursor: pointer;
+          font-size: var(--font-size-2);
+          font-weight: bold;
+          border: 1px solid gray;
+          border-radius: 6px;
+          box-shadow: 2px 2px 1px gray;
+          transform: translate(-2px, -2px);
+          background-image: linear-gradient(to bottom, white, lightgray);
+          padding: 5px;
+        }
+        & .button:hover {
+          box-shadow: 2px 2px 3px dimgray;
+        }
+        & .button:active,
+        & .button.selected {
+          transform: none;
+          box-shadow: inset 1px 1px 1px gray;
+          background-image: linear-gradient(to bottom, lightgray, white);
+        }
+        & .header {
+          display: flex;
+          position: absolute;
+          left: 50%;
+          width: 33%;
+          transform: translate(-50%, 0);
+          justify-content: space-between;
+          align-items: center;
+        }
+        & .header .nav-btn {
+          font-size: var(--font-size-5);
+          transform: translate(0, -7%);
+        }
+        & .header .nav-btn:hover {
+          cursor: pointer;
+          text-shadow: 0 0 5px dimgray;
+        }
       }
       #windows {
         position: absolute;
@@ -231,212 +232,216 @@
       #day-window {
         height: 100%;
         display: none;
-      }
-      #day-window.selected {
-        display: block;
-      }
-      #day-window .top {
-        height: 6%;
-        font-size: var(--font-size-2);
-        font-weight: bold;
-        align-content: center;
-        background-image: linear-gradient(to bottom, lightcyan, lightblue);
-      }
-      #day-window .top .header {
-        display: inline-block;
-        position: absolute;
-        text-align: center;
-        width: 15%;
-      }
-      #day-window .top .first-header {
-        display: inline-block;
-        text-align: right;
-        width: 7%;
-      }
-      #day-window .bottom {
-        position: relative;
-        height: 94%;
-        font-size: var(--font-size-2);
-      }
-      #day-window .grid {
-        display: grid;
-        height: 100%;
-        grid-template-columns: 1fr;
-      }
-      #day-window .grid .row {
-        align-content: center;
-      }
-      #day-window .grid .side-header {
-        display: inline-block;
-        text-align: right;
-        white-space: nowrap;
-        width: 7%;
-      }
-      #day-window .bottom .event {
-        display: inline-block;
-        position: absolute;
-        text-align: center;
-        text-wrap: balance;
-        align-content: center;
-        overflow: scroll;
-        scrollbar-width: none;
-        border: 1px solid #FFFFFF00;
-        border-radius: 6px;
-        width: 15%;
-        padding: 0px 6px;
-      }
-      #day-window .bottom .event.isHovering {
-        box-shadow: 1px 1px 3px black;
-        border: 1px solid black;
-        z-index: 1;
-      }
-      #day-window .bottom .time-indicator {
-        position: absolute;
-        width: 100%;
-        height: 0px;
-        border: 1px dashed black;
-        text-align: right;
-        pointer-events: none;
-        z-index: 2;
-      }
-      #day-window .bottom .time-indicator span {
-        position: absolute;
-        transform: translate(-100%, -100%);
-        text-wrap: nowrap;
+      
+        &.selected {
+          display: block;
+        }
+        & .top {
+          height: 6%;
+          font-size: var(--font-size-2);
+          font-weight: bold;
+          align-content: center;
+          background-image: linear-gradient(to bottom, lightcyan, lightblue);
+        }
+        & .top .header {
+          display: inline-block;
+          position: absolute;
+          text-align: center;
+          width: 15%;
+        }
+        & .top .first-header {
+          display: inline-block;
+          text-align: right;
+          width: 7%;
+        }
+        & .bottom {
+          position: relative;
+          height: 94%;
+          font-size: var(--font-size-2);
+        }
+        & .grid {
+          display: grid;
+          height: 100%;
+          grid-template-columns: 1fr;
+        }
+        & .grid .row {
+          align-content: center;
+        }
+        & .grid .side-header {
+          display: inline-block;
+          text-align: right;
+          white-space: nowrap;
+          width: 7%;
+        }
+        & .bottom .event {
+          display: inline-block;
+          position: absolute;
+          text-align: center;
+          text-wrap: balance;
+          align-content: center;
+          overflow: scroll;
+          scrollbar-width: none;
+          border: 1px solid #FFFFFF00;
+          border-radius: 6px;
+          width: 15%;
+          padding: 0px 6px;
+        }
+        & .bottom .event.isHovering {
+          box-shadow: 1px 1px 3px black;
+          border: 1px solid black;
+          z-index: 1;
+        }
+        & .bottom .time-indicator {
+          position: absolute;
+          width: 100%;
+          height: 0px;
+          border: 1px dashed black;
+          text-align: right;
+          pointer-events: none;
+          z-index: 2;
+        }
+        & .bottom .time-indicator span {
+          position: absolute;
+          transform: translate(-100%, -100%);
+          text-wrap: nowrap;
+        }
       }
       #month-window {
         display: none;
         height: 100%;
-      }
-      #month-window.selected {
-        display: block;
-      }
-      #month-window .day-header {
-        display: grid;
-        height: 5%;
-        grid-template-columns: repeat(7, 1fr);
-      }
-      #month-window .day-header-item {
-        align-content: center;
-        text-align: center;
-        font-size: var(--font-size-1);
-        background-image: linear-gradient(to bottom, lightcyan, lightblue);
-        border: 1px solid lightgray;
-        padding: 2px;
-      }
-      #month-window .grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        grid-template-rows: repeat(6, 1fr);
-        height: 95%;
-      }
-      #month-window .grid .box {
-        position: relative;
-        padding: 4px;
-        border: 1px solid lightgray;
-        background-color: white;
-        font-size: var(--font-size-1);
-      }
-      #month-window .grid .box .date {
-        position: absolute;
-      }
-      #month-window .grid .box .name {
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        align-content: center;
-      }
-      #month-window .grid .box.inactive {
-        color: #888;
-        background-color: #ccc;
-      }
-      #month-window .grid .box:hover,
-      #month-window .grid .box.isHovering {
-        cursor: pointer;
-        box-shadow: 1px 1px 3px black;
-        border: 1px solid black;
-        z-index: 1;
-      }
-      #month-window .grid .box.selected {
-        border: 1px solid black;
-      }
-      #month-window .grid .box.today {
-        border: 2px solid black;
-      }
-      #month-window .grid .box.today .date {
-        font-weight: bold;
+      
+        &.selected {
+          display: block;
+        }
+        & .day-header {
+          display: grid;
+          height: 5%;
+          grid-template-columns: repeat(7, 1fr);
+        }
+        & .day-header-item {
+          align-content: center;
+          text-align: center;
+          font-size: var(--font-size-1);
+          background-image: linear-gradient(to bottom, lightcyan, lightblue);
+          border: 1px solid lightgray;
+          padding: 2px;
+        }
+        & .grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          grid-template-rows: repeat(6, 1fr);
+          height: 95%;
+        }
+        & .grid .box {
+          position: relative;
+          padding: 4px;
+          border: 1px solid lightgray;
+          background-color: white;
+          font-size: var(--font-size-1);
+        }
+        & .grid .box .date {
+          position: absolute;
+        }
+        & .grid .box .name {
+          width: 100%;
+          height: 100%;
+          text-align: center;
+          align-content: center;
+          text-wrap: balance;
+        }
+        & .grid .box.inactive {
+          color: #888;
+          background-color: #ccc;
+        }
+        & .grid .box:hover,
+        & .grid .box.isHovering {
+          cursor: pointer;
+          box-shadow: 1px 1px 3px black;
+          border: 1px solid black;
+          z-index: 1;
+        }
+        & .grid .box.selected {
+          border: 1px solid black;
+        }
+        & .grid .box.today {
+          border: 2px solid black;
+        }
+        & .grid .box.today .date {
+          font-weight: bold;
+        }
       }
       #year-window {
         display: none;
         height: 100%;
         background-color: lightgray;
-      }
-      #year-window.selected {
-        display: block;
-      }
-      #year-window .grid {
-        display: grid;
-        margin-left: auto;
-        height: 100%;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        padding: 3px;
-        gap: 3px;
-      }
-      #year-window .grid .month {
-        border: 1px solid black;
-        box-shadow: 1px 1px 2px black;
-      }
-      #year-window .grid .month:hover {
-        box-shadow: 1px 1px 5px black;
-        cursor: pointer;
-      }
-      #year-window .grid .month .banner {
-        font-size: var(--font-size-1);
-        font-weight: bold;
-        text-align: center;
-        align-content: center;
-        background-image: linear-gradient(to bottom, white, lightgray);
-        height: 10%;
-      }
-      #year-window .grid .month .mgrid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        grid-template-rows: repeat(7, 1fr);
-        font-size: var(--font-size-1);
-        text-align: center;
-        height: 90%;
-      }
-      #year-window .grid .month .mgrid .day-name {
-        background-image: linear-gradient(to bottom, lightcyan, lightblue);
-        border: 1px solid lightgray;
-        align-content: center;
-      }
-      #year-window .grid .month .mgrid .date {
-        position: relative;
-        background-color: white;
-        border: 1px solid lightgray;
-        align-content: center;
-      }
-      #year-window .grid .month .mgrid .date.isHovering {
-        box-shadow: 1px 1px 2px black;
-        z-index: 1;
-      }
-      #year-window .grid .month .mgrid .date:hover,
-      #year-window .grid .month .mgrid .date.selected {
-        cursor: pointer;
-        border: 1px solid black;
-      }
-      #year-window .grid .month .mgrid .date.selected:hover {
-        cursor: pointer;
-        border: 2px solid black;
-      }
-      #year-window .grid .month .mgrid .date.today {
-        border: 2px solid black;
-        font-weight: bold;
-      }
-      #year-window .grid .month .mgrid .date.today:hover {
-        border: 3px solid black;
+      
+        &.selected {
+          display: block;
+        }
+        & .grid {
+          display: grid;
+          margin-left: auto;
+          height: 100%;
+          grid-template-columns: repeat(4, 1fr);
+          grid-template-rows: repeat(3, 1fr);
+          padding: 3px;
+          gap: 3px;
+        }
+        & .grid .month {
+          border: 1px solid black;
+          box-shadow: 1px 1px 2px black;
+        }
+        & .grid .month:hover {
+          box-shadow: 1px 1px 5px black;
+          cursor: pointer;
+        }
+        & .grid .month .banner {
+          font-size: var(--font-size-1);
+          font-weight: bold;
+          text-align: center;
+          align-content: center;
+          background-image: linear-gradient(to bottom, white, lightgray);
+          height: 10%;
+        }
+        & .grid .month .mgrid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          grid-template-rows: repeat(7, 1fr);
+          font-size: var(--font-size-1);
+          text-align: center;
+          height: 90%;
+        }
+        & .grid .month .mgrid .day-name {
+          background-image: linear-gradient(to bottom, lightcyan, lightblue);
+          border: 1px solid lightgray;
+          align-content: center;
+        }
+        & .grid .month .mgrid .date {
+          position: relative;
+          background-color: white;
+          border: 1px solid lightgray;
+          align-content: center;
+        }
+        & .grid .month .mgrid .date.isHovering {
+          box-shadow: 1px 1px 2px black;
+          z-index: 1;
+        }
+        & .grid .month .mgrid .date:hover,
+        & .grid .month .mgrid .date.selected {
+          cursor: pointer;
+          border: 1px solid black;
+        }
+        & .grid .month .mgrid .date.selected:hover {
+          cursor: pointer;
+          border: 2px solid black;
+        }
+        & .grid .month .mgrid .date.today {
+          border: 2px solid black;
+          font-weight: bold;
+        }
+        & .grid .month .mgrid .date.today:hover {
+          border: 3px solid black;
+        }
       }
       #print-container {
         display: none;
@@ -444,34 +449,37 @@
         text-align: center;
         text-wrap: balance;
         margin: 0;
-      }
-      #print-container .title {
-        font-size: 28px;
-        font-weight: bold;
-        padding: 5px;
-      }
-      #print-container .subtitle {
-        font-size: 20px;
-        padding-top: 1.5em;
-      }
-      #print-container table {
-        display: inline-block;
-        text-align: left;
-        font-size: 16px;
-        padding-top: 1.5em;
-        border-collapse: collapse;
-      }
-      #print-container th, #print-container td {
-        border: 1px solid black;
-        padding: 8px;
-      }
-      #print-container td:nth-child(2),
-      #print-container td:nth-child(3),
-      #print-container td:nth-child(4) {
-        white-space: nowrap;
-      }
-      #print-container th {
-        text-wrap: nowrap;
+      
+        & .title {
+          font-size: 28px;
+          font-weight: bold;
+          padding: 5px;
+        }
+        & .subtitle {
+          font-size: 20px;
+          padding-top: 1.5em;
+        }
+        & table {
+          display: inline-block;
+          text-align: left;
+          font-size: 16px;
+          padding-top: 1.5em;
+          border-collapse: collapse;
+        }
+        & th,
+        & td {
+          border: 1px solid black;
+          padding: 8px;
+          max-width: 300px;
+        }
+        & td:nth-child(2),
+        & td:nth-child(3),
+        & td:nth-child(4) {
+          white-space: nowrap;
+        }
+        & th {
+          text-wrap: nowrap;
+        }
       }
       @media (orientation: portrait) {
         :root {
@@ -653,6 +661,14 @@
           if (line[0].startsWith('#')) continue;
           if (!line.some(Boolean)) continue;
           yield line;
+        }
+      }
+      function* loop(array) {
+        if (array.length === 0) return;
+        let i = 0;
+        while (true) {
+          yield array[i++];
+          if (i === array.length) i = 0;
         }
       }
       function parseCategoryPage(data) {
@@ -1048,6 +1064,7 @@
         
         render() {
           const date = windows[currentTab].date;
+          const colors = loop(palette);
           this.rows.length = 0;
           this.elem.innerHTML = '';
           this.elem.className = ['day', 'month', 'year'][currentTab];
@@ -1059,17 +1076,17 @@
             addSpan(this.elem, `${dayInfo.title}`, 'title');
             let span = addSpan(this.elem, `${weekday} ${key}`, 'subtitle');
             span.style.paddingTop = '0';
+            span.style.color = 'lightgray';
             if (dayInfo.notes) {
               span = addSpan(this.elem, dayInfo.notes, 'subtitle');
             }
-            for (const [i, params] of dayInfo.schedule.entries()) {
+            for (const params of dayInfo.schedule) {
               const [description, location, startTime, endTime, instructors] = params;
               const timeRange = startTime + ' - ' + endTime;
               const isSubtitle = !params.slice(1).some(Boolean);
               if (isSubtitle) {
                 grid = null;
                 span = addSpan(this.elem, description, 'subtitle');
-                span.style.color = palette[i % palette.length];
                 this.rows.push(span);
               } else {
                 let paddingTop = '';
@@ -1078,16 +1095,16 @@
                   paddingTop = '1.5 em';
                 };
                 const row = addDiv(grid, 'row');
+                const color = colors.next().value;
                 for (const item of [description, location, timeRange, instructors]) {
                   span = addSpan(row, item);
-                  span.style.color = location? palette[i % palette.length] : 'white';
+                  span.style.color = location? color : 'white';
                   if (paddingTop) span.style.paddingTop = paddingTop;
                 }
                 this.rows.push(row);
               }
             }
-          }
-          else if (currentTab === 1) {
+          } else if (currentTab === 1) {
             addSpan(this.elem, 'Events', 'title');
             const grid = addDiv(this.elem, 'grid');
             const firstDay = startOfMonth(date);
@@ -1187,6 +1204,7 @@
         
         render() {
           const dayInfo = getData(toDateStr(this.date));
+          const colors = loop(palette);
           this.top.replaceChildren(this.top.firstElementChild)
           this.bottom.replaceChildren(this.bottom.firstElementChild)
           this.events.length = 0;
@@ -1207,7 +1225,7 @@
           endHour = Math.max(endHour, startHour + 7);
           this.buildGridRows(startHour, endHour);
           const count = endHour - startHour + 1;
-          for (let [i, [name, location, start, end]] of dayInfo.schedule.entries()) {
+          for (let [name, location, start, end] of dayInfo.schedule) {
             let index = locations.indexOf(location) + 1;
             const block = addDiv(this.bottom, 'event');
             this.events.push(block);
@@ -1221,7 +1239,7 @@
             block.style.top = `${100*offset/count}%`;
             block.style.left = `${15*index-6}%`
             block.style.height = `${100*duration/count}%`;
-            block.style.backgroundColor = palette[i % palette.length];
+            block.style.backgroundColor = colors.next().value;
             block.innerText = name;
             if (!location) {
               block.style.left = `${15-6}%`
@@ -1472,6 +1490,9 @@
       const params = new URLSearchParams(window.location.search);
       const sheetID = params.get('sheetid') || '1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
       const gids = [0, 1588629629]
+      
+      const section1 = document.getElementById('section-1')
+      const section2 = document.getElementById('section-2')
       const sheetsLink = document.getElementById('sheets-link');
       sheetsLink.href = `https://docs.google.com/spreadsheets/d/${sheetID}`
       const displayWindow = new DisplayWindow(document.getElementById('display-window'));
@@ -1484,10 +1505,7 @@
         new MonthWindow(document.getElementById('month-window')),
         new YearWindow(document.getElementById('year-window'), 6),
       ];
-      const divider = new Divider(
-        document.getElementById('section-1'),
-        document.getElementById('section-2'),
-      );
+      const divider = new Divider(section1, section2);
       const hoverLinker = new HoverLinker();
       
       loadCachedData(sheetID);
