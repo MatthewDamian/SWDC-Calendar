@@ -23,6 +23,7 @@ Entries on this tab may have one of two formats: **Day-Level** (representing an 
   - the category determines the **color** on the month and year tabs
   - multiple categories may be applied to a given day (separated by commas), but only the last category determines the color
 - **Notes** may be any text.  These are visible on the **day** tab.
+- If two entries are applied to the same day, the latter overrides the former, unless you prepend the **Date** field with an **&** symbol, in which case the latter is added on to the former.
 
 **Event-Level** entries contain a **Description**, **Location**, **Start time**, **End time**, and **Instructors** (Columns B, C, D, E, F.  Column A must be blank.)
 - These entries populate the **day** tab on the **Day-Level** entry that preceded it
