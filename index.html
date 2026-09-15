@@ -582,6 +582,13 @@
       function clamp(num, min, max) {
         return Math.min(Math.max(num, min), max);
       }
+      function checkPrefix(prefix, text) {
+        if (text.startsWith(prefix)) {
+          return [true, text.slice(prefix.length)];
+        } else {
+          return [false, text];
+        }
+      }
       function isValidDate(dateStr) {
         return !isNaN(new Date(dateStr).getTime());
       }
@@ -639,10 +646,10 @@
         }
         return [...parent.children].indexOf(child);
       }
-      function* csvLines(csvData) {
+      function* csvLines(csvString) {
         const lineRegex = /(?:[^"\r\n]|"(?:""|[^"])*")+/g;
         const columnRegex = /("(?:[^"]|"")*"|[^,]*)(?:,|$)/g;
-        for (const lineMatch of csvData.matchAll(lineRegex)) {
+        for (const lineMatch of csvString.matchAll(lineRegex)) {
           const csvLine = lineMatch[0];
           const columns = [];
           for (const colMatch of csvLine.matchAll(columnRegex)) {
@@ -655,6 +662,14 @@
           if (!csvLine.endsWith(',')) columns.pop();
           yield columns;
         }
+      }
+      function toCsvString(csvData) {
+        return csvData.map(row => {
+          return row.map(cell => {
+            const isEscaped = /[,\n\r"]/.test(cell);
+            return isEscaped ? `"${cell.replace(new RegExp('"','g'),'""')}"` : cell;
+          }).join(',');
+        }).join('\n');
       }
       function* dataLines(csvData) {
         for (let line of csvLines(csvData)) {
@@ -672,6 +687,9 @@
           yield array[i++];
         }
       }
+      function fetchSheet(sheetID, gid) {
+        return fetch(`https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`);
+      }
       function parseCategoryPage(data) {
         const result = {};
         for (const [name, color] of dataLines(data)) {
@@ -683,14 +701,14 @@
         const entries = [];
         let day;
         for (const [first, ...rest] of dataLines(data)) {
-          const identifier = titleCase(first);
+          const [added, identifier] = checkPrefix('&', titleCase(first));
           if (isValidDateRange(identifier)) {
             day = '';
             const [start, end] = getDateRange(identifier);
             let [title, categories, notes] = rest;
             title = titleCase(title);
             categories = titleCase(categories).split(',').map(s => s.trim());
-            entries.push(new DayEntry(start, end, title, categories, notes));
+            entries.push(new DayEntry(start, end, title, categories, notes, {added: added}));
           } else if (entries.length === 0) {
             continue;
           } else {
@@ -809,10 +827,10 @@
       
       // Macros (write:outer)
       
-      function loadCachedData(sheetID) {
+      function updateFromCache(sheetID) {
         const load = s => localStorage.getItem(sheetID + s);
-        objSet(categoryData, parseCategoryPage(load('categoryData') || ''));
-        eventData.set(parseDataPage(load('eventData') || ''));
+        eventData.setEvents(parseDataPage(load('eventData') || ''));
+        eventData.setCategories(parseCategoryPage(load('categoryData') || ''));
         currentTab = Number(localStorage.getItem('currentTab') || currentTab);
         let sessionDate = sessionStorage.getItem('currentDate');
         sessionDate = sessionDate ? new Date(sessionDate) : new Date();
@@ -821,23 +839,26 @@
         }
         selectTab(currentTab);
       }
-      function fetchData(sheetID, gids) {
-        const urls = [];
-        for (const g of gids) {
-          urls.push(`https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${g}`);
-        }
-        const promises = urls.map(url => fetch(url).then(r => r.ok ? r.text() : null));
-        Promise.all(promises).then(data => {
-          if (data.some(d => d === null)) throw new Error();
-          eventData.set(parseDataPage(data[0]));
-          objSet(categoryData, parseCategoryPage(data[1]));
+      function updateFromSheet(sheetID, gidList) {
+        const responses = gidList.map(gid => fetchSheet(sheetID, gid));
+        Promise.all(responses).then(rList => {
+          if (rList.some(r => !r.ok)) throw new Error();
+          return Promise.all(rList.map(r => r.text()));
+        }).then(data => {
+          eventData.setEvents(parseDataPage(data[0]));
+          eventData.setCategories(parseCategoryPage(data[1]));
           refresh();
           localStorage.clear();
           localStorage.setItem('currentTab', currentTab);
-          localStorage.setItem(sheetID + 'eventData', data[0]);
-          localStorage.setItem(sheetID + 'categoryData', data[1]);
+          const start = windows[2].getFirstDay();
+          const end = windows[2].getLastDay();
+          const eventCsv = eventData.entries
+            .filter(e => e.startDate <= end && e.endDate >= start)
+            .map(e => e.toArray()).map(e => toCsvString(e)).join('\n');
+          const categoryCsv = toCsvString(Object.entries(eventData.categories));
+          localStorage.setItem(sheetID + 'eventData', eventCsv);
+          localStorage.setItem(sheetID + 'categoryData', categoryCsv);
         }).catch(error => {
-          console.log(error);
           alert('Error fetching spreadsheet data', 2000);
         });
       }
@@ -956,12 +977,13 @@
       }
       
       class DayEntry {
-        constructor(startDate, endDate, title, categories, notes) {
+        constructor(startDate, endDate, title, categories, notes, flags) {
           this.startDate = startDate;
           this.endDate = endDate;
           this.title = title;
           this.categories = categories;
           this.notes = notes;
+          this.flags = flags || {};
           this.schedule = {};
         }
         
@@ -977,11 +999,8 @@
           const schedule = [];
           const day = dayNames[date.getDay()];
           const keys = Object.keys(this.schedule);
-          for (const [key, value] of Object.entries(this.schedule)) {
-            if (key === '' || key === day) {
-              schedule.push(...value);
-            }
-          }
+          if (keys.includes('')) schedule.push(...this.schedule['']);
+          if (keys.includes(day)) schedule.push(...this.schedule[day]);
           return new DayInfo(this.title, this.categories, this.notes, schedule);
         }
         
@@ -990,6 +1009,22 @@
           return keys.length === 0
             || keys.includes('')
             || keys.includes(dayNames[date.getDay()]);
+        }
+        
+        toArray() {
+          const rows = [];
+          rows.push(['', this.title, this.categories.join(','), this.notes]);
+          rows[0][0] = toDateStr(this.startDate) + '-' + toDateStr(this.endDate);
+          if (this.flags.added) rows[0][0] = '&' + rows[0][0];
+          let prevKey = '';
+          for (const [key, entries] of Object.entries(this.schedule)) {
+            const i = rows.length;
+            for (const row of entries) {
+              rows.push(['', ...row]);
+            }
+            rows[i][0] = key;
+          }
+          return rows;
         }
       }
       
@@ -1001,17 +1036,11 @@
           this.schedule = schedule || [];
         }
         
-        static combine(...dayInfoArray) {
-          const titles = [];
-          const categories = [];
-          const notes = [];
-          let schedule = [];
-          for (const info of dayInfoArray) {
-            titles.push(info.title);
-            categories.push(...info.categories);
-            notes.push(info.notes);
-            schedule = Array.from(info.schedule);
-          }
+        combine(other) {
+          const titles = [this.title, other.title];
+          const categories = [...this.categories, ...other.categories];
+          const notes = [this.notes, other.notes];
+          const schedule = [...this.schedule, ...other.schedule];
           return new DayInfo(
             titles.filter(Boolean).at(-1) || '',
             categories.filter(Boolean),
@@ -1022,32 +1051,35 @@
       }
       
       class DateMap {
-        constructor(dayEntries) {
+        constructor() {
           this._dateMap = new Map();
-          if (dayEntries) this.set(dayEntries);
+          this.entries = [];
+          this.categories = {};
         }
         
-        set(dayEntries) {
-          const dateMap = new Map();
+        setCategories(categories) {
+          objSet(this.categories, categories);
+        }
+        
+        setEvents(dayEntries) {
+          this._dateMap.clear();
+          this.entries.length = 0;
+          this.entries.push(...dayEntries);
           for (const entry of dayEntries) {
-            let date = entry.startDate;
+            let date = new Date(entry.startDate);
             while (date <= entry.endDate) {
               if (entry.includes(date)) {
                 const dayInfo = entry.getDayInfo(date);
                 const key = toDateStr(date);
-                if (!dateMap.has(key)) {
-                  dateMap.set(key, [dayInfo])
+                if (!this._dateMap.has(key) || !entry.flags.added) {
+                  this._dateMap.set(key, dayInfo)
                 } else {
-                  dateMap.get(key).push(dayInfo);
+                  this._dateMap.set(key, this._dateMap.get(key).combine(dayInfo))
                 }
               }
               date.setDate(date.getDate() + 1);
             }
           }
-          this._dateMap.clear();
-          dateMap.forEach((dayInfoArray, key) => {
-            this._dateMap.set(key, DayInfo.combine(...dayInfoArray));
-          })
         }
         
         get(date) {
@@ -1122,15 +1154,15 @@
                 this.rows.push(row);
                 const k = addSpan(row, key);
                 const e = addSpan(row, title);
-                k.style.color = categoryData[categories.at(-1)] || 'white';
-                e.style.color = categoryData[categories.at(-1)] || 'white';
+                k.style.color = eventData.categories[categories.at(-1)] || 'white';
+                e.style.color = eventData.categories[categories.at(-1)] || 'white';
                 k.style.textAlign = 'right';
               };
             }
           } else if (currentTab === 2) {
             addSpan(this.elem, 'Legend', 'title');
             const grid = addDiv(this.elem, 'grid');
-            for (const [name, color] of Object.entries(categoryData)) {
+            for (const [name, color] of Object.entries(eventData.categories)) {
               const row = addDiv(grid, 'row');
               this.rows.push(row);
               const c = addDiv(row, 'color-box');
@@ -1286,14 +1318,14 @@
             box.classList.toggle('inactive', !isActive);
             dateText.innerText = day.getDate();
             const key = toDateStr(day);
-            const data = getData(key);
+            const dayInfo = getData(key);
             box.classList.toggle('today', isActive && key==today);
             box.classList.toggle('selected', isActive && key==selected);
-            if (data.categories.length > 0 && isActive) {
-              if (data.categories.filter(c => c !== 'Classes').length > 0)
+            if (dayInfo.categories.length > 0 && isActive) {
+              if (dayInfo.categories.filter(c => c !== 'Classes').length > 0)
                 this.events.push(box);
-              nameText.innerText = data.title;
-              box.style.backgroundColor = categoryData[data.categories.at(-1)];
+              nameText.innerText = dayInfo.title;
+              box.style.backgroundColor = eventData.categories[dayInfo.categories.at(-1)];
             } else {
               nameText.innerText = '';
               box.style.backgroundColor = '';
@@ -1326,6 +1358,12 @@
           return new Date(year, this.monthOffset, 1);
         }
         
+        getLastDay() {
+          let year = this.date.getFullYear() + 1;
+          if (this.date.getMonth() < this.monthOffset) year--;
+          return new Date(year, this.monthOffset, 0);
+        }
+        
         render() {
           for (const key in this.groups) delete this.groups[key];
           let year = this.date.getFullYear();
@@ -1345,12 +1383,12 @@
               if (monthStart <= day && day <= monthEnd) {
                 box.innerText = day.getDate();
                 const key = toDateStr(day);
-                const data = getData(key);
-                for (const c of data.categories) {
+                const dayInfo = getData(key);
+                for (const c of dayInfo.categories) {
                   addToArrayMap(this.groups, c, box);
                 }
-                if (data.categories.length > 0) {
-                  box.style.backgroundColor = categoryData[data.categories.at(-1)];
+                if (dayInfo.categories.length > 0) {
+                  box.style.backgroundColor = eventData.categories[dayInfo.categories.at(-1)];
                 } else {
                   box.style.backgroundColor = '';
                 }
@@ -1485,12 +1523,11 @@
       
       let currentTab = 2;
       const eventData = new DateMap();
-      const categoryData = {};
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'mediumpurple', 'lightseagreen', 'violet', 'sandybrown'];
       const params = new URLSearchParams(window.location.search);
       const sheetID = params.get('sheetid') || '1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
-      const gids = [0, 1588629629]
+      const gidList = [0, 1588629629]
       
       const section1 = document.getElementById('section-1')
       const section2 = document.getElementById('section-2')
@@ -1509,8 +1546,8 @@
       const divider = new Divider(section1, section2);
       const hoverLinker = new HoverLinker();
       
-      loadCachedData(sheetID);
-      fetchData(sheetID, gids);
+      updateFromCache(sheetID);
+      updateFromSheet(sheetID, gidList);
       
       for (const [i, m] of [...modeButtons.children].entries()) {
         m.addEventListener('pointerdown', e => selectTab(getElemIndex(e.target)));
