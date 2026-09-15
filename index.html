@@ -109,6 +109,7 @@
         & .grid {
           display: inline-grid;
           text-align: left;
+          justify-content: center;
           font-size: var(--font-size-1);
           padding-top: 1.5em;
         }
@@ -141,7 +142,7 @@
           padding: 0.5em 0.8em;
         }
         &.day .grid {
-          grid-template-columns: fit-content(40%) max-content max-content 1fr;
+          grid-template-columns: fit-content(40%) max-content max-content fit-content(40%);
         }
         &.month .grid,
         &.year .grid {
@@ -447,17 +448,18 @@
         display: none;
         width: 100%;
         text-align: center;
-        text-wrap: balance;
         margin: 0;
       
         & .title {
           font-size: 28px;
           font-weight: bold;
+          text-wrap: balance;
           padding: 5px;
         }
         & .subtitle {
           font-size: 20px;
           padding-top: 1.5em;
+          text-wrap: balance;
         }
         & table {
           display: inline-block;
@@ -663,12 +665,11 @@
           yield line;
         }
       }
-      function* loop(array) {
+      function* loop(array, i = 0) {
         if (array.length === 0) return;
-        let i = 0;
         while (true) {
+          if (i >= array.length) i = 0;
           yield array[i++];
-          if (i === array.length) i = 0;
         }
       }
       function parseCategoryPage(data) {
