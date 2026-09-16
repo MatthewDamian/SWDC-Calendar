@@ -452,36 +452,35 @@
         text-wrap: balance;
         margin: 0;
         
-        & .title, 
+        & .title,
         & .subtitle,
         & .header {
-          text-wrap: balance;
           white-space: pre-wrap;
         }
         & .title {
-          font-size: 28px;
+          font-size: 20pt;
           font-weight: bold;
-          padding: 5px;
+          padding: 5pt;
         }
         & .subtitle {
-          font-size: 20px;
+          font-size: 14pt;
           padding-top: 0;
         }
         & .header {
-          font-size: 20px;
+          font-size: 14pt;
           padding-top: 1.5em;
         }
         & table {
           display: inline-block;
           text-align: left;
-          font-size: 16px;
+          font-size: 11pt;
           padding-top: 1.5em;
           border-collapse: collapse;
         }
         & th,
         & td {
-          border: 1px solid black;
-          padding: 8px;
+          border: 0.5pt solid black;
+          padding: .08in;
           max-width: 300px;
         }
         & td:nth-child(2),
@@ -754,6 +753,9 @@
         const end = new Date(year + 1, monthOffset, 0);
         return [start, end];
       }
+      function getDayName(date) {
+        return dayNames[date.getDay()];
+      }
       
       // Mutators (write:inner)
       
@@ -858,11 +860,11 @@
         const mappedInfo = DisplayWindow.mapDayInfo(windows[0].date);
         if (display === 'none') {
           printPage.render(mappedInfo);
-          container.style.display = 'block';
+          printPage.elem.style.display = 'block';
           main.style.display = 'none';
           root.style.backgroundColor = 'white';
         } else {
-          container.style.removeProperty('display');
+          printPage.elem.style.removeProperty('display');
           main.style.removeProperty('display');
           root.style.removeProperty('background-color');
         }
@@ -976,7 +978,7 @@
         
         getDayInfo(date) {
           const schedule = [];
-          const day = dayNames[date.getDay()];
+          const day = getDayName(date);
           const keys = Object.keys(this.schedule);
           if (keys.includes('')) schedule.push(...this.schedule['']);
           if (keys.includes(day)) schedule.push(...this.schedule[day]);
@@ -1048,7 +1050,7 @@
           this.entries.push(...dayEntries);
           for (const entry of dayEntries) {
             for (const date of dateIter(entry.startDate, entry.endDate)) {
-              const dayName = dayNames[date.getDay()];
+              const dayName = getDayName(date);
               if (entry.includesDay(dayName)) {
                 const dayInfo = entry.getDayInfo(date);
                 const key = toDateStr(date);
@@ -1078,15 +1080,19 @@
         static mapDayInfo(date) {
           const result = [];
           const key = toDateStr(date);
-          const weekday = dayNames[date.getDay()];
+          const weekday = getDayName(date);
           const dayInfo = getData(key);
           result.push(['title', dayInfo.title]);
           let subtitleText = `${weekday} ${key}`;
           if (dayInfo.parent) {
+            const dayList = Object.keys(dayInfo.parent.schedule);
             const [start, end] = [dayInfo.parent.startDate, dayInfo.parent.endDate];
             const [s, e] = [start, end].map(d => toDateStr(d));
-            const plural = (addedTime(start, 'day', 7) <= end) ? 's' : '';
-            if (plural) subtitleText = `${weekday}${plural}  ${s} - ${e}`;
+            if (!dayList.some(Boolean) && dayList.length > 0 && addedTime(start, 'day', 1) <= end) {
+              subtitleText = `${getDayName(start)} ${s}  -  ${getDayName(end)} ${e}`;
+            } else if (addedTime(start, 'day', 13) <= end) {
+              subtitleText = `${weekday}s  ${s} - ${e}`;
+            }
           };
           result.push(['subtitle', subtitleText]);
           if (dayInfo.notes)
@@ -1570,10 +1576,8 @@
       const hoverLinker = new HoverLinker();
       
       updateFromCache(sheetID);
+      updateFromSheet(sheetID, gidList);
       
-      window.addEventListener('load', event => {
-        updateFromSheet(sheetID, gidList);
-      });
       for (const [i, m] of [...modeButtons.children].entries()) {
         m.addEventListener('pointerdown', e => selectTab(getElemIndex(e.target)));
       }
