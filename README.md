@@ -12,8 +12,10 @@ You may **insert rows anywhere** and begin typing to make new entries.  After wa
 ### EventData
 Rows on this tab may have one of two formats: **Day-Format**, representing an entire day, or **Event-Format**, representing a single event within a day.
 
-#### **Day-Format** (Date String, Title, Categories, Notes)
-- Example: `9/7/2026` `Labor Day` `No Class`
+#### **Day-Format**
+|Date|Title|Categories|Notes|
+|-|-|-|-|
+|9/7/2026|Labor&nbsp;Day|No&nbsp;Class| |
 - Inputting a **Date String** in column A makes that row a **Day Entry**
 - Valid **Day Entries** are visible on the website
 - **Date Strings** must be in the format **mm/dd/yyyy**
@@ -24,18 +26,20 @@ Rows on this tab may have one of two formats: **Day-Format**, representing an en
 - **Categories** (column C) may be names from the "Categories" tab
   - these must be **spelled correctly**
   - the category determines the **color** on the website
-  - multiple categories may be applied to a given day (separated by commas), but only the last category determines the color
+  - multiple categories may be applied to a given day (separated by commas)
 - **Notes** (column D) may be any text.  These are visible on the **day tab** of the website.
 
-#### **Event-Format** (Filter, Description, Location, Start Time, End Time, Instructors)
-- Example: ` `&nbsp;`Sugar Plum Pas` `Studio C` `7:00 pm` `8:30 pm` `Brianna`
+#### **Event-Format**
+|Filter|Description|Location|Start&nbsp;Time|End&nbsp;Time|Instructors|
+|-|-|-|-|-|-|
+| |Sugar Plum Pas|Studio C|7:00&nbsp;pm|8:30&nbsp;pm|Brianna|
 - Rows that begin with a **blank** or a **day of the week** become **Event Entries**
 - These entries are applied to the **Day Entry** that preceded it
 - Valid **Event Entries** are visible on the **day tab** of the website
 - You can add any number of **Event Entries** below a **Day Entry**
 - **Filter** (Column A) must be blank, or a day of the week, (e.g. "Monday")
   - non blank filters restrict which weekdays the following event rows apply to
-  - designed for schedules that repeat on a weekly basis
+  - designed for use with multi-day entries
 - **Description** (Column B) may be any text
 - **Location** (Column C) may be any text
 - **Start Time** (Column D) must be in a 12-hour time format, (e.g 4:15 PM)
@@ -54,7 +58,7 @@ Rows on this tab may have one of two formats: **Day-Format**, representing an en
 ### Categories
 - Rows on this tab consist of a **Category** and a **Color**.
 - **Category** (Column A) may be any text
-- **Color** (Column B) may be any CSS color
+- **Color** (Column B) may be any [CSS color](https://davidbau.com/colors/)
 
 ### Notes
 - Any empty rows will be ignored.
