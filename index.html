@@ -110,6 +110,7 @@
         & .grid {
           display: inline-grid;
           text-align: left;
+          text-wrap: balance;
           justify-content: center;
           font-size: var(--font-size-1);
           padding-top: 1.5em;
@@ -129,21 +130,20 @@
         & .header {
           display: block;
           text-align: center;
-          text-wrap: balance;
           white-space: pre-wrap;
         }
         & .title {
-          padding: 0.5em 0.8em;
+          padding-top: 0.5em;
           font-size: var(--font-size-3);
           color: white;
         }
         & .subtitle {
-          padding: 0 1.5em;
+          padding-top: 0.8em;
           font-size: var(--font-size-1);
           color: lightgray;
         }
         & .header {
-          padding: 1.5em 1.5em 0 1.5em;
+          padding-top: 1.5em;
           font-size: var(--font-size-1);
           color: white;
         }
@@ -267,7 +267,7 @@
         & .bottom {
           position: relative;
           height: 94%;
-          font-size: var(--font-size-2);
+          font-size: var(--font-size-1);
         }
         & .grid {
           display: grid;
@@ -460,11 +460,11 @@
         & .title {
           font-size: 20pt;
           font-weight: bold;
-          padding: 5pt;
+          padding-top: 5pt;
         }
         & .subtitle {
           font-size: 14pt;
-          padding-top: 0;
+          padding-top: 5pt;
         }
         & .header {
           font-size: 14pt;
@@ -834,31 +834,38 @@
       function updateFromSheet(sheetID, gidList) {
         const responses = gidList.map(gid => fetchSheet(sheetID, gid));
         Promise.all(responses).then(rList => {
-          if (rList.some(r => !r.ok)) throw new Error();
+          if (rList.some(r => !r.ok)) throw new Error('Error fetching spreadsheet data');
           return Promise.all(rList.map(r => r.text()));
         }).then(data => {
-          eventData.setEvents(parseDataPage(data[0]));
-          eventData.setCategories(parseCategoryPage(data[1]));
+          try {
+            eventData.setEvents(parseDataPage(data[0]));
+            eventData.setCategories(parseCategoryPage(data[1]));
+          } catch {
+            throw new Error('Error parsing spreadsheet data');
+          }
           refresh();
-          localStorage.clear();
-          localStorage.setItem('currentTab', currentTab);
-          const [start, end] = getYearRange(windows[2].date, monthOffset);
-          const eventCsv = eventData.entries
-            .filter(e => e.startDate <= end && e.endDate >= start)
-            .map(e => toCsvString(e.toArray())).join('\n');
-          const categoryCsv = toCsvString(Object.entries(eventData.categories));
-          localStorage.setItem(sheetID + 'eventData', eventCsv);
-          localStorage.setItem(sheetID + 'categoryData', categoryCsv);
+          updateLocalStorage();
         }).catch(error => {
-          alert('Error fetching spreadsheet data', 2000);
+          alert(error.message, 2000);
         });
+      }
+      function updateLocalStorage() {
+        localStorage.clear();
+        localStorage.setItem('currentTab', currentTab);
+        const [start, end] = getYearRange(windows[2].date, monthOffset);
+        const eventCsv = eventData.entries
+          .filter(e => e.startDate <= end && e.endDate >= start)
+          .map(e => toCsvString(e.toArray())).join('\n');
+        const categoryCsv = toCsvString(Object.entries(eventData.categories));
+        localStorage.setItem(sheetID + 'eventData', eventCsv);
+        localStorage.setItem(sheetID + 'categoryData', categoryCsv);
       }
       function togglePrintView() {
         const main = document.querySelector('main');
         const root = document.documentElement;
         const display = window.getComputedStyle(printPage.elem).display;
-        const mappedInfo = DisplayWindow.mapDayInfo(windows[0].date);
         if (display === 'none') {
+          const mappedInfo = DisplayWindow.mapDayInfo(windows[0].date);
           printPage.render(mappedInfo);
           printPage.elem.style.display = 'block';
           main.style.display = 'none';
@@ -870,14 +877,20 @@
         }
       }
       function printSchedule() {
-        printPage.render(DisplayWindow.mapDayInfo(windows[0].date));
+        const mappedInfo = DisplayWindow.mapDayInfo(windows[0].date)
+        printPage.render(mappedInfo);
         window.print();
       }
       function copySchedule() {
-        const key = toDateStr(windows[0].date);
-        const schedule = getData(key).schedule.map(row => row.join('\t'));
+        const mappedInfo = DisplayWindow.mapDayInfo(windows[0].date);
+        const rows = [];
+        for (const [mode, row] of mappedInfo) {
+          if (mode === 'grid') rows.push(...row);
+          else rows.push([row]);
+        }
+        const text = rows.map(row => row.join('\t')).join('\n');
         try {
-          navigator.clipboard.writeText(schedule.join('\n'))
+          navigator.clipboard.writeText(text)
             .then(() => alert('Copied to Clipboard', 2000))
             .catch(() => alert('Error copying to Clipboard', 2000));
         } catch (error) {
@@ -994,16 +1007,13 @@
         
         toArray() {
           const rows = [];
-          rows.push(['', this.title, this.categories.join(','), this.notes]);
-          rows[0][0] = toDateStr(this.startDate) + '-' + toDateStr(this.endDate);
-          if (this.flags.added) rows[0][0] = '&' + rows[0][0];
-          let prevKey = '';
+          let dateStr = toDateStr(this.startDate) + '-' + toDateStr(this.endDate);
+          if (this.flags.added) dateStr = '&' + dateStr;
+          rows.push([dateStr, this.title, this.categories.join(','), this.notes]);
           for (const [key, entries] of Object.entries(this.schedule)) {
-            const i = rows.length;
-            for (const row of entries) {
-              rows.push(['', ...row]);
-            }
-            rows[i][0] = key;
+            const array = entries.map(row => ['', ...row]);
+            array[0][0] = key;
+            rows.push(...array);
           }
           return rows;
         }
@@ -1027,7 +1037,7 @@
             other.parent,
             titles.filter(Boolean).at(-1) || '',
             categories.filter(Boolean),
-            notes.filter(Boolean).join('\n'),
+            notes.filter(Boolean).join('\n\n'),
             schedule.filter(Boolean),
           )
         }
@@ -1050,15 +1060,13 @@
           this.entries.push(...dayEntries);
           for (const entry of dayEntries) {
             for (const date of dateIter(entry.startDate, entry.endDate)) {
-              const dayName = getDayName(date);
-              if (entry.includesDay(dayName)) {
-                const dayInfo = entry.getDayInfo(date);
-                const key = toDateStr(date);
-                if (!this._dateMap.has(key) || !entry.flags.added) {
-                  this._dateMap.set(key, dayInfo)
-                } else {
-                  this._dateMap.set(key, this._dateMap.get(key).combine(dayInfo))
-                }
+              if (!entry.includesDay(getDayName(date))) continue;
+              const dayInfo = entry.getDayInfo(date);
+              const key = toDateStr(date);
+              if (!this._dateMap.has(key) || !entry.flags.added) {
+                this._dateMap.set(key, dayInfo)
+              } else {
+                this._dateMap.set(key, this._dateMap.get(key).combine(dayInfo))
               }
             }
           }
@@ -1083,7 +1091,7 @@
           const weekday = getDayName(date);
           const dayInfo = getData(key);
           result.push(['title', dayInfo.title]);
-          let subtitleText = `${weekday} ${key}`;
+          let subtitleText = `${weekday}  ${key}`;
           if (dayInfo.parent) {
             const dayList = Object.keys(dayInfo.parent.schedule);
             const [start, end] = [dayInfo.parent.startDate, dayInfo.parent.endDate];
@@ -1108,9 +1116,16 @@
                 grid = [];
                 result.push(['grid', grid]);
               };
-              grid.push(params);
+              grid.push([...params]);
             }
           }
+          const grids = result.filter(([m, d]) => m === 'grid').map(([m, d]) => d);
+          grids.forEach(grid => {
+            const maxIndex = Math.max(...grid.map(row => row.findLastIndex(Boolean)));
+            for (const row of grid) {
+              row.length = maxIndex + 1;
+            }
+          })
           return result;
         }
         
@@ -1124,11 +1139,15 @@
             for (const [mode, item] of DisplayWindow.mapDayInfo(date)) {
               const elem = addDiv(this.elem, mode);
               if (mode === 'grid') {
-                for (const [desc, location, start, end, instructors] of item) {
+                const template = ['fit-content(40%)', 'max-content', 'max-content', 'fit-content(40%)'];
+                const maxLen = Math.max(...item.map(cells => cells.length)) - 1;
+                elem.style.gridTemplateColumns = template.slice(0, maxLen).join(' ');
+                for (const cells of item) {
                   const row = addDiv(elem, 'row');
                   const color = colors.next().value;
-                  const timeStr = `${start} - ${end}`;
-                  for (const cell of [desc, location, timeStr, instructors]) {
+                  const [start, end] = cells.slice(2, 4);
+                  cells.splice(2, 2, `${start} - ${end}`);
+                  for (const cell of cells) {
                     const span = addSpan(row, cell);
                     span.style.color = location ? color : 'white';
                   }
@@ -1402,11 +1421,7 @@
           this.elem.innerHTML = '';
           for (const [mode, item] of mappedInfo) {
             if (mode === 'grid') {
-              const copy = structuredClone(item);
-              while (copy.every(row => row.at(-1) === '')) {
-                copy.forEach(row => row.pop());
-              }
-              addTable(this.elem, copy);
+              addTable(this.elem, item);
             } else {
               const elem = addDiv(this.elem, mode);
               elem.innerText = item;
@@ -1562,7 +1577,6 @@
         modeButtons.children, (b, s) => b.classList.toggle('selected', s)
       );
       const title = document.querySelector('#window-banner .title');
-      const todayButton = document.querySelector('#window-banner .button');
       const windows = [
         new DayWindow(document.getElementById('day-window')),
         new MonthWindow(document.getElementById('month-window')),
