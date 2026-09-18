@@ -45,7 +45,7 @@
         position: absolute;
         right: 0;
       
-        & svg {
+        svg {
           cursor: pointer;
           margin: 6px;
           width: 24px;
@@ -84,14 +84,15 @@
         position: relative;
         height: var(--logo-height);
         width: 100%;
-      }
-      #logo {
-        position: absolute;
-        padding: 10px;
-        max-height: 100%;
-        width: auto;
-        inset: 0;
-        place-self: center;
+        
+        #logo {
+          position: absolute;
+          padding: 10px;
+          max-height: 100%;
+          width: auto;
+          inset: 0;
+          place-self: center;
+        }
       }
       #display {
         position: relative;
@@ -102,65 +103,68 @@
         border-radius: 6px;
         overflow: auto;
         scrollbar-color: white transparent;
-      }
-      #display-window {
-        padding: 15px 10px;
-        justify-content: center;
-      
-        & .grid {
-          display: inline-grid;
-          text-align: left;
-          text-wrap: balance;
+        
+        #display-window {
+          padding: 15px 10px;
           justify-content: center;
-          font-size: var(--font-size-1);
-          padding-top: 1.5em;
-        }
-        & .grid .row {
-          display: contents;
-          cursor: default;
-        }
-        & .grid .row.isHovering span {
-          text-shadow: 0px 0px 5px currentColor;
-        }
-        & .grid .row.isHovering .color-box {
-          box-shadow: 0px 0px 5px currentColor;
-        }
-        & .title,
-        & .subtitle,
-        & .header {
-          display: block;
-          text-align: center;
-          white-space: pre-wrap;
-        }
-        & .title {
-          padding-top: 0.5em;
-          font-size: var(--font-size-3);
-          color: white;
-        }
-        & .subtitle {
-          padding-top: 0.8em;
-          font-size: var(--font-size-1);
-          color: lightgray;
-        }
-        & .header {
-          padding-top: 1.5em;
-          font-size: var(--font-size-1);
-          color: white;
-        }
-        & .grid span {
-          padding: 0.5em 0.8em;
-        }
-        &.day .grid {
-          grid-template-columns: fit-content(40%) max-content max-content fit-content(40%);
-        }
-        &.month .grid,
-        &.year .grid {
-          grid-template-columns: max-content 1fr;
-        }
-        &.year .grid .color-box {
-          aspect-ratio: 1;
-          margin: 5px;
-          background-color: currentColor;
+          text-wrap: balance;
+          
+          .grid {
+            display: inline-grid;
+            text-align: left;
+            justify-content: center;
+            font-size: var(--font-size-1);
+            padding-top: 1.5em;
+          }
+          .grid.col4 {
+            grid-template-columns: fit-content(40%) max-content max-content fit-content(40%);
+          }
+          .grid.col3 {
+            grid-template-columns: fit-content(40%) max-content max-content;
+          }
+          .grid.col2 {
+            grid-template-columns: max-content max-content;
+          }
+          .grid .row {
+            display: contents;
+            cursor: default;
+          }
+          .grid .row.isHovering span {
+            text-shadow: 0px 0px 5px currentColor;
+          }
+          .grid .row.isHovering .color-box {
+            box-shadow: 0px 0px 5px currentColor;
+          }
+          .grid span {
+            padding: 0.5em 0.8em;
+          }
+          .grid .color-box {
+            aspect-ratio: 1;
+            margin: 5px;
+            background-color: currentColor;
+          }
+          .title,
+          .subtitle,
+          .header {
+            display: block;
+            text-align: center;
+            white-space: pre-wrap;
+          }
+          .title {
+            padding-top: 0.5em;
+            font-size: var(--font-size-3);
+            color: white;
+          }
+          .subtitle {
+            padding-top: 0.8em;
+            font-size: var(--font-size-1);
+            color: lightgray;
+          }
+          .header {
+            padding-top: 1.5em;
+            font-size: var(--font-size-1);
+            color: white;
+          }
         }
       }
       #attribution {
@@ -169,9 +173,10 @@
         height: var(--copy-height);
         text-align: center;
         font-size: var(--font-size-0);
-      }
-      #sheets-link {
-        color: #76ff9a;
+        
+        #sheets-link {
+          color: #76ff9a;
+        }
       }
       #section-2 {
         position: relative;
@@ -187,12 +192,12 @@
         height: 10%;
         padding: 10px;
       
-        & .radio-buttons {
+        .radio-buttons {
           display: grid;
           grid-template-columns: repeat(3, max-content);
           gap: 4px;
         }
-        & .button {
+        .button {
           color: black;
           cursor: pointer;
           font-size: var(--font-size-2);
@@ -204,16 +209,16 @@
           background-image: linear-gradient(to bottom, white, lightgray);
           padding: 5px;
         }
-        & .button:hover {
+        .button:hover {
           box-shadow: 2px 2px 3px dimgray;
         }
-        & .button:active,
-        & .button.selected {
+        .button:active,
+        .button.selected {
           transform: none;
           box-shadow: inset 1px 1px 1px gray;
           background-image: linear-gradient(to bottom, lightgray, white);
         }
-        & .header {
+        .header {
           display: flex;
           position: absolute;
           left: 50%;
@@ -222,18 +227,18 @@
           justify-content: space-between;
           align-items: center;
         }
-        & .header .title {
+        .header .title {
           text-align: center;
           font-weight: bold;
           font-size: var(--font-size-4);
           padding: 0.5em;
         }
-        & .header .nav-btn {
+        .header .nav-btn {
           font-weight: bold;
           font-size: var(--font-size-5);
           transform: translate(0, -7%);
         }
-        & .header .nav-btn:hover {
+        .header .nav-btn:hover {
           cursor: pointer;
           text-shadow: 0 0 5px dimgray;
         }
@@ -242,207 +247,209 @@
         position: absolute;
         width: 100%;
         height: 90%;
-      }
-      #day-window {
-        height: 100%;
         
-        & .top {
-          height: 6%;
-          font-size: var(--font-size-2);
-          font-weight: bold;
-          align-content: center;
-          background-image: linear-gradient(to bottom, lightcyan, lightblue);
-        }
-        & .top .header {
-          display: inline-block;
-          position: absolute;
-          text-align: center;
-          width: 15%;
-        }
-        & .top .first-header {
-          display: inline-block;
-          text-align: right;
-          width: 7%;
-        }
-        & .bottom {
-          position: relative;
-          height: 94%;
-          font-size: var(--font-size-1);
-        }
-        & .grid {
-          display: grid;
+        #day-window {
           height: 100%;
-          grid-template-columns: 1fr;
+          
+          .top {
+            height: 6%;
+            font-size: var(--font-size-2);
+            font-weight: bold;
+            align-content: center;
+            background-image: linear-gradient(to bottom, lightcyan, lightblue);
+          }
+          .top .header {
+            display: inline-block;
+            position: absolute;
+            text-align: center;
+            width: 15%;
+          }
+          .top .first-header {
+            display: inline-block;
+            text-align: right;
+            width: 7%;
+          }
+          .bottom {
+            position: relative;
+            height: 94%;
+            font-size: var(--font-size-1);
+          }
+          .grid {
+            display: grid;
+            height: 100%;
+            grid-template-columns: 1fr;
+          }
+          .grid .row {
+            align-content: center;
+          }
+          .grid .side-header {
+            display: inline-block;
+            text-align: right;
+            white-space: nowrap;
+            width: 7%;
+          }
+          .bottom .event {
+            display: inline-block;
+            position: absolute;
+            text-align: center;
+            text-wrap: balance;
+            align-content: center;
+            overflow: scroll;
+            scrollbar-width: none;
+            border: 1px solid #FFFFFF00;
+            border-radius: 6px;
+            width: 15%;
+            padding: 0px 6px;
+          }
+          .bottom .event:hover,
+          .bottom .event.isHovering {
+            box-shadow: 1px 1px 3px black;
+            border: 1px solid black;
+            z-index: 1;
+          }
+          .bottom .time-indicator {
+            position: absolute;
+            width: 100%;
+            height: 0px;
+            border: 1px dashed black;
+            text-align: right;
+            pointer-events: none;
+            z-index: 2;
+          }
+          .bottom .time-indicator span {
+            position: absolute;
+            transform: translate(-100%, -100%);
+            text-wrap: nowrap;
+          }
         }
-        & .grid .row {
-          align-content: center;
-        }
-        & .grid .side-header {
-          display: inline-block;
-          text-align: right;
-          white-space: nowrap;
-          width: 7%;
-        }
-        & .bottom .event {
-          display: inline-block;
-          position: absolute;
-          text-align: center;
-          text-wrap: balance;
-          align-content: center;
-          overflow: scroll;
-          scrollbar-width: none;
-          border: 1px solid #FFFFFF00;
-          border-radius: 6px;
-          width: 15%;
-          padding: 0px 6px;
-        }
-        & .bottom .event.isHovering {
-          box-shadow: 1px 1px 3px black;
-          border: 1px solid black;
-          z-index: 1;
-        }
-        & .bottom .time-indicator {
-          position: absolute;
-          width: 100%;
-          height: 0px;
-          border: 1px dashed black;
-          text-align: right;
-          pointer-events: none;
-          z-index: 2;
-        }
-        & .bottom .time-indicator span {
-          position: absolute;
-          transform: translate(-100%, -100%);
-          text-wrap: nowrap;
-        }
-      }
-      #month-window {
-        height: 100%;
-        
-        & .day-header {
-          display: grid;
-          height: 5%;
-          grid-template-columns: repeat(7, 1fr);
-        }
-        & .day-header-item {
-          align-content: center;
-          text-align: center;
-          font-size: var(--font-size-1);
-          background-image: linear-gradient(to bottom, lightcyan, lightblue);
-          border: 1px solid lightgray;
-          padding: 2px;
-        }
-        & .grid {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          grid-template-rows: repeat(6, 1fr);
-          height: 95%;
-        }
-        & .grid .box {
-          position: relative;
-          padding: 4px;
-          border: 1px solid lightgray;
-          background-color: white;
-          font-size: var(--font-size-1);
-        }
-        & .grid .box .date {
-          position: absolute;
-        }
-        & .grid .box .name {
-          width: 100%;
+        #month-window {
           height: 100%;
-          text-align: center;
-          align-content: center;
-          text-wrap: balance;
+          
+          .day-header {
+            display: grid;
+            height: 5%;
+            grid-template-columns: repeat(7, 1fr);
+          }
+          .day-header-item {
+            align-content: center;
+            text-align: center;
+            font-size: var(--font-size-1);
+            background-image: linear-gradient(to bottom, lightcyan, lightblue);
+            border: 1px solid lightgray;
+            padding: 2px;
+          }
+          .grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            height: 95%;
+          }
+          .grid .box {
+            position: relative;
+            padding: 4px;
+            border: 1px solid lightgray;
+            background-color: white;
+            font-size: var(--font-size-1);
+          }
+          .grid .box .date {
+            position: absolute;
+          }
+          .grid .box .name {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            align-content: center;
+            text-wrap: balance;
+          }
+          .grid .box.inactive {
+            color: #888;
+            background-color: #ccc;
+          }
+          .grid .box:hover,
+          .grid .box.isHovering {
+            cursor: pointer;
+            box-shadow: 1px 1px 3px black;
+            border: 1px solid black;
+            z-index: 1;
+          }
+          .grid .box.selected {
+            border: 1px solid black;
+          }
+          .grid .box.today {
+            border: 2px solid black;
+          }
+          .grid .box.today .date {
+            font-weight: bold;
+          }
         }
-        & .grid .box.inactive {
-          color: #888;
-          background-color: #ccc;
-        }
-        & .grid .box:hover,
-        & .grid .box.isHovering {
-          cursor: pointer;
-          box-shadow: 1px 1px 3px black;
-          border: 1px solid black;
-          z-index: 1;
-        }
-        & .grid .box.selected {
-          border: 1px solid black;
-        }
-        & .grid .box.today {
-          border: 2px solid black;
-        }
-        & .grid .box.today .date {
-          font-weight: bold;
-        }
-      }
-      #year-window {
-        height: 100%;
-        background-color: lightgray;
-        
-        & .grid {
-          display: grid;
-          margin-left: auto;
+        #year-window {
           height: 100%;
-          grid-template-columns: repeat(4, 1fr);
-          grid-template-rows: repeat(3, 1fr);
-          padding: 3px;
-          gap: 3px;
-        }
-        & .grid .month {
-          border: 1px solid black;
-          box-shadow: 1px 1px 2px black;
-        }
-        & .grid .month:hover {
-          box-shadow: 1px 1px 5px black;
-          cursor: pointer;
-        }
-        & .grid .month .banner {
-          font-size: var(--font-size-1);
-          font-weight: bold;
-          text-align: center;
-          align-content: center;
-          background-image: linear-gradient(to bottom, white, lightgray);
-          height: 10%;
-        }
-        & .grid .month .mgrid {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          grid-template-rows: repeat(7, 1fr);
-          font-size: var(--font-size-1);
-          text-align: center;
-          height: 90%;
-        }
-        & .grid .month .mgrid .day-name {
-          background-image: linear-gradient(to bottom, lightcyan, lightblue);
-          border: 1px solid lightgray;
-          align-content: center;
-        }
-        & .grid .month .mgrid .date {
-          position: relative;
-          background-color: white;
-          border: 1px solid lightgray;
-          align-content: center;
-        }
-        & .grid .month .mgrid .date.isHovering {
-          box-shadow: 1px 1px 2px black;
-          z-index: 1;
-        }
-        & .grid .month .mgrid .date:hover,
-        & .grid .month .mgrid .date.selected {
-          cursor: pointer;
-          border: 1px solid black;
-        }
-        & .grid .month .mgrid .date.selected:hover {
-          cursor: pointer;
-          border: 2px solid black;
-        }
-        & .grid .month .mgrid .date.today {
-          border: 2px solid black;
-          font-weight: bold;
-        }
-        & .grid .month .mgrid .date.today:hover {
-          border: 3px solid black;
+          background-color: lightgray;
+          
+          .grid {
+            display: grid;
+            margin-left: auto;
+            height: 100%;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 3px;
+            gap: 3px;
+          }
+          .grid .month {
+            border: 1px solid black;
+            box-shadow: 1px 1px 2px black;
+          }
+          .grid .month:hover {
+            box-shadow: 1px 1px 5px black;
+            cursor: pointer;
+          }
+          .grid .month .banner {
+            font-size: var(--font-size-1);
+            font-weight: bold;
+            text-align: center;
+            align-content: center;
+            background-image: linear-gradient(to bottom, white, lightgray);
+            height: 10%;
+          }
+          .grid .month .mgrid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            font-size: var(--font-size-1);
+            text-align: center;
+            height: 90%;
+          }
+          .grid .month .mgrid .day-name {
+            background-image: linear-gradient(to bottom, lightcyan, lightblue);
+            border: 1px solid lightgray;
+            align-content: center;
+          }
+          .grid .month .mgrid .date {
+            position: relative;
+            background-color: white;
+            border: 1px solid lightgray;
+            align-content: center;
+          }
+          .grid .month .mgrid .date.isHovering {
+            box-shadow: 1px 1px 2px black;
+            z-index: 1;
+          }
+          .grid .month .mgrid .date:hover,
+          .grid .month .mgrid .date.selected {
+            cursor: pointer;
+            border: 1px solid black;
+          }
+          .grid .month .mgrid .date.selected:hover {
+            cursor: pointer;
+            border: 2px solid black;
+          }
+          .grid .month .mgrid .date.today {
+            border: 2px solid black;
+            font-weight: bold;
+          }
+          .grid .month .mgrid .date.today:hover {
+            border: 3px solid black;
+          }
         }
       }
       #print-container {
@@ -452,43 +459,43 @@
         text-wrap: balance;
         margin: 0;
         
-        & .title,
-        & .subtitle,
-        & .header {
+        .title,
+        .subtitle,
+        .header {
           white-space: pre-wrap;
         }
-        & .title {
+        .title {
           font-size: 20pt;
           font-weight: bold;
           padding-top: 5pt;
         }
-        & .subtitle {
+        .subtitle {
           font-size: 14pt;
           padding-top: 5pt;
         }
-        & .header {
+        .header {
           font-size: 14pt;
           padding-top: 1.5em;
         }
-        & table {
+        table {
           display: inline-block;
           text-align: left;
           font-size: 11pt;
           padding-top: 1.5em;
           border-collapse: collapse;
         }
-        & th,
-        & td {
+        th,
+        td {
           border: 0.5pt solid black;
           padding: .08in;
           max-width: 300px;
         }
-        & td:nth-child(2),
-        & td:nth-child(3),
-        & td:nth-child(4) {
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4) {
           white-space: nowrap;
         }
-        & th {
+        th {
           text-wrap: nowrap;
         }
       }
@@ -571,7 +578,7 @@
             <div class="title"></div>
             <div onclick="navigate(1)" class="nav-btn">›</div>
           </div>
-          <div onclick="goToDate(Date.now())" class="button">Today</div>
+          <div onclick="goToDate(new Date())" class="button">Today</div>
         </div>
         <div id="windows">
           <div id="day-window"></div>
@@ -798,13 +805,6 @@
         for (const key in obj) delete obj[key];
         Object.assign(obj, newObj);
       }
-      function addToArrayMap(data, key, value) {
-        if (key in data) {
-          data[key].push(value)
-        } else {
-          data[key] = [value];
-        }
-      }
       function addTable(container, textArray) {
         const table = addElem(container, 'table');
         const tbody = addElem(table, 'tbody');
@@ -820,10 +820,10 @@
       // Macros (write:outer)
       
       function updateFromCache(sheetID) {
-        const load = s => localStorage.getItem(sheetID + s) || '';
-        eventData.setEvents(parseDataPage(load('eventData')));
-        eventData.setCategories(parseCategoryPage(load('categoryData')));
-        currentTab = Number(localStorage.getItem('currentTab') || currentTab);
+        const load = s => sheetCache.get(sheetID, s) || '';
+        eventData.setEvents(parseDataPage(load('events')));
+        eventData.setCategories(parseCategoryPage(load('categories')));
+        currentTab = Number(load('currentTab') || currentTab);
         let sessionDate = sessionStorage.getItem('currentDate');
         sessionDate = sessionDate ? new Date(sessionDate) : new Date();
         for (const w of windows) {
@@ -844,21 +844,20 @@
             throw new Error('Error parsing spreadsheet data');
           }
           refresh();
-          updateLocalStorage();
+          updateCache();
         }).catch(error => {
           alert(error.message, 2000);
         });
       }
-      function updateLocalStorage() {
-        localStorage.clear();
-        localStorage.setItem('currentTab', currentTab);
-        const [start, end] = getYearRange(windows[2].date, monthOffset);
+      function updateCache() {
+        const [start, end] = getYearRange(new Date(), monthOffset);
         const eventCsv = eventData.entries
           .filter(e => e.startDate <= end && e.endDate >= start)
           .map(e => toCsvString(e.toArray())).join('\n');
         const categoryCsv = toCsvString(Object.entries(eventData.categories));
-        localStorage.setItem(sheetID + 'eventData', eventCsv);
-        localStorage.setItem(sheetID + 'categoryData', categoryCsv);
+        sheetCache.set(sheetID, 'currentTab', currentTab);
+        sheetCache.set(sheetID, 'events', eventCsv);
+        sheetCache.set(sheetID, 'categories', categoryCsv);
       }
       function togglePrintView() {
         const main = document.querySelector('main');
@@ -904,22 +903,16 @@
         messageBox.innerText = message;
         setTimeout(() => messageBox.remove(), duration);
       }
-      function syncDates() {
-        const time0 = windows[0].date.getTime();
-        const time = windows[currentTab].date.getTime();
-        for (let i = currentTab + 1; i < windows.length; i++) {
-          windows[i].date.setTime(time);
-        };
-        for (const w of windows.slice(1)) {
-          w.selected.setTime(time0);
-        };
-        sessionStorage.setItem('currentDate', windows[0].date);
+      function syncDates(date, ...des) {
+        for (const d of des) d.setTime(date);
+        sessionStorage.setItem('currentDate', date);
       }
       function selectTab(index) {
         modeSelector.select(index);
         windowSelector.select(index);
         currentTab = index;
-        localStorage.setItem('currentTab', index);
+        sheetCache.set(sheetID, 'currentTab', index);
+        sessionStorage.setItem('currentDate', windows[currentTab].date);
         refresh();
       }
       function refresh() {
@@ -930,15 +923,8 @@
         // Link hover events
         hoverLinker.abort();
         const rows = displayWindow.rows;
-        if (currentTab === 0 || currentTab === 1) {
-          for (let i = 0; i < rows.length; i++) {
-            hoverLinker.link(rows[i], w.events[i]);
-          }
-        } else if (currentTab === 2) {
-          for (let i = 0; i < rows.length; i++) {
-            const category = rows[i].querySelector('span').innerText;
-            hoverLinker.linkFirst(rows[i], w.groups[category]);
-          }
+        for (const [source, elems] of displayWindow.sourceMap) {
+          hoverLinker.linkFirst(elems[0], w.sourceMap.get(source));
         }
         // Link date banner
         if (currentTab === 0) {
@@ -958,18 +944,25 @@
       function navigate(amount) {
         const w = windows[currentTab];
         addTime(w.date, ['day', 'month', 'year'][currentTab], amount);
-        syncDates();
+        syncDates(...windows.slice(currentTab).map(w => w.date));
         refresh();
       }
       function goToDate(date) {
-        for (let i = 0; i < windows.length; i++) {
-          windows[i].date.setTime(date);
-        }
-        syncDates();
+        syncDates(date, ...windows.map(w => w.date));
         refresh();
       }
       
       // Pure Classes (write: none)
+      class ArrayMap extends Map {
+        add(key, value) {
+          if (this.has(key)) {
+            this.get(key).push(value)
+          } else {
+            this.set(key, [value]);
+          }
+        }
+      }
+      
       class DayEntry {
         constructor(startDate, endDate, title, categories, notes, flags) {
           this.startDate = startDate;
@@ -999,15 +992,17 @@
         }
         
         includesDay(dayName) {
-          const keys = Object.keys(this.schedule);
-          return keys.length === 0
-            || keys.includes('')
-            || keys.includes(dayName);
+          return Object.keys(this.schedule).length === 0
+            || Object.hasOwn(this.schedule, dayName)
+            || Object.hasOwn(this.schedule, '');
         }
         
         toArray() {
           const rows = [];
-          let dateStr = toDateStr(this.startDate) + '-' + toDateStr(this.endDate);
+          let dateStr = toDateStr(this.startDate);
+          if (!isSameDay(this.startDate, this.endDate)) {
+            dateStr = dateStr + '-' + toDateStr(this.endDate);
+          }
           if (this.flags.added) dateStr = '&' + dateStr;
           rows.push([dateStr, this.title, this.categories.join(','), this.notes]);
           for (const [key, entries] of Object.entries(this.schedule)) {
@@ -1082,7 +1077,7 @@
       class DisplayWindow {
         constructor(elem) {
           this.elem = elem;
-          this.rows = [];
+          this.sourceMap = new ArrayMap();
         }
         
         static mapDayInfo(date) {
@@ -1116,75 +1111,75 @@
                 grid = [];
                 result.push(['grid', grid]);
               };
-              grid.push([...params]);
+              grid.push(params);
             }
           }
-          const grids = result.filter(([m, d]) => m === 'grid').map(([m, d]) => d);
-          grids.forEach(grid => {
+          for (const [mode, grid] of result) {
+            if (mode !== 'grid') continue;
             const maxIndex = Math.max(...grid.map(row => row.findLastIndex(Boolean)));
             for (const row of grid) {
               row.length = maxIndex + 1;
             }
-          })
+          }
           return result;
         }
         
         render() {
           const date = windows[currentTab].date;
           const colors = loop(palette);
-          this.rows.length = 0;
+          this.sourceMap.clear();
           this.elem.innerHTML = '';
           this.elem.className = ['day', 'month', 'year'][currentTab];
           if (currentTab === 0) {
             for (const [mode, item] of DisplayWindow.mapDayInfo(date)) {
-              const elem = addDiv(this.elem, mode);
               if (mode === 'grid') {
-                const template = ['fit-content(40%)', 'max-content', 'max-content', 'fit-content(40%)'];
-                const maxLen = Math.max(...item.map(cells => cells.length)) - 1;
-                elem.style.gridTemplateColumns = template.slice(0, maxLen).join(' ');
+                const maxLen = Math.max(...item.map(cells => cells.length));
+                const elem = addDiv(this.elem, 'grid', `col${maxLen - 1}`);
                 for (const cells of item) {
+                  const copy = [...cells]
                   const row = addDiv(elem, 'row');
                   const color = colors.next().value;
-                  const [start, end] = cells.slice(2, 4);
-                  cells.splice(2, 2, `${start} - ${end}`);
-                  for (const cell of cells) {
+                  const [start, end] = copy.slice(2, 4);
+                  copy.splice(2, 2, `${start} - ${end}`);
+                  for (const cell of copy) {
                     const span = addSpan(row, cell);
                     span.style.color = location ? color : 'white';
                   }
-                  this.rows.push(row);
+                  this.sourceMap.add(cells, row);
                 }
               } else {
+                const elem = addDiv(this.elem, mode);
                 elem.innerText = item;
               }
             }
           } else if (currentTab === 1) {
             addSpan(this.elem, 'Events', 'title');
-            const grid = addDiv(this.elem, 'grid');
-            const firstDay = startOfMonth(date);
-            const lastDay = endOfMonth(date);
-            let day = firstDay;
-            while (day <= lastDay) {
+            const grid = addDiv(this.elem, 'grid', 'col2');
+            for (const day of dateIter(startOfMonth(date), endOfMonth(date))) {
               const key = toDateStr(day);
               const dayInfo = eventData.get(key);
-              addTime(day, 'day', 1);
-              if (dayInfo) {
-                const {title, categories} = dayInfo;
-                if (categories.filter(c => c !== 'Classes').length === 0) continue;
-                const row = addDiv(grid, 'row');
-                this.rows.push(row);
-                const k = addSpan(row, key);
-                const e = addSpan(row, title);
-                k.style.color = eventData.categories[categories.at(-1)] || 'white';
-                e.style.color = eventData.categories[categories.at(-1)] || 'white';
-                k.style.textAlign = 'right';
-              };
+              if (!dayInfo) continue;
+              const {parent, title, categories} = dayInfo;
+              if (this.sourceMap.has(parent)) continue;
+              if (categories.every(c => c === 'Classes')) continue;
+              const row = addDiv(grid, 'row');
+              this.sourceMap.add(parent, row);
+              let dateStr = toDateStr(parent.startDate);
+              if (!isSameDay(parent.startDate, parent.endDate)) {
+                dateStr = dateStr + ' - ' + toDateStr(parent.endDate);
+              }
+              const k = addSpan(row, dateStr);
+              const e = addSpan(row, title);
+              k.style.color = eventData.categories[categories.at(-1)] || 'white';
+              e.style.color = eventData.categories[categories.at(-1)] || 'white';
+              k.style.textAlign = 'right';
             }
           } else if (currentTab === 2) {
             addSpan(this.elem, 'Legend', 'title');
-            const grid = addDiv(this.elem, 'grid');
+            const grid = addDiv(this.elem, 'grid', 'col2');
             for (const [name, color] of Object.entries(eventData.categories)) {
               const row = addDiv(grid, 'row');
-              this.rows.push(row);
+              this.sourceMap.add(name, row);
               const c = addDiv(row, 'color-box');
               const n = addSpan(row, name);
               c.style.color = color;
@@ -1196,16 +1191,16 @@
       
       class DayWindow {
         constructor(elem) {
-          this.date = new Date();
           this.elem = elem;
+          this.date = new Date();
           this.top = addDiv(this.elem, 'top');
           this.bottom = addDiv(this.elem, 'bottom');
           this.grid = addDiv(this.bottom, 'grid');
           addSpan(this.top, 'Time', 'first-header');
           this.startHour = 14;
           this.endHour = 21;
-          this.events = [];
           this.timers = {}
+          this.sourceMap = new ArrayMap();
         }
         
         addTimer() {
@@ -1260,32 +1255,32 @@
           const colors = loop(palette);
           this.top.replaceChildren(this.top.firstElementChild)
           this.bottom.replaceChildren(this.bottom.firstElementChild)
-          this.events.length = 0;
+          this.sourceMap.clear();
           let [startHour, endHour] = [14, 0];
           const locations = [];
           for (const [name, location, start, end] of dayInfo.schedule) {
             if (!start || !end) continue;
             startHour = Math.floor(Math.min(startHour, strToHours(start)));
             endHour = Math.ceil(Math.max(endHour, strToHours(end)));
-            let index = locations.indexOf(location) + 1;
-            if (index === 0 && location) {
-              index = locations.length + 1;
+            if (location && !locations.includes(location)) {
               locations.push(location);
               const header = addSpan(this.top, location, 'header');
-              header.style.left = `${15*index-6}%`;
+              header.style.left = `${15*locations.length-6}%`;
             }
           }
           endHour = Math.max(endHour, startHour + 7);
           this.buildGridRows(startHour, endHour);
           const count = endHour - startHour + 1;
-          for (let [name, location, start, end] of dayInfo.schedule) {
-            let index = locations.indexOf(location) + 1;
+          for (let items of dayInfo.schedule) {
+            let [name, location, start, end] = items;
             const block = addDiv(this.bottom, 'event');
-            if (location || start || end) this.events.push(block);
+            const isHeader = !items.slice(1).some(Boolean);
+            if (!isHeader) this.sourceMap.add(items, block);
             if (!start || !end) {
               block.style.display = 'none';
               continue;
             };
+            let index = locations.indexOf(location) + 1;
             [start, end] = [start, end].map(strToHours);
             const offset = start - startHour;
             const duration = end - start;
@@ -1306,10 +1301,10 @@
       
       class MonthWindow {
         constructor(elem) {
+          this.elem = elem;
           this.date = new Date();
           this.selected = new Date();
-          this.elem = elem;
-          this.events = [];
+          this.sourceMap = new ArrayMap();
           const dayHeader = addDiv(this.elem, 'day-header');
           const grid = addDiv(this.elem, 'grid');
           for (const name of dayNames) {
@@ -1328,7 +1323,7 @@
           const lastDayOfMonth = endOfMonth(this.date);
           const today = toDateStr(new Date());
           const selected = toDateStr(this.selected);
-          this.events.length = 0;
+          this.sourceMap.clear();
           let day = startOfWeek(firstDayOfMonth);
           for (let i = 0; i < 42; i++) {
             const box = grid.children[i];
@@ -1342,8 +1337,9 @@
             box.classList.toggle('today', isActive && key==today);
             box.classList.toggle('selected', isActive && key==selected);
             if (dayInfo.categories.length > 0 && isActive) {
-              if (dayInfo.categories.filter(c => c !== 'Classes').length > 0)
-                this.events.push(box);
+              if (!dayInfo.categories.every(c => c === 'Classes')) {
+                this.sourceMap.add(dayInfo.parent, box);
+              }
               nameText.innerText = dayInfo.title;
               box.style.backgroundColor = eventData.categories[dayInfo.categories.at(-1)];
             } else {
@@ -1359,7 +1355,7 @@
         constructor(elem) {
           this.date = new Date();
           this.selected = new Date();
-          this.groups = {};
+          this.sourceMap = new ArrayMap();
           this.elem = elem;
           this.grid = addDiv(this.elem, 'grid');
           for (let i = 0; i < 12; i++) {
@@ -1372,7 +1368,7 @@
         }
         
         render() {
-          for (const key in this.groups) delete this.groups[key];
+          this.sourceMap.clear();
           const today = toDateStr(new Date());
           const selected = toDateStr(this.selected);
           const [monthStart, end] = getYearRange(this.date, monthOffset);
@@ -1390,7 +1386,7 @@
                 const key = toDateStr(day);
                 const dayInfo = getData(key);
                 for (const c of dayInfo.categories) {
-                  addToArrayMap(this.groups, c, box);
+                  this.sourceMap.add(c, box);
                 }
                 if (dayInfo.categories.length > 0) {
                   box.style.backgroundColor = eventData.categories[dayInfo.categories.at(-1)];
@@ -1452,9 +1448,10 @@
         link(...elems) {
           this.links.push(elems);
           const index = this.links.length-1;
+          const signal = {signal: this.controller.signal};
           for (const elem of elems) {
-            elem.addEventListener('mouseenter', () => this.setAll(index, true), {signal: this.controller.signal});
-            elem.addEventListener('mouseleave', () => this.setAll(index, false), {signal: this.controller.signal});
+            elem.addEventListener('mouseenter', () => this.setAll(index, true), signal);
+            elem.addEventListener('mouseleave', () => this.setAll(index, false), signal);
           };
         }
         
@@ -1462,11 +1459,12 @@
           if (!rest) rest = [];
           this.links.push([first, ...rest]);
           const index = this.links.length - 1;
-          first.addEventListener('mouseenter', () => this.setAll(index, true), {signal: this.controller.signal});
-          first.addEventListener('mouseleave', () => this.setAll(index, false), {signal: this.controller.signal});
+          const signal = {signal: this.controller.signal};
+          first.addEventListener('mouseenter', () => this.setAll(index, true), signal);
+          first.addEventListener('mouseleave', () => this.setAll(index, false), signal);
           for (const elem of rest) {
-            elem.addEventListener('mouseenter', () => this.setFirst(index, true), {signal: this.controller.signal});
-            elem.addEventListener('mouseleave', () => this.setFirst(index, false), {signal: this.controller.signal});
+            elem.addEventListener('mouseenter', () => this.setFirst(index, true), signal);
+            elem.addEventListener('mouseleave', () => this.setFirst(index, false), signal);
           }
         }
         
@@ -1555,6 +1553,57 @@
         }
       }
       
+      class SheetCache {
+        constructor(storage, maxLen) {
+          this.storage = storage;
+          this.maxLen = maxLen;
+          const ids = new Set(['ids', ...this.loadIds()]);
+          const existing = new Set(Object.keys(storage));
+          for (const e of existing) {
+            const [id, key] = e.split(':');
+            if (!ids.has(id)) storage.removeItem(e);
+          }
+        }
+        
+        get(id, key) {
+          return this.storage.getItem(`${id}:${key}`);
+        }
+        
+        set(id, key, value) {
+          this.addId(id);
+          this.storage.setItem(`${id}:${key}`, value);
+        }
+        
+        saveIds(ids) {
+          this.storage.setItem('ids', '[' + ids.join(',') + ']');
+        }
+        
+        loadIds() {
+          const idStr = this.storage.getItem('ids');
+          return idStr ? idStr.slice(1,-1).split(',') : [];
+        }
+        
+        clearId(id) {
+          for (const key of Object.keys(this.storage)) {
+            if (key.startsWith(id)) this.storage.removeItem(key);
+          }
+        }
+        
+        addId(id) {
+          const ids = this.loadIds();
+          if (this.maxLen !== undefined) {
+            while (ids.length > this.maxLen) {
+              this.clearId(ids[0]);
+              ids.shift();
+            };
+          }
+          if (!ids.includes(id)) {
+            ids.push(id);
+          };
+          this.saveIds(ids);
+        }
+      }
+      
       // Main Script
       
       let currentTab = 2;
@@ -1565,6 +1614,7 @@
       const params = new URLSearchParams(window.location.search);
       const sheetID = params.get('sheetid') || '1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
       const gidList = [0, 1588629629]
+      const sheetCache = new SheetCache(localStorage, 8);
       
       const section1 = document.getElementById('section-1')
       const section2 = document.getElementById('section-2')
@@ -1613,7 +1663,7 @@
         } else return;
         windows[tab].date.setTime(day.getTime());
         selectTab(tab);
-        syncDates();
+        syncDates(...windows.slice(tab).map(w => w.date));
       });
       windows[1].elem.addEventListener('click', event => {
         const elem = event.target;
@@ -1622,7 +1672,7 @@
           addTime(date, 'day', getElemIndex(elem, 2));
           windows[0].date.setTime(date.getTime());
           selectTab(0);
-          syncDates();
+          syncDates(...windows.map(w => w.date));
         }
       })
     </script>
