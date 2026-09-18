@@ -33,13 +33,13 @@ Rows on this tab may have one of two formats: **Day-Format**, representing an en
 |Filter|Description|Location|Start&nbsp;Time|End&nbsp;Time|Instructors|
 |-|-|-|-|-|-|
 | |Sugar Plum Pas|Studio C|7:00&nbsp;pm|8:30&nbsp;pm|Brianna|
-- Rows that begin with a **blank** or a **day of the week** become **Event Entries**
+- Rows that begin with a **blank** or a **filter** become **Event Entries**
 - These entries are applied to the **Day Entry** that preceded it
 - Valid **Event Entries** are visible on the **day tab** of the website
 - You can add any number of **Event Entries** below a **Day Entry**
-- **Filter** (Column A) must be blank, or a day of the week, (e.g. "Monday")
-  - non blank filters restrict which weekdays the following event rows apply to
-  - designed for use with multi-day entries
+- **Filter** (Column A, optional)
+  - event entries beneath a **date range** are applied to every day within that range, unless you add a **filter** (like "Monday") in column A, restricting which weekdays those entries are applied to
+  - a filter applies to every entry below and including it, until the next filter or date string
 - **Description** (Column B) may be any text
 - **Location** (Column C) may be any text
 - **Start Time** (Column D) must be in a 12-hour time format, (e.g 4:15 PM)
@@ -56,7 +56,9 @@ Rows on this tab may have one of two formats: **Day-Format**, representing an en
     - used for breaks or anything else that applies everywhere
 
 ### Categories
-- Rows on this tab consist of a **Category** and a **Color**.
+|Category|Color|
+|-|-|
+|Performances|Pink|
 - **Category** (Column A) may be any text
 - **Color** (Column B) may be any [CSS color](https://davidbau.com/colors/)
 
