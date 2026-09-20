@@ -5,18 +5,18 @@ An interactive website for viewing calendar data for Southwest Washington Dance 
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/yeartab.png">
+      <img src="screenshots/yearTab.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/monthtab.png">
+      <img src="screenshots/monthTab.png">
     </td>
   </tr>
   <tr>
     <td valign="middle">
-      <img src="screenshots/daytab.png">
+      <img src="screenshots/dayTab.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/print2.png">
+      <img src="screenshots/Walkthrough/print2.png">
     </td>
   </tr>
 </table>
@@ -40,10 +40,10 @@ With a blank spreadsheet, here's what you'd see on the year tab:
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/sheets1.png">
+      <img src="screenshots/Walkthrough/sheets1.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site1.png">
+      <img src="screenshots/Walkthrough/site1.png">
     <td>
   </tr>
 </table>
@@ -52,10 +52,10 @@ After adding some categories:
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/sheets2.png">
+      <img src="screenshots/Walkthrough/sheets2.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site2.png">
+      <img src="screenshots/Walkthrough/site2.png">
     <td>
   </tr>
 </table>
@@ -65,10 +65,10 @@ After adding some events (switch to the **Events Tab** at the bottom of the spre
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/sheets3.png">
+      <img src="screenshots/Walkthrough/sheets3.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site3.png">
+      <img src="screenshots/Walkthrough/site3.png">
     <td>
   </tr>
 </table>
@@ -77,10 +77,10 @@ And here's the Month and Day tabs of the barbecue event:
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site4.png">
+      <img src="screenshots/Walkthrough/site4.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site5.png">
+      <img src="screenshots/Walkthrough/site5.png">
     <td>
   </tr>
 </table>
@@ -89,10 +89,10 @@ Here's the Day tab after adding a schedule:
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/sheets4.png">
+      <img src="screenshots/Walkthrough/sheets4.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site6.png">
+      <img src="screenshots/Walkthrough/site6.png">
     <td>
   </tr>
 </table>
@@ -106,10 +106,10 @@ You can also add sections/notes within the schedule entries, by adding entries w
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/sheets5.png">
+      <img src="screenshots/Walkthrough/sheets5.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site7.png">
+      <img src="screenshots/Walkthrough/site7.png">
     <td>
   </tr>
 </table>
@@ -118,7 +118,7 @@ And here's the corresponding print page:
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/print1.png" width="50%">
+      <img src="screenshots/Walkthrough/print1.png" width="50%">
     </td>
   </tr>
 </table>
@@ -128,18 +128,18 @@ For date entries that span multiple days, adding a schedule to it applies that s
 <table>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/sheets6.png">
+      <img src="screenshots/Walkthrough/sheets6.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site8.png">
+      <img src="screenshots/Walkthrough/site8.png">
     <td>
   </tr>
   <tr>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site9.png">
+      <img src="screenshots/Walkthrough/site9.png">
     </td>
     <td valign="middle">
-      <img src="screenshots/walkthrough/site10.png">
+      <img src="screenshots/Walkthrough/site10.png">
     <td>
   </tr>
 </table>
