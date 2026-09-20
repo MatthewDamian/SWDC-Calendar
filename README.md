@@ -2,25 +2,6 @@
 
 An interactive website for viewing calendar data for Southwest Washington Dance Center (SWDC).  Automatically obtains its data from a google spreadsheet.
 
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/yearTab.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/monthTab.png">
-    </td>
-  </tr>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/dayTab.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/print2.png">
-    </td>
-  </tr>
-</table>
-
 ### Table of Contents
 * [Walkthrough](#walkthrough)
   * [Adding Events](#adding-events)
@@ -31,71 +12,42 @@ An interactive website for viewing calendar data for Southwest Washington Dance 
   * [Categories](#categories)
 * [Notes](#notes)
 
+### Screenshots
+<img src="screenshots/dayTab.png">
+<img src="screenshots/monthTab.png">
+<img src="screenshots/yearTab.png">
 
 ## Walkthrough
 Click on "View Google Sheet" from the website to begin editing the site's data (provided you have editor access).  You may **insert rows anywhere** and begin typing to make new entries.  After a second, **refresh** the website to see the changes.  
 
 ### Adding Events
-With a blank spreadsheet, here's what you'd see on the year tab:  
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/sheets1.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site1.png">
-    </td>
-  </tr>
-</table>
+Starting with a blank spreadsheet  
 
-After adding some categories:
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/sheets2.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site2.png">
-    </td>
-  </tr>
-</table>
+<img src="screenshots/Walkthrough/sheets1.png">  
+
+Here's what you'd see on the year tab:  
+
+<img src="screenshots/Walkthrough/site1.png">
+
+After adding some categories:  
+
+<img src="screenshots/Walkthrough/sheets2.png">
+<img src="screenshots/Walkthrough/site2.png">
 
 After adding some events (switch to the **Events Tab** at the bottom of the spreadsheet):
 
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/sheets3.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site3.png">
-    </td>
-  </tr>
-</table>
+<img src="screenshots/Walkthrough/sheets3.png">
+<img src="screenshots/Walkthrough/site3.png">
 
-And here's the Month and Day tabs of the barbecue event:
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site4.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site5.png">
-    </td>
-  </tr>
-</table>
+And here's the Month and Day tabs of the barbecue event:  
 
-Here's the Day tab after adding a schedule:
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/sheets4.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site6.png">
-    </td>
-  </tr>
-</table>
+<img src="screenshots/Walkthrough/site4.png">
+<img src="screenshots/Walkthrough/site5.png">
+
+Here's the Day tab after adding a schedule:  
+
+<img src="screenshots/Walkthrough/sheets4.png">
+<img src="screenshots/Walkthrough/site6.png">
 
 Note that the schedule entries are applied to the date entry that preceded it, and follow a different format.  The date entry follows the format **[Date(s), Title, Categories, Notes]**, but the schedule entries follow the format **[(Weekday), Description, Location, Start Time, End Time, Instructors]**.
 
@@ -103,46 +55,18 @@ Note that the schedule entries are applied to the date entry that preceded it, a
 
 You can also add sections/notes within the schedule entries, by adding entries with only a **Description**.
 
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/sheets5.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site7.png">
-    </td>
-  </tr>
-</table>
+<img src="screenshots/Walkthrough/sheets5.png">
+<img src="screenshots/Walkthrough/site7.png">
 
 And here's the corresponding print page:
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/print1.png" width="50%">
-    </td>
-  </tr>
-</table>
+<img src="screenshots/Walkthrough/print1.png">
 
 For date entries that span multiple days, adding a schedule to it applies that schedule to **every** day within that range.  You can section those schedules by adding a **Weekday** in the first column.
 
-<table>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/sheets6.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site8.png">
-    </td>
-  </tr>
-  <tr>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site9.png">
-    </td>
-    <td valign="middle">
-      <img src="screenshots/Walkthrough/site10.png">
-    </td>
-  </tr>
-</table>
+<img src="screenshots/Walkthrough/sheets6.png">
+<img src="screenshots/Walkthrough/site10.png">
+<img src="screenshots/Walkthrough/site8.png">
+<img src="screenshots/Walkthrough/site9.png">
 
 Note that for large date ranges that span multiple weeks, those sections would repeat weekly.  This can be used for anything that repeats on a weekly basis.
 
