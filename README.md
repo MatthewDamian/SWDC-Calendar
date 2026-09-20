@@ -44,7 +44,7 @@ With a blank spreadsheet, here's what you'd see on the year tab:
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site1.png">
-    <td>
+    </td>
   </tr>
 </table>
 
@@ -56,7 +56,7 @@ After adding some categories:
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site2.png">
-    <td>
+    </td>
   </tr>
 </table>
 
@@ -69,7 +69,7 @@ After adding some events (switch to the **Events Tab** at the bottom of the spre
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site3.png">
-    <td>
+    </td>
   </tr>
 </table>
 
@@ -81,7 +81,7 @@ And here's the Month and Day tabs of the barbecue event:
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site5.png">
-    <td>
+    </td>
   </tr>
 </table>
 
@@ -93,7 +93,7 @@ Here's the Day tab after adding a schedule:
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site6.png">
-    <td>
+    </td>
   </tr>
 </table>
 
@@ -110,7 +110,7 @@ You can also add sections/notes within the schedule entries, by adding entries w
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site7.png">
-    <td>
+    </td>
   </tr>
 </table>
 
@@ -132,7 +132,7 @@ For date entries that span multiple days, adding a schedule to it applies that s
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site8.png">
-    <td>
+    </td>
   </tr>
   <tr>
     <td valign="middle">
@@ -140,7 +140,7 @@ For date entries that span multiple days, adding a schedule to it applies that s
     </td>
     <td valign="middle">
       <img src="screenshots/Walkthrough/site10.png">
-    <td>
+    </td>
   </tr>
 </table>
 
