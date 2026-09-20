@@ -93,6 +93,16 @@
           inset: 0;
           place-self: center;
         }
+        
+        #title-text {
+          display: none;
+          color: white;
+          font-weight: bold;
+          font-size: 32px;
+          position: absolute;
+          inset: 0;
+          place-self: center;
+        }
       }
       #display {
         position: relative;
@@ -372,9 +382,6 @@
             border: 1px solid black;
             z-index: 1;
           }
-          .grid .box.selected {
-            border: 1px solid black;
-          }
           .grid .box.today {
             border: 2px solid black;
           }
@@ -435,14 +442,6 @@
             z-index: 1;
           }
           .grid .month .mgrid .date:hover,
-          .grid .month .mgrid .date.selected {
-            cursor: pointer;
-            border: 1px solid black;
-          }
-          .grid .month .mgrid .date.selected:hover {
-            cursor: pointer;
-            border: 2px solid black;
-          }
           .grid .month .mgrid .date.today {
             border: 2px solid black;
             font-weight: bold;
@@ -495,9 +494,6 @@
         td:nth-child(4) {
           white-space: nowrap;
         }
-        th {
-          text-wrap: nowrap;
-        }
       }
       @media (orientation: portrait) {
         :root {
@@ -530,6 +526,7 @@
           <a href="https://www.swwdance.org/" aria-label="SWDC Homepage">
             <img id="logo" alt="SWDC Logo" src="https://images.squarespace-cdn.com/content/v1/5fa31a9e206c8a69fd49cfda/1611602029932-VTFLL1ATNQGALUG35LPA/png.png?format=500w">
           </a>
+          <div id="title-text"></div>
           <div class="icons">
             <a href="https://github.com/MatthewDamian/SWDC-Calendar#readme" target="_blank" rel="noopener noreferrer" aria-label="Github README">
               <svg width="24" height="24" viewBox="0 0 98 96" fill="lightgray" xmlns="http://www.w3.org/2000/svg">
@@ -802,7 +799,7 @@
         return newElem;
       }
       function objSet(obj, newObj) {
-        for (const key in obj) delete obj[key];
+        for (const key of Object.keys(obj)) delete obj[key];
         Object.assign(obj, newObj);
       }
       function addTable(container, textArray) {
@@ -889,9 +886,7 @@
         }
         const text = rows.map(row => row.join('\t')).join('\n');
         try {
-          navigator.clipboard.writeText(text)
-            .then(() => alert('Copied to Clipboard', 2000))
-            .catch(() => alert('Error copying to Clipboard', 2000));
+          navigator.clipboard.writeText(text).then(() => alert('Copied to Clipboard', 2000));
         } catch (error) {
           console.log(error);
           alert('Error copying to Clipboard', 2000);
@@ -922,7 +917,6 @@
         displayIcons.style.display = (currentTab === 0) ? 'block' : 'none';
         // Link hover events
         hoverLinker.abort();
-        const rows = displayWindow.rows;
         for (const [source, elems] of displayWindow.sourceMap) {
           hoverLinker.linkFirst(elems[0], w.sourceMap.get(source));
         }
@@ -950,6 +944,18 @@
       function goToDate(date) {
         syncDates(date, ...windows.map(w => w.date));
         refresh();
+      }
+      function setTitle(text) {
+        const elem = document.getElementById('title-text');
+        const logo = document.getElementById('logo');
+        if (text) {
+          logo.style.display = 'none';
+          elem.style.display = 'block';
+          elem.innerText = text;
+        } else {
+          logo.style.display = 'block';
+          elem.style.display = 'none';
+        }
       }
       
       // Pure Classes (write: none)
@@ -1303,7 +1309,6 @@
         constructor(elem) {
           this.elem = elem;
           this.date = new Date();
-          this.selected = new Date();
           this.sourceMap = new ArrayMap();
           const dayHeader = addDiv(this.elem, 'day-header');
           const grid = addDiv(this.elem, 'grid');
@@ -1322,7 +1327,6 @@
           const firstDayOfMonth = startOfMonth(this.date);
           const lastDayOfMonth = endOfMonth(this.date);
           const today = toDateStr(new Date());
-          const selected = toDateStr(this.selected);
           this.sourceMap.clear();
           let day = startOfWeek(firstDayOfMonth);
           for (let i = 0; i < 42; i++) {
@@ -1335,7 +1339,6 @@
             const key = toDateStr(day);
             const dayInfo = getData(key);
             box.classList.toggle('today', isActive && key==today);
-            box.classList.toggle('selected', isActive && key==selected);
             if (dayInfo.categories.length > 0 && isActive) {
               if (!dayInfo.categories.every(c => c === 'Classes')) {
                 this.sourceMap.add(dayInfo.parent, box);
@@ -1354,7 +1357,6 @@
       class YearWindow {
         constructor(elem) {
           this.date = new Date();
-          this.selected = new Date();
           this.sourceMap = new ArrayMap();
           this.elem = elem;
           this.grid = addDiv(this.elem, 'grid');
@@ -1370,7 +1372,6 @@
         render() {
           this.sourceMap.clear();
           const today = toDateStr(new Date());
-          const selected = toDateStr(this.selected);
           const [monthStart, end] = getYearRange(this.date, monthOffset);
           for (let i = 0; i < 12; i++) {
             const monthBox = this.grid.children[i];
@@ -1394,12 +1395,10 @@
                   box.style.backgroundColor = '';
                 }
                 box.classList.toggle('today', key==today);
-                box.classList.toggle('selected', key==selected);
               } else {
                 box.innerText = '';
                 box.style.backgroundColor = '';
                 box.classList.toggle('today', false);
-                box.classList.toggle('selected', false);
               }
               addTime(day, 'day', 1);
             }
@@ -1495,7 +1494,6 @@
           this.thickness = 12;
           this.divider = document.createElement('div');
           this.divider.className = 'divider';
-          this.elem1.after(this.divider);
           this.mediaQuery = window.matchMedia('(orientation: portrait)');
           this.mediaQuery.addEventListener('change', () => this.reset());
           this.divider.addEventListener('dblclick', () => this.reset());
@@ -1505,6 +1503,7 @@
             window.addEventListener('pointerup', e => controller.abort(), {signal: controller.signal});
           })
           this.updateBoxes();
+          this.elem1.after(this.divider);
         }
         
         updateBoxes() {
@@ -1558,10 +1557,9 @@
           this.storage = storage;
           this.maxLen = maxLen;
           const ids = new Set(['ids', ...this.loadIds()]);
-          const existing = new Set(Object.keys(storage));
-          for (const e of existing) {
-            const [id, key] = e.split(':');
-            if (!ids.has(id)) storage.removeItem(e);
+          for (const key of Object.keys(storage)) {
+            const [id, key2] = key.split(':');
+            if (!ids.has(id)) storage.removeItem(key);
           }
         }
         
@@ -1639,6 +1637,7 @@
       const divider = new Divider(section1, section2);
       const hoverLinker = new HoverLinker();
       
+      setTitle(params.get('title'));
       updateFromCache(sheetID);
       updateFromSheet(sheetID, gidList);
       
