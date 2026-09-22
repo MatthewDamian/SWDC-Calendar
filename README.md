@@ -5,7 +5,9 @@ An interactive website for viewing calendar data for Southwest Washington Dance 
 ### Table of Contents
 * [Walkthrough](#walkthrough)
   * [Adding Events](#adding-events)
-  * [Special Features](#special-features)
+  * [Special Schedule Entries](#special-schedule-entries)
+  * [Multi-Day Entries](#multi-day-entries)
+  * [Overlapping Entries](#overlapping-entries)
 * [Specification](#specification)
   * [Date Format](#date-format)
   * [Schedule Format](#schedule-format)
@@ -21,7 +23,7 @@ An interactive website for viewing calendar data for Southwest Washington Dance 
 Click on "View Google Sheet" from the website to begin editing the site's data (provided you have editor access).  You may **insert rows anywhere** and begin typing to make new entries.  After a second, **refresh** the website to see the changes.  
 
 ### Adding Events
-Starting with a blank spreadsheet  
+Starting with a blank spreadsheet (on the **Categories** tab)
 
 <img src="screenshots/Walkthrough/sheets1.png">  
 
@@ -34,12 +36,12 @@ After adding some categories:
 <img src="screenshots/Walkthrough/sheets2.png">
 <img src="screenshots/Walkthrough/site2.png">
 
-After adding some events (switch to the **Events Tab** at the bottom of the spreadsheet):
+After adding some events (click the **Events Tab** at the bottom of the spreadsheet):
 
 <img src="screenshots/Walkthrough/sheets3.png">
 <img src="screenshots/Walkthrough/site3.png">
 
-And here's the Month and Day tabs of the barbecue event:  
+And here's what you'd see on the Month and Day tabs:  
 
 <img src="screenshots/Walkthrough/site4.png">
 <img src="screenshots/Walkthrough/site5.png">
@@ -51,7 +53,12 @@ Here's the Day tab after adding a schedule:
 
 Note that the schedule entries are applied to the date entry that preceded it, and follow a different format.  The date entry follows the format **[Date(s), Title, Categories, Notes]**, but the schedule entries follow the format **[(Weekday), Description, Location, Start Time, End Time, Instructors]**.
 
-### Special Features
+### Special Schedule Entries
+
+If you omit the **location**, the schedule entry spans across all the existing locations.
+
+<img src="screenshots/Walkthrough/sheets8.png">
+<img src="screenshots/Walkthrough/site12.png">
 
 You can also add sections/notes within the schedule entries, by adding entries with only a **Description**.
 
@@ -61,7 +68,8 @@ You can also add sections/notes within the schedule entries, by adding entries w
 And here's the corresponding print page:
 <img src="screenshots/Walkthrough/print1.png">
 
-For date entries that span multiple days, adding a schedule to it applies that schedule to **every** day within that range.  You can section those schedules by adding a **Weekday** in the first column.
+### Multi-Day Entries
+For date entries that span multiple days, adding a schedule to it applies that schedule to **every** day within that range.  You can also section those schedules by adding a **Weekday** in the first column.
 
 <img src="screenshots/Walkthrough/sheets6.png">
 <img src="screenshots/Walkthrough/site10.png">
@@ -70,7 +78,14 @@ For date entries that span multiple days, adding a schedule to it applies that s
 
 Note that for large date ranges that span multiple weeks, those sections would repeat weekly.  This can be used for anything that repeats on a weekly basis.
 
-If two date entries are applied to the exact same date, the latter one overwrites the former which is useful for holidays.  Overwriting can be prevented by prepending the latter entry with the **&** symbol, which makes it only replace the title and color, while adding its category, notes, and schedule to the former.
+### Overlapping Entries
+
+If two date entries overlap, the latter one overwrites the former.
+
+<img src="screenshots/Walkthrough/sheets7.png">
+<img src="screenshots/Walkthrough/site11.png">
+
+This will also overwrite the schedule of the former entry (useful for things like holidays, but not for Class Observation).  To add to the old schedule instead of overwriting it, prepend the first cell of the new entry with the **&** symbol.
 
 ## Specification
 

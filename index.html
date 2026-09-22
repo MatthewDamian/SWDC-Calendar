@@ -1144,12 +1144,12 @@
                 for (const cells of item) {
                   const copy = [...cells]
                   const row = addDiv(elem, 'row');
-                  const color = colors.next().value;
+                  const color = cells[1] ? colors.next().value : 'silver';
                   const [start, end] = copy.slice(2, 4);
                   copy.splice(2, 2, `${start} - ${end}`);
                   for (const cell of copy) {
                     const span = addSpan(row, cell);
-                    span.style.color = location ? color : 'white';
+                    span.style.color = color;
                   }
                   this.sourceMap.add(cells, row);
                 }
@@ -1291,14 +1291,15 @@
             const offset = start - startHour;
             const duration = end - start;
             block.style.top = `${100*offset/count}%`;
-            block.style.left = `${15*index-6}%`
             block.style.height = `${100*duration/count}%`;
-            block.style.backgroundColor = colors.next().value;
             block.innerText = name;
             if (!location) {
               block.style.left = `${15-6}%`
               block.style.width = `${15*locations.length}%`;
-              block.style.backgroundColor = 'transparent';
+              block.style.backgroundColor = 'silver';
+            } else {
+              block.style.left = `${15*index-6}%`;
+              block.style.backgroundColor = colors.next().value;
             }
           }
           this.addTimer();
@@ -1674,6 +1675,7 @@
           syncDates(...windows.map(w => w.date));
         }
       })
+      
     </script>
   
   </body>
