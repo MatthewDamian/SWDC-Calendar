@@ -457,7 +457,6 @@
         text-align: center;
         text-wrap: balance;
         margin: 0;
-        font-size: 11pt;
         
         .title,
         .subtitle,
@@ -478,6 +477,7 @@
           padding-top: 1.5em;
         }
         table {
+          font-size: 11pt;
           display: inline-block;
           text-align: left;
           padding-top: 1.5em;
@@ -1429,10 +1429,23 @@
         fitOnOnePage() {
           this.elem.style.display = 'block';
           this.elem.style.removeProperty('font-size');
+          const children = Array.from(this.elem.children);
+          const headers = children.filter(elem => elem.classList.contains('header'));
+          const tables = children.filter(elem => elem.tagName.toLowerCase() === 'table');
+          let headerSize = 14;
           let fontSize = 11;
           let height = this.elem.getBoundingClientRect().height;
-          while (height > 960 && fontSize > 8) {
-            this.elem.style.fontSize = `${--fontSize}pt`;
+          while (height > 960 && fontSize > 8 && headerSize > 11) {
+            headerSize--;
+            for (const h of headers) {
+              h.style.fontSize = `${headerSize}pt`;
+            }
+            height = this.elem.getBoundingClientRect().height;
+            if (height <= 960) break;
+            fontSize--;
+            for (const t of tables) {
+              t.style.fontSize = `${fontSize}pt`;
+            }
             height = this.elem.getBoundingClientRect().height;
           }
           this.elem.style.removeProperty('display');
