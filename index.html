@@ -821,7 +821,7 @@
         eventData.setEvents(parseDataPage(load('events')));
         eventData.setCategories(parseCategoryPage(load('categories')));
         currentTab = Number(load('currentTab') || currentTab);
-        let sessionDate = sessionStorage.getItem('currentDate');
+        let sessionDate = sessionStorage.getItem(sheetID + ':currentDate');
         sessionDate = sessionDate ? new Date(sessionDate) : new Date();
         for (const w of windows) {
           w.date.setTime(sessionDate);
@@ -900,14 +900,14 @@
       }
       function syncDates(date, ...des) {
         for (const d of des) d.setTime(date);
-        sessionStorage.setItem('currentDate', date);
+        sessionStorage.setItem(sheetID + ':currentDate', date);
       }
       function selectTab(index) {
         modeSelector.select(index);
         windowSelector.select(index);
         currentTab = index;
         sheetCache.set(sheetID, 'currentTab', index);
-        sessionStorage.setItem('currentDate', windows[currentTab].date);
+        sessionStorage.setItem(sheetID + ':currentDate', windows[currentTab].date);
         refresh();
       }
       function refresh() {
@@ -1120,8 +1120,12 @@
               grid.push(params);
             }
           }
+          
+          const locations = Array.from(new Set(dayInfo.schedule.map(row => row[1])));
           for (const [mode, grid] of result) {
             if (mode !== 'grid') continue;
+            grid.sort((a,b) => locations.indexOf(a[1]) - locations.indexOf(b[1]));
+            grid.sort((a,b) => strToHours(a[2])-strToHours(b[2]));
             const maxIndex = Math.max(...grid.map(row => row.findLastIndex(Boolean)));
             for (const row of grid) {
               row.length = maxIndex + 1;
@@ -1277,29 +1281,28 @@
           endHour = Math.max(endHour, startHour + 7);
           this.buildGridRows(startHour, endHour);
           const count = endHour - startHour + 1;
-          for (let items of dayInfo.schedule) {
-            let [name, location, start, end] = items;
-            const block = addDiv(this.bottom, 'event');
-            const isHeader = !items.slice(1).some(Boolean);
-            if (!isHeader) this.sourceMap.add(items, block);
-            if (!start || !end) {
-              block.style.display = 'none';
-              continue;
-            };
-            let index = locations.indexOf(location) + 1;
-            [start, end] = [start, end].map(strToHours);
-            const offset = start - startHour;
-            const duration = end - start;
-            block.style.top = `${100*offset/count}%`;
-            block.style.height = `${100*duration/count}%`;
-            block.innerText = name;
-            if (!location) {
-              block.style.left = `${15-6}%`
-              block.style.width = `${15*locations.length}%`;
-              block.style.backgroundColor = 'silver';
-            } else {
-              block.style.left = `${15*index-6}%`;
-              block.style.backgroundColor = colors.next().value;
+          for (const [mode, data] of DisplayWindow.mapDayInfo(this.date)) {
+            if (mode !== 'grid') continue;
+            for (const items of data) {
+              let [name, location, start, end] = items;
+              if (!start || !end) continue;
+              const block = addDiv(this.bottom, 'event');
+              this.sourceMap.add(items, block);
+              let index = locations.indexOf(location) + 1;
+              [start, end] = [start, end].map(strToHours);
+              const offset = start - startHour;
+              const duration = end - start;
+              block.style.top = `${100*offset/count}%`;
+              block.style.height = `${100*duration/count}%`;
+              block.innerText = name;
+              if (!location) {
+                block.style.left = `${15-6}%`
+                block.style.width = `${15*locations.length}%`;
+                block.style.backgroundColor = 'silver';
+              } else {
+                block.style.left = `${15*index-6}%`;
+                block.style.backgroundColor = colors.next().value;
+              }
             }
           }
           this.addTimer();
@@ -1509,10 +1512,13 @@
         scrollFirst(index) {
           const elem = this.links[index][0];
           const displayStyle = window.getComputedStyle(elem).display;
-          if (displayStyle === 'contents' && elem.children.length > 0) {
-            elem.children[0].scrollIntoView({'block': 'end'});
+          const scrollOptions = {'block': 'center'};
+          if (displayStyle === 'contents') {
+            if (elem.children.length > 0) {
+              elem.children[0].scrollIntoView(scrollOptions);
+            }
           } else {
-            elem.scrollIntoView({'block': 'end'});
+            elem.scrollIntoView(scrollOptions);
           }
         }
         
