@@ -723,33 +723,38 @@
       function fetchSheet(sheetID, gid=0) {
         return fetch(`https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`);
       }
-      function parseCategoryPage(data) {
-        const result = {};
-        for (const [name, color] of dataLines(data)) {
-          result[titleCase(name)] = color;
-        }
-        return result
-      }
       function parseDataPage(data) {
         const entries = [];
+        const categories = {};
+        const state = {mode:'Start'};
         let day;
         for (const [first, ...rest] of dataLines(data)) {
-          const [added, identifier] = checkPrefix('&', titleCase(first));
-          if (isValidDateRange(identifier)) {
-            day = '';
-            const [start, end] = getDateRange(identifier);
+          const identifier = titleCase(first);
+          if (state.mode === 'Start') {
+            if (!identifier) continue;
+            else if (identifier === 'Categories') {
+              state.mode = 'Categories';
+              const [name, color] = rest;
+              if (name) categories[name] = color;
+            }
+          } else if (isValidDateRange(identifier)) {
+            state.mode = 'Date';
+            state.day = '';
+            const [added, string] = checkPrefix('&', identifier);
+            const [start, end] = getDateRange(string);
             let [title, categories, notes] = rest;
             title = titleCase(title);
             categories = titleCase(categories).split(',').map(s => s.trim());
             entries.push(new DayEntry(start, end, title, categories, notes, {added: added}));
-          } else if (entries.length === 0) {
-            continue;
-          } else {
-            if (dayNames.includes(identifier)) day = identifier;
-            entries.at(-1).addToSchedule(rest, day);
+          } else if (state.mode === 'Categories') {
+            const [name, color] = rest;
+            if (name) categories[name] = color;
+          } else if (state.mode === 'Date') {
+            if (dayNames.includes(identifier)) state.day = identifier;
+            entries.at(-1).addToSchedule(rest, state.day);
           }
         }
-        return entries;
+        return [entries, categories];
       }
       function getData(key) {
         return eventData.get(key) || new DayInfo();
@@ -821,8 +826,9 @@
       
       function updateFromCache(sheetID) {
         const load = s => sheetCache.get(sheetID, s) || '';
-        eventData.setEvents(parseDataPage(load('events')));
-        eventData.setCategories(parseCategoryPage(load('categories')));
+        const [events, categories] = parseDataPage(load('data'));
+        eventData.setEvents(events);
+        eventData.setCategories(categories);
         currentTab = Number(load('currentTab') || currentTab);
         let sessionDate = sessionStorage.getItem(sheetID + ':currentDate');
         sessionDate = sessionDate ? new Date(sessionDate) : new Date();
@@ -838,8 +844,9 @@
           return Promise.all(rList.map(r => r.text()));
         }).then(data => {
           try {
-            eventData.setEvents(parseDataPage(data[0]));
-            eventData.setCategories(parseCategoryPage(data[1]));
+            const [events, categories] = parseDataPage(data[0]);
+            eventData.setEvents(events);
+            eventData.setCategories(categories);
           } catch {
             throw new Error('Error parsing spreadsheet data');
           }
@@ -851,13 +858,13 @@
       }
       function updateCache() {
         const [start, end] = getYearRange(new Date(), monthOffset);
+        const categoryCsv = Object.entries(eventData.categories).map(([k,v]) => ['', k, v]);
+        if (categoryCsv.length) categoryCsv[0][0] = 'Categories';
         const eventCsv = eventData.entries
           .filter(e => e.startDate <= end && e.endDate >= start)
           .map(e => toCsvString(e.toArray())).join('\n');
-        const categoryCsv = toCsvString(Object.entries(eventData.categories));
         sheetCache.set(sheetID, 'currentTab', currentTab);
-        sheetCache.set(sheetID, 'events', eventCsv);
-        sheetCache.set(sheetID, 'categories', categoryCsv);
+        sheetCache.set(sheetID, 'data', toCsvString(categoryCsv) + '\n' + eventCsv);
       }
       function togglePrintView() {
         const main = document.querySelector('main');
@@ -1676,7 +1683,7 @@
       const palette = ['pink', 'skyblue', 'goldenrod', 'lightgreen', 'tan', 'khaki', 'mediumpurple', 'lightseagreen', 'violet', 'sandybrown'];
       const params = new URLSearchParams(window.location.search);
       const sheetID = params.get('sheetid') || '1G4BoG5Jumb-N_HVgcvb5e1noY3rL4GG_F5kfpcgIl6s';
-      const gidList = [0, 1588629629]
+      const gidList = [0];
       const sheetCache = new SheetCache(localStorage, 8);
       
       const section1 = document.getElementById('section-1')
