@@ -126,6 +126,9 @@
             font-size: var(--font-size-1);
             padding-top: 1.5em;
           }
+          .grid.col5 {
+            grid-template-columns: fit-content(25%) max-content max-content fit-content(20%) fit-content(25%);
+          }
           .grid.col4 {
             grid-template-columns: fit-content(40%) max-content max-content fit-content(40%);
           }
@@ -1436,20 +1439,37 @@
           const headers = children.filter(elem => elem.classList.contains('header'));
           const tables = children.filter(elem => elem.tagName.toLowerCase() === 'table');
           let headerSize = 14;
+          const minHeader = 8;
           let fontSize = 11;
-          let height = this.elem.getBoundingClientRect().height;
-          while (height > 960 && fontSize > 8 && headerSize > 11) {
-            headerSize--;
-            for (const h of headers) {
-              h.style.fontSize = `${headerSize}pt`;
+          const minFont = 8;
+          let padSize = .08;
+          const minPad = .04;
+          let fits = () => this.elem.getBoundingClientRect().height <= 950;
+          let isMin = () => fontSize <= minFont && headerSize <= minHeader && padSize <= minPad;
+          while (!fits() && !isMin()) {
+            if (padSize > minPad) {
+              padSize -= .01;
+              for (const t of tables) {
+                const tds = t.querySelectorAll('td');
+                for (const td of tds) {
+                  td.style.padding = `${padSize}in`
+                }
+              }
+              if (fits()) break;
             }
-            height = this.elem.getBoundingClientRect().height;
-            if (height <= 960) break;
-            fontSize--;
-            for (const t of tables) {
-              t.style.fontSize = `${fontSize}pt`;
+            if (headerSize > minHeader) {
+              headerSize--;
+              for (const h of headers) {
+                h.style.fontSize = `${headerSize}pt`;
+              }
+              if (fits()) break;
             }
-            height = this.elem.getBoundingClientRect().height;
+            if (fontSize > minFont) {
+              fontSize--;
+              for (const t of tables) {
+                t.style.fontSize = `${fontSize}pt`;
+              }
+            }
           }
           this.elem.style.removeProperty('display');
         }
